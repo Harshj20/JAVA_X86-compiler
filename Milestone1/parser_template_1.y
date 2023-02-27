@@ -59,42 +59,6 @@ void print_token(char* token_type, char* token_value) {
 //        | program statement s_semicolon
 //        ;
 
-// statement: declaration
-//          | assignment_statement
-//          | Expression_statement
-//          ;
-//  -------------------------Declaration --------------------
-// declaration: PrimitiveType variable_declarator
-//             ;
-
-/* variable_declarator: Identifier  op_o_assign_Expression 
-                   | Identifier array_initializer op_o_assign_d1_Expression
-                   | Identifier array_initializer array_initializer op_o_assign_d2_Expression
-                   | Identifier array_initializer array_initializer array_initializer op_o_assign_d3_Expression ;
-op_o_assign_Expression: | o_assign Expression ;
-op_o_assign_d1_Expression : | o_assign d1_Expression ;
-op_o_assign_d2_Expression: | o_assign d2_Expression ;
-op_o_assign_d3_Expression: | o_assign d3_Expression ; */
-
-// d1_Expression: s_open_curly_bracket op_Expression_list s_close_curly_bracket ;
-
-// op_Expression_list: | Expression_list;
-// Expression_list : Expression | Expression s_comma Expression ;
-
-// d2_Expression: s_open_curly_bracket d1_Expression_list s_close_curly_bracket ; 
-// d1_Expression_list: d1_Expression | d1_Expression s_comma d1_Expression_list ;
-
-
-// d3_Expression: s_open_curly_bracket d2_Expression_list s_close_curly_bracket ;
-// d2_Expression_list: d2_Expression | d2_Expression_list;
-
-// array_initializer: s_open_square_bracket op_Expression s_close_square_bracket ;
-op_Expression : 
-    
-    | Expression
-    ;
-
-// -------------------Declarations over -----------------
 
 //  --------------------ignore--------------
 VariableDeclaratorList : 
@@ -104,13 +68,8 @@ VariableDeclaratorList :
 
 VariableDeclarator : 
     VariableDeclaratorId
-    | o_assign VariableInitializer
+    | VariableDeclaratorId o_assign VariableInitializer
     ;
-
-// op_VariableDeclarator : 
-    
-//     | o_assign VariableInitializer 
-//     ;
 
 VariableDeclaratorId : 
     Identifier | Identifier Dims 
@@ -123,20 +82,6 @@ VariableInitializer :
 // --------------------ignore------------
 
 // ------------production 3--------------
-TypeIdentifier :
-    Identifier 
-    // | k_exports 
-    // | k_module 
-    // | k_non_sealed 
-    // | k_open 
-    // | k_opens 
-    // | k_provide 
-    // | k_requires 
-    // | k_to 
-    // | k_transitive 
-    // | k_uses 
-    // | k_with 
-    ;
 
 // ------production 4-------
 
@@ -175,9 +120,9 @@ ReferenceType :
 
 // ClassType: ClassType /*| InterfaceType*/ ;
 
-// ClassType: TypeIdentifier //
-//             | ClassType s_dot TypeIdentifier //
-//             | ClassType s_dot TypeIdentifier /**/ ;
+// ClassType: Identifier //
+//             | ClassType s_dot Identifier //
+//             | ClassType s_dot Identifier /**/ ;
 //: | TypeArguments;
 
 //InterfaceType: ClassType ;
@@ -185,7 +130,7 @@ ReferenceType :
 ArrayType: 
     PrimitiveType Dims
     | ClassType Dims
-    // | TypeIdentifier Dims
+    // | Identifier Dims
     ;
 
 Dims: 
@@ -193,34 +138,11 @@ Dims:
     | s_open_square_bracket s_close_square_bracket Dims 
     ;
 
-//TypeParameter: TypeIdentifier op_TypeBound ;
-/* op_TypeBound: | TypeBound;
-
-TypeBound: k_extends TypeIdentifier
-            | k_extends ClassType AdditionalBounds;
-
-AdditionalBounds: | AdditionalBound AdditionalBounds;
-
-AdditionalBound: o_bitwise_and InterfaceType ; */
-
-/* TypeArguments: o_less_than TypeArgumentList o_greater_than ;
-
-TypeArgumentList: TypeArgument | TypeArgument s_comma TypeArgumentList;
-
-TypeArgument: ReferenceType 
-            | Wildcard ; */
-/* Wildcard: o_question_mark op_WildcardBounds
-op_WildcardBounds: | WildcardBounds;
-WildcardBounds: k_extends ReferenceType
-            | k_super ReferenceType */
-
-
-
 //  -------------------Production 6----------------
 
 ClassType: 
-    TypeIdentifier
-    | ClassType s_dot TypeIdentifier
+    Identifier
+    | ClassType s_dot Identifier
     ;
 
 // --------------production 10-----------
@@ -237,83 +159,7 @@ VariableInitializerList:
     ;
 
 
-
-// assignment_statement: 
-//     Expression o_assign Expression
-//     | Expression o_assign ternary_Expression
-//     | Expression o_add_assign Expression
-//     | Expression o_multiply_assign Expression
-//     | Expression o_subtract_assign Expression
-//     | Expression o_divide_assign Expression
-//     | Expression o_modulo_assign Expression
-//     | Expression o_bitwise_and_assign Expression
-//     | Expression o_bitwise_xor_assign Expression
-//     | Expression o_bitwise_or_assign Expression
-//     | Expression o_less_than_or_equal Expression
-//     | Expression o_greater_than_or_equal Expression
-//     | Expression o_unsigned_right_shift_assign Expression
-//                      ;
-
-// Expression_statement: Expression
-                    //  ;
-
-// Expression: ternary_Expression
-//           ;
 Expression: /*LambdaExpression |*/ AssignmentExpression ;
-
-// ternary_Expression: logical_or_Expression op_ternary_Expression ;
-// op_ternary_Expression : | o_question_mark ternary_Expression o_colon ternary_Expression ;
-
-// logical_or_Expression: logical_and_Expression op_logical_or_Expression ;
-// op_logical_or_Expression : | o_logical_or logical_and_Expression op_logical_or_Expression;
-
-// logical_and_Expression: bitwise_or_Expression op_logical_and_Expression
-// op_logical_and_Expression : | o_logical_and bitwise_or_Expression op_logical_and_Expression ; 
-
-// bitwise_or_Expression: bitwise_xor_Expression op_bitwise_or_Expression ;
-// op_bitwise_or_Expression: | o_bitwise_or bitwise_xor_Expression op_bitwise_or_Expression ;
-
-// bitwise_xor_Expression: bitwise_and_Expression op_bitwise_xor_Expression ;
-// op_bitwise_xor_Expression : | o_bitwise_or bitwise_and_Expression op_bitwise_xor_Expression ;
-
-// bitwise_and_Expression: equality_Expression op_bitwise_and_Expression ;
-// op_bitwise_and_Expression : | o_bitwise_and equality_Expression op_bitwise_and_Expression ;
-
-// equality_Expression: relational_Expression op_equality_Expression ;
-// op_equality_Expression : | o_equals relational_Expression op_equality_Expression | o_not_equals relational_Expression op_equality_Expression;
-
-// relational_Expression: shift_Expression op_relational_Expression ;
-// op_relational_Expression : | op_relational shift_Expression op_relational_Expression ;
-// op_relational : o_less_than | o_less_than_or_equal | o_greater_than | o_greater_than_or_equal ;
-
-// shift_Expression: additive_Expression | additive_Expression operators_shift_Expression shift_Expression;
-//                  ;
-// operators_shift_Expression: o_left_shift | o_right_shift | o_unsigned_right_shift;
-
-
-// additive_Expression: multiplicative_Expression | multiplicative_Expression operators_additive_Expression additive_Expression ;
-// operators_additive_Expression: o_add | o_subtract ;
-
-// multiplicative_Expression: unary_Expression | unary_Expression operators_multiplicative_Expression multiplicative_Expression;
-//                           ;
-// operators_multiplicative_Expression: o_multiply | o_divide | o_modulo ;
-
-// unary_Expression: primary_Expression
-//                  | o_logical_not unary_Expression
-//                  | o_add primary_Expression
-//                  | o_subtract primary_Expression
-//                  | o_increment unary_Expression
-//                  | o_decrement unary_Expression
-//                  ;
-
-// primary_Expression: Identifier
-//                    | integer_literal
-//                    | s_open_paren Expression s_close_paren
-//                    | k_this
-//                    ;
-
-// integer_literal: Literal
-//                ;
 
 
 // -----------production 8 + production 14--------------
@@ -328,8 +174,8 @@ BlockStatements :
     ; 
 
 BlockStatement : 
-    LocalClassDeclaration 
-    | LocalVariableDeclarationStatement 
+    /*LocalClassDeclaration 
+    |*/ LocalVariableDeclarationStatement 
     | Statement 
     ;
 
@@ -338,7 +184,7 @@ LocalVariableDeclarationStatement :
     ;
 
 LocalVariableDeclaration : 
-    VariableModifiers LocalVariableType VariableDeclaratorList
+    k_final LocalVariableType VariableDeclaratorList
     | LocalVariableType VariableDeclaratorList 
     ;
 
@@ -347,43 +193,25 @@ LocalVariableType :
     | k_var
     ;
 
-LocalClassDeclaration : 
-    ClassDeclaration /*| NormalInterface Declaration*/ 
-    ;
+/* LocalClassDeclaration : 
+    ClassDeclaration /*| NormalInterface Declaration
+    ; */
 
 ClassDeclaration : 
     NormalClassDeclaration 
     | EnumDeclaration 
-    RecordDeclaration 
+    //| RecordDeclaration 
     ;
 
 NormalClassDeclaration : 
-    ClassModifiers k_class TypeIdentifier ClassExtends /*classimplements*/ ClassPermits ClassBody
-    | ClassModifiers k_class TypeIdentifier  /*classimplements*/  ClassBody 
-    | ClassModifiers k_class TypeIdentifier ClassExtends /*classimplements*/ ClassBody 
-    | ClassModifiers k_class TypeIdentifier  /*classimplements*/ ClassPermits ClassBody 
-    |  k_class TypeIdentifier ClassExtends /*classimplements*/ ClassPermits ClassBody 
-    |  k_class TypeIdentifier ClassExtends /*classimplements*/ ClassBody 
-    |  k_class TypeIdentifier  /*classimplements*/ ClassBody 
-    |  k_class TypeIdentifier  /*classimplements*/ ClassPermits ClassBody  
-    ;
-
-
-ClassModifiers :
-    ClassModifier
-    | ClassModifier ClassModifiers
-    ;
-
-ClassModifier : 
-    k_public 
-    | k_protected 
-    | k_private 
-    | k_abstract 
-    | k_static 
-    | k_final 
-    | k_sealed 
-    | k_non_sealed 
-    | k_strictfp 
+    Modifiers k_class Identifier ClassExtends /*classimplements*/ ClassPermits ClassBody
+    | Modifiers k_class Identifier  /*classimplements*/  ClassBody 
+    | Modifiers k_class Identifier ClassExtends /*classimplements*/ ClassBody 
+    | Modifiers k_class Identifier  /*classimplements*/ ClassPermits ClassBody 
+    |  k_class Identifier ClassExtends /*classimplements*/ ClassPermits ClassBody 
+    |  k_class Identifier ClassExtends /*classimplements*/ ClassBody 
+    |  k_class Identifier  /*classimplements*/ ClassBody 
+    |  k_class Identifier  /*classimplements*/ ClassPermits ClassBody  
     ;
 
 ClassExtends : 
@@ -408,7 +236,7 @@ ClassBodyDeclarations :
 
 ClassBodyDeclaration : 
     ClassMemberDeclaration 
-    | Block 
+    //| Block 
     | StaticInitializer 
     | ConstructorDeclaration 
     ;
@@ -417,20 +245,20 @@ ClassMemberDeclaration :
     FieldDeclaration 
     | MethodDeclaration 
     | ClassDeclaration 
-    | /*InterfaceDeclaration |*/ s_semicolon 
+   // | /*InterfaceDeclaration |*/ s_semicolon 
     ;
 
 FieldDeclaration: 
-    FieldModifiers Type VariableDeclaratorList s_semicolon 
+    Modifiers Type VariableDeclaratorList s_semicolon 
     | Type VariableDeclaratorList s_semicolon 
     ;
 
-FieldModifiers : 
-    FieldModifier 
-    | FieldModifier FieldModifiers
+Modifiers : 
+    Modifier 
+    | Modifier Modifiers
     ;
 
-FieldModifier : 
+Modifier : 
     k_public 
     | k_protected 
     | k_private 
@@ -438,38 +266,27 @@ FieldModifier :
     | k_final 
     | k_transient 
     | k_volatile 
-    ;
-
-MethodDeclaration : 
-    MethodModifiers MethodHeader MethodBody
-    | MethodHeader MethodBody
-    ;
-
-MethodModifiers : 
-    MethodModifier
-    | MethodModifier MethodModifiers
-    ;
-
-MethodModifier: 
-    k_public 
-    | k_protected 
-    | k_private 
-    | k_abstract 
-    | k_static 
-    | k_final 
-    | k_synchronized 
-    | k_native 
+    | k_abstract
+    | k_synchronized
+    | k_sealed 
+    | k_non_sealed 
     | k_strictfp 
     ;
 
-MethodHeader: 
-    Result MethodDeclarator Throws 
-    | Result MethodDeclarator
+MethodDeclaration : 
+     MethodHeader MethodBody
     ;
 
-Result: 
-    Type 
-    | k_void
+
+MethodHeader: 
+    Type MethodDeclarator Throws 
+    | Type MethodDeclarator
+    | k_void MethodDeclarator Throws 
+    | k_void MethodDeclarator
+    | Modifiers Type MethodDeclarator Throws 
+    | Modifiers Type MethodDeclarator
+    | Modifiers k_void MethodDeclarator Throws 
+    | Modifiers k_void MethodDeclarator
     ;
 
 MethodDeclarator : 
@@ -482,7 +299,7 @@ MethodDeclarator :
     | Identifier s_open_paren s_close_paren Dims
     | Identifier s_open_paren s_close_paren 
     
-    ;   
+    ;  
 
 ReceiverParameter: 
     Type  k_this | Type Identifier s_dot k_this
@@ -494,23 +311,14 @@ FormalParameterList :
     ;
 
 FormalParameter: 
-    VariableModifiers Type VariableDeclaratorId
+    k_final Type VariableDeclaratorId
     | Type VariableDeclaratorId  
     | VariableArityParameter
     ;
 
 VariableArityParameter : 
-     Type s_varargs Identifier
-    |VariableModifiers Type s_varargs Identifier 
-    ;
-
-VariableModifiers:
-    VariableModifier
-    | VariableModifier VariableModifiers
-    ;
-
-VariableModifier : 
-    k_final
+    VariableArityRecordComponent
+    |k_final Type s_varargs Identifier 
     ;
 
 Throws: 
@@ -523,45 +331,30 @@ ExceptionTypeList:
     ;
 
 ExceptionType: 
-    ClassType TypeIdentifier
+    ClassType Identifier
     ;
 
-MethodBody: 
+ MethodBody: 
     Block 
     | s_semicolon 
-    ;
+    ; 
 
 StaticInitializer: 
     k_static Block 
     ;
 
 ConstructorDeclaration: 
-    ConstructorModifiers ConstructorDeclarator Throws ConstructorBody 
-    | ConstructorModifiers ConstructorDeclarator ConstructorBody
+    Modifiers ConstructorDeclarator Throws ConstructorBody 
+    | Modifiers ConstructorDeclarator ConstructorBody
     |  ConstructorDeclarator Throws ConstructorBody
     |  ConstructorDeclarator ConstructorBody
     ;
 
-ConstructorModifiers: 
-    ConstructorModifier
-    | ConstructorModifier ConstructorModifiers
-    ;
-
-ConstructorModifier: 
-    k_public 
-    | k_protected 
-    | k_private 
-    ;
-
 ConstructorDeclarator: 
-    SimpleClassType s_open_paren ReceiverParameter FormalParameterList s_close_paren 
-    | SimpleClassType s_open_paren ReceiverParameter s_close_paren
-    | SimpleClassType s_open_paren  FormalParameterList s_close_paren 
-    | SimpleClassType s_open_paren s_close_paren 
-    ;
-
-SimpleClassType: 
-    TypeIdentifier 
+    Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren 
+    | Identifier s_open_paren ReceiverParameter s_close_paren
+    | Identifier s_open_paren  FormalParameterList s_close_paren 
+    | Identifier s_open_paren s_close_paren 
     ;
 
 ConstructorBody: 
@@ -580,7 +373,7 @@ ExplicitConstructorInvocation:
     | k_super s_open_paren  s_close_paren s_semicolon 
     | ClassType s_dot k_super s_open_paren  s_close_paren s_semicolon 
     | Primary s_dot k_super s_open_paren  s_close_paren s_semicolon
-    ;
+    ; 
 
 ArgumentList : 
     Expression 
@@ -588,8 +381,8 @@ ArgumentList :
     ;
 
 EnumDeclaration : 
-    ClassModifiers k_enum TypeIdentifier EnumBody 
-    | k_enum TypeIdentifier EnumBody
+    Modifiers k_enum Identifier EnumBody 
+    | k_enum Identifier EnumBody
     ; 
 
 EnumBody: 
@@ -623,9 +416,9 @@ EnumBodyDeclarations:
     | s_semicolon 
     ;
 
-RecordDeclaration: 
-    ClassModifiers k_record TypeIdentifier RecordHeader RecordBody 
-    | k_record TypeIdentifier RecordHeader RecordBody 
+/* RecordDeclaration: 
+    ClassModifiers k_record Identifier RecordHeader RecordBody 
+    | k_record Identifier RecordHeader RecordBody 
     ;
 
 RecordBody : 
@@ -660,7 +453,7 @@ RecordComponentList :
 RecordComponent : 
     Type Identifier 
     | VariableArityRecordComponent 
-    ;
+    ;*/
 
 VariableArityRecordComponent : 
     Type s_varargs Identifier 
@@ -677,7 +470,8 @@ Statement :
     ; 
  
 StatementNoShortIf : 
-    LabeledStatementNoShortIf 
+    StatementWithoutTrailingSubstatement
+    | LabeledStatementNoShortIf 
     | IfThenElseStatementNoShortIf 
     | WhileStatementNoShortIf 
     | ForStatementNoShortIf 
@@ -801,7 +595,7 @@ TryStatement:
     k_try Block Catches 
     | k_try Block Finally 
     | k_try Block Catches Finally 
-    | TryWithResourcesStatement 
+    //| TryWithResourcesStatement 
     ;
 
 Catches: 
@@ -824,7 +618,7 @@ Finally:
     k_finally Block 
     ;
 
-TryWithResourcesStatement: 
+/* TryWithResourcesStatement: 
     k_try ResourceSpecification Block Catches Finally
     | k_try ResourceSpecification Block Finally
     | k_try ResourceSpecification Block Catches 
@@ -846,91 +640,13 @@ Resource:
 VariableAccess : 
     ClassType 
     | FieldAccess
-    ;
+    ;*/
 Pattern: 
     TypePattern 
     ;
 TypePattern: 
     LocalVariableDeclaration 
     ;
-// -- statement_list:
-// --     | statement_list statement
-// --     ;
-
-// -- statement:
-// --     Expression_statement
-// --     | compound_statement
-// --     | selection_statement
-// --     | iteration_statement
-// --     ;
-
-// -- Expression_statement:
-// --     Expression SEMICOLON
-// --     ;
-
-// -- compound_statement:
-// --     L_BRACE statement_list R_BRACE
-// --     ;
-
-// -- selection_statement:
-// --     IF L_PAREN Expression R_PAREN statement
-// --     | IF L_PAREN Expression R_PAREN statement ELSE statement
-// --     ;
-
-// -- iteration_statement:
-// --     WHILE L_PAREN Expression R_PAREN statement
-// --     | FOR L_PAREN for_Expression SEMICOLON for_Expression SEMICOLON for_Expression R_PAREN statement
-// --     ;
-
-// -- for_Expression:
-// --     Expression | /* empty */
-// --     ;
-
-// -- Expression:
-// --     equality_Expression
-// --     ;
-
-// -- equality_Expression:
-// --     relational_Expression
-// --     | equality_Expression EQ relational_Expression
-// --     | equality_Expression NEQ relational_Expression
-// --     ;
-
-// -- relational_Expression:
-// --     additive_Expression
-// --     | relational_Expression LT additive_Expression
-// --     | relational_Expression GT additive_Expression
-// --     | relational_Expression LTE additive_Expression
-// --     | relational_Expression GTE additive_Expression
-// --     ;
-
-// -- additive_Expression:
-// --     multiplicative_Expression
-// --     | additive_Expression PLUS multiplicative_Expression
-// --     | additive_Expression MINUS multiplicative_Expression
-// --     ;
-
-// -- multiplicative_Expression:
-// --     unary_Expression
-// --     | multiplicative_Expression MULT unary_Expression
-// --     | multiplicative_Expression DIV unary_Expression
-// --     | multiplicative_Expression MOD unary_Expression
-// --     ;
-
-// -- unary_Expression:
-// --     postfix_Expression
-// --     | PLUS unary_Expression %prec UNARY
-// --     | MINUS unary_Expression %prec UNARY
-// --     | NOT unary_Expression %prec UNARY
-// --     | INCREMENT unary_Expression %prec UNARY
-// --     | DECREMENT unary_Expression %prec UNARY
-// --     ;
-
-// -- postfix_Expression:
-// --     primary_Expression
-// --     | postfix_Expression INCREMENT
-// --     | postfix_Expression DECREMENT
-// --     ;
 
 Primary:
     PrimaryNoNewArray
@@ -939,7 +655,7 @@ Primary:
 
 PrimaryNoNewArray:
     Literal
-    | ClassLiteral
+    //| ClassLiteral
     | k_this
     | ClassType s_dot k_this
     | s_open_paren Expression s_close_paren
@@ -947,10 +663,10 @@ PrimaryNoNewArray:
     | FieldAccess
     | ArrayAccess
     | MethodInvocation
-    | MethodReference
+    // MethodReference
     ;
 
-ClassLiteral: 
+/* ClassLiteral: 
     ClassType s_dot k_class
     | NumericType s_dot k_class
     | k_boolean s_dot k_class
@@ -958,7 +674,7 @@ ClassLiteral:
     | NumericType Dims s_dot k_class
     | k_boolean Dims s_dot k_class
     | k_void s_dot k_class
-    ;
+    ; */
     
 ClassInstanceCreationExpression:
     UnqualifiedClassInstanceCreationExpression
@@ -1002,7 +718,7 @@ MethodInvocation:
     | ClassType s_dot k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
     ;
 
-MethodReference:
+/* MethodReference:
     ClassType s_double_colon  Identifier
     | Primary s_double_colon  Identifier
     | ReferenceType s_double_colon  Identifier
@@ -1010,7 +726,7 @@ MethodReference:
     | ClassType s_dot k_super s_double_colon  Identifier
     | ClassType s_double_colon  k_new
     | ArrayType s_double_colon k_new
-    ;
+    ; */
 
 ArrayCreationExpression:
     k_new PrimitiveType DimExprs 
@@ -1051,21 +767,17 @@ s_Identifier: | s_comma Identifier s_Identifier;
     | s_open_paren LambdaParameterList s_close_paren
     | Identifier
     ;
-
 LambdaParameterList:
      LambdaParameter s_LambdaParameter
     | Identifier s_Identifier
     ;
-
 LambdaParameter:
     s_VariableModifier LambdaParameterType VariableDeclaratorId
     | VariableArityParameter
-
 LambdaParameterType:
     Type
     | k_var
     ;
-
 LambdaBody:
     Expression
     | Block
@@ -1077,7 +789,7 @@ AssignmentExpression:
     ;
 
 Assignment:
-    LeftHandSide AssignmentOperator Expression
+    LeftHandSide AssignmentOperator AssignmentExpression
     ;
 
 LeftHandSide:
@@ -1104,7 +816,8 @@ AssignmentOperator:
 ConditionalExpression:
     ConditionalOrExpression
     | ConditionalOrExpression o_question_mark Expression o_colon ConditionalExpression
-    | ConditionalOrExpression o_question_mark Expression o_colon //LambdaExpression
+    // ConditionalOrExpression o_question_mark Expression o_colon //LambdaExpression
+    ;
 
 ConditionalOrExpression:
     ConditionalAndExpression
@@ -1212,10 +925,4 @@ CastExpression:
     | s_open_paren ReferenceType AdditionalBounds s_close_paren LambdaExpression */
     ;
     
-
-ConstantExpression:
-    Expression
-    ;
-
-
 %%
