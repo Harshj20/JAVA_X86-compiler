@@ -67,15 +67,14 @@ void print_token(char* token_type, char* token_value) {
 // declaration: PrimitiveType variable_declarator
 //             ;
 
-// variable_declarator: Identifier  op_o_assign_Expression 
-//                     | Identifier array_initializer op_o_assign_d1_Expression
-//                     | Identifier array_initializer array_initializer op_o_assign_d2_Expression
-//                     | Identifier array_initializer array_initializer array_initializer op_o_assign_d3_Expression
-//                     ;
-// op_o_assign_Expression: | o_assign Expression ;
-// op_o_assign_d1_Expression : | o_assign d1_Expression ;
-// op_o_assign_d2_Expression: | o_assign d2_Expression ;
-// op_o_assign_d3_Expression: | o_assign d3_Expression ;
+/* variable_declarator: Identifier  op_o_assign_Expression 
+                   | Identifier array_initializer op_o_assign_d1_Expression
+                   | Identifier array_initializer array_initializer op_o_assign_d2_Expression
+                   | Identifier array_initializer array_initializer array_initializer op_o_assign_d3_Expression ;
+op_o_assign_Expression: | o_assign Expression ;
+op_o_assign_d1_Expression : | o_assign d1_Expression ;
+op_o_assign_d2_Expression: | o_assign d2_Expression ;
+op_o_assign_d3_Expression: | o_assign d3_Expression ; */
 
 // d1_Expression: s_open_curly_bracket op_Expression_list s_close_curly_bracket ;
 
@@ -95,8 +94,11 @@ op_Expression: | Expression;
 // -------------------Declarations over -----------------
 
 //  --------------------ignore--------------
-// variable_initializer_list: variable_initializer (s_comma variable_initializer)*
-//                           ;
+VariableDeclaratorList : VariableDeclarator s_VariableDeclaratorList ;
+s_VariableDeclaratorList : | s_comma VariableDeclarator s_VariableDeclaratorList ;
+VariableDeclarator : VariableDeclaratorId s_VariableDeclarator ;
+s_VariableDeclarator : o_assign VariableInitializer s_VariableDeclarator ;
+VariableDeclaratorId : Identifier op_Dims ;
 
 VariableInitializer: Expression
                      | ArrayInitializer
@@ -126,10 +128,10 @@ ReferenceType: ClassOrInterfaceType | TypeVariable | ArrayType ;
 
 ClassOrInterfaceType: ClassType | InterfaceType ;
 
-ClassType: TypeIdentifier op_TypeArguments
-            | PackageName s_dot TypeIdentifier op_TypeArguments
-            | ClassOrInterfaceType s_dot TypeIdentifier op_TypeArguments ;
-op_TypeArguments: | TypeArguments;
+ClassType: TypeIdentifier //
+            | PackageName s_dot TypeIdentifier //
+            | ClassOrInterfaceType s_dot TypeIdentifier /**/ ;
+//: | TypeArguments;
 
 InterfaceType: ClassType ;
 
@@ -140,7 +142,7 @@ ArrayType: PrimitiveType Dims
 
 Dims: s_open_square_bracket s_close_square_bracket | s_open_square_bracket s_close_square_bracket Dims ;
 
-TypeParameter: TypeIdentifier op_TypeBound ;
+//TypeParameter: TypeIdentifier op_TypeBound ;
 op_TypeBound: | TypeBound;
 
 TypeBound: k_extends TypeVariable
@@ -168,7 +170,6 @@ PackageName: Identifier
             | PackageName s_dot Identifier ;
 TypeName: TypeIdentifier
             | PackageName s_dot TypeIdentifier;
-
 
 // --------------production 10-----------
 ArrayInitializer:
@@ -200,9 +201,6 @@ Expression_statement: Expression
 // Expression: ternary_Expression
 //           ;
 Expression: 
-    Assignment_Expression
-    | LambdaExpression
-    ;
 
 ternary_Expression: logical_or_Expression op_ternary_Expression ;
 op_ternary_Expression : | o_question_mark ternary_Expression o_colon ternary_Expression ;
@@ -259,55 +257,60 @@ integer_literal: Literal
                ;
 
 
-// -----------production 14--------------
+// -----------production 8 + production 14--------------
 Block : s_open_curly_bracket op_BlockStatements s_close_curly_bracket ;
 
 op_BlockStatements : | BlockStatements
-BlockStatements : BlockStatement | BlockStatement BlockStatements ;
+BlockStatements : BlockStatement | BlockStatement BlockStatements ; 
 
-BlockStatement : /*LocalClassDeclaration | LocalVariableDeclaration |*/ Statement ;
+BlockStatement : LocalClassDeclaration | LocalVariableDeclarationStatement | Statement ;
+LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon;
+LocalVariableDeclaration : s_VariableModifier LocalVariableType VariableDeclaratorList ;
+LocalVariableType : Type | k_var
 
-LocalClassDeclaration : NormalClassDeclaration | EnumDeclaration | RecordDeclaration ;
+LocalClassDeclaration : ClassDeclaration /*| NormalInterface Declaration*/ ;
+ClassDeclaration : NormalClassDeclaration | EnumDeclaration | RecordDeclaration ;
 
-NormalClassDeclaration : op_classmodifier k_class TypeIdentifier op_classextends op_classpermits ClassBody ;
-op_classmodifier : | ClassModifier op_classmodifier
+NormalClassDeclaration : s_ClassModifier k_class TypeIdentifier op_classextends /*classimplements*/ op_classpermits ClassBody ;
+s_ClassModifier : | ClassModifier s_ClassModifier
 op_classextends : | ClassExtends
 op_classpermits : | ClassPermits
+ClassModifier : k_public | k_protected | k_private | k_abstract | k_static | k_final | k_sealed | k_non_sealed | k_strictfp ;
 ClassExtends : k_extends ClassType
 
 ClassPermits : k_permits TypeName op_typename ; 
 op_typename : | s_comma TypeName op_typename ;
 
-ClassModifier : public | protected | private | abstract | static | final | sealed | non-sealed | strictfp ; 
+ 
 
-ClassBody: s_open_curly_bracket op_classbody s_close_curly_bracket
-op_classbody : | ClassBodyDeclaration op_classbody
+ClassBody: s_open_curly_bracket s_ClassBodyDeclaration s_close_curly_bracket ;
+s_ClassBodyDeclaration : | ClassBodyDeclaration s_ClassBodyDeclaration ;
 ClassBodyDeclaration : ClassMemberDeclaration | InstanceInitializer | StaticInitializer | ConstructorDeclaration ;
 
-ClassMemberDeclaration : FieldDeclaration | MethodDeclaration | ClassDeclaration | InterfaceDeclaration | s_semicolon ;
+ClassMemberDeclaration : FieldDeclaration | MethodDeclaration | ClassDeclaration | /*InterfaceDeclaration |*/ s_semicolon ;
 
-FieldDeclaration: op_field_modifier Type VariableDeclaratorList s_semicolon ;
-op_field_modifier : | FieldModifier op_field_modifier ;
-FieldModifier : public | protected | private | static | final | transient | volatile ;
+FieldDeclaration: s_field_modifier Type VariableDeclaratorList s_semicolon ;
+s_field_modifier : | FieldModifier s_field_modifier ;
+FieldModifier : k_public | k_protected | k_private | k_static | k_final | k_transient | k_volatile ;
 
-MethodDeclaration : op_method_modifier MethodHeader MethodBody
-op_method_modifier : | MethodModifier op_method_modifier ;
-MethodModifier: public | protected | private | abstract | static | final | synchronized | native | strictfp
-MethodHeader: Result MethodDeclarator op_throws | Result MethodDeclarator op_throws
-op_throws : | Throws ;
-Result: Type | void
-MethodDeclarator : Identifier s_open_paren op_receiver_parameter op_formal_parameter_list s_close_paren op_dims;
-op_dims : | Dims;
-op_formal_parameter_list : | FormalParameterList
+MethodDeclaration : s_MethodModifier MethodHeader MethodBody
+s_MethodModifier : | MethodModifier s_MethodModifier ;
+MethodModifier: k_public | k_protected | k_private | k_abstract | k_static | k_final | k_synchronized | k_native | k_strictfp ;
+MethodHeader: Result MethodDeclarator Throws | Result MethodDeclarator
+Result: Type | k_void
+MethodDeclarator : Identifier s_open_paren op_ReceiverParameter op_FormalParameterList s_close_paren op_Dims;
+op_Dims : | Dims;
+op_FormalParameterList : | FormalParameterList
 
-op_receiver_parameter : | ReceiverParameter s_comma
-ReceiverParameter: Type op_identifier_dot k_this ;
-op_identifier_dot : | Identifier s_dot
-FormalParameterList : FormalParameter op_formal_parameter
-op_formal_parameter : | s_comma FormalParameter op_formal_parameter ;
-FormalParameter: op_variable_modifier Type VariableDeclaratorId | VariableArityParameter
-op_variable_modifier: | k_final ;
-Throws: k_throws ExceptionTypeList
+op_ReceiverParameter : | ReceiverParameter s_comma
+ReceiverParameter: Type op_IdentifierDot k_this ;
+op_IdentifierDot : | Identifier s_dot
+FormalParameterList : FormalParameter |  FormalParameter s_comma FormalParameterList ;
+FormalParameter: s_VariableModifier Type VariableDeclaratorId | VariableArityParameter
+VariableArityParameter : s_VariableModifier Type s_varargs Identifier ;
+s_VariableModifier: VariableModifier | VariableModifier s_VariableModifier ;
+VariableModifier : k_final;
+Throws: k_throws ExceptionTypeList;
 
 ExceptionTypeList: ExceptionType | ExceptionType s_comma ExceptionTypeList ;
 ExceptionType: ClassType TypeVariable
@@ -315,48 +318,51 @@ MethodBody: Block | s_semicolon ;
 InstanceInitializer: Block ;
 StaticInitializer: k_static Block ;
 
-ConstructorDeclaration: op_ConstructorModifiers ConstructorDeclarator op_Throws ConstructorBody ;
+ConstructorDeclaration: s_ConstructorModifier ConstructorDeclarator op_Throws ConstructorBody ;
 op_Throws:  | Throws; 
-op_ConstructorModifiers : | ConstructorModifiers;
-ConstructorModifiers: ConstructorModifier | ConstructorModifier ConstructorModifiers ;
+s_ConstructorModifier : | ConstructorModifier s_ConstructorModifier;
+ConstructorModifier: k_public | k_protected | k_private ;
 
-ConstructorModifier: k_public | k_protected | k_private ; 
-ConstructorDeclarator: SimpleTypeName s_open_paren op_reciever_parameter op_formal_parameter_list s_close_paren ;
+ConstructorDeclarator: SimpleTypeName s_open_paren op_ReceiverParameter op_FormalParameterList s_close_paren ;
 SimpleTypeName: TypeIdentifier ;
 ConstructorBody: s_open_curly_bracket op_ExplicitConstructorInvocation op_BlockStatements s_close_curly_bracket;
 op_ExplicitConstructorInvocation : | ExplicitConstructorInvocation;
-ExplicitConstructorInvocation: k_this s_open_paren op_ArgumentList s_close_paren s_semicolon | super s_open_paren  op_ArgumentList s_close_paren s_semicolon | ExpressionName s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon | Primary s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon
+ExplicitConstructorInvocation: k_this s_open_paren op_ArgumentList s_close_paren s_semicolon | k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon | TypeName s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon | Primary s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon
 
 ArgumentList : Expression | Expression s_comma ArgumentList ;
 op_ArgumentList : | ArgumentList
-EnumDeclaration : op_classmodifier k_enum TypeIdentifier EnumBody ; 
+EnumDeclaration : s_ClassModifier k_enum TypeIdentifier EnumBody ; 
 
 EnumBody: s_open_curly_bracket op_enum_constant_list op_comma op_enum_body_declarations s_close_curly_bracket ;
 op_enum_constant_list : | EnumConstantList ;
 op_comma : | s_comma ;
 op_enum_body_declarations : | EnumBodyDeclarations 
 EnumConstantList: EnumConstant | EnumConstant s_comma EnumConstantList ;
-EnumConstant: Identifier op_enum_constant op_classbody
+EnumConstant: Identifier op_enum_constant | Identifier op_enum_constant ClassBody;
 op_enum_constant : | s_open_paren /*ArgumentList?*/ s_close_paren
-EnumBodyDeclarations: s_semicolon {ClassBodyDeclaration}
+EnumBodyDeclarations: s_semicolon s_ClassBodyDeclaration ;
 
+RecordDeclaration: s_ClassModifier k_record TypeIdentifier RecordHeader RecordBody ;
 
-RecordDeclaration: op_classmodifier k_record TypeIdentifier RecordHeader RecordBody ;
+RecordBody : s_open_curly_bracket s_RecordBodyDeclaration s_close_curly_bracket ;
+s_RecordBodyDeclaration : RecordBodyDeclaration s_RecordBodyDeclaration ;
+RecordBodyDeclaration :ClassBodyDeclaration | CompactConstructorDeclaration ;
+CompactConstructorDeclaration : s_ConstructorModifier SimpleTypeName ConstructorBody ;
 
 RecordHeader : s_open_paren op_RecordComponentList s_close_paren ;
 op_RecordComponentList : | RecordComponentList ;
 
 RecordComponentList : RecordComponent | RecordComponent s_comma RecordComponentList ;
-RecordComponent : Type identifier | VariableArityRecordComponent ;
+RecordComponent : Type Identifier | VariableArityRecordComponent ;
 
 VariableArityRecordComponent : Type s_varargs Identifier ; 
 
 
 Statement : StatementWithoutTrailingSubstatement | LabeledStatement | IfThenStatement | IfThenElseStatement | WhileStatement | ForStatement ; 
  
-StatementNoShortIf : StatementWithoutTrailingSubstatement | LabeledStatementNoShortIf | IfThenElseStatementNoShortIf | WhileStatementNoShortIf | ForStatementNoShortIf ; 
+StatementNoShortIf : LabeledStatementNoShortIf | IfThenElseStatementNoShortIf | WhileStatementNoShortIf | ForStatementNoShortIf ; 
 
-StatementWithoutTrailingSubstatement : Block | EmptyStatement | ExpressionStatement | BreakStatement | ContinueStatement | ReturnStatement ;
+StatementWithoutTrailingSubstatement : Block | EmptyStatement | ExpressionStatement | BreakStatement | ContinueStatement | ReturnStatement | ReturnStatement | SynchronizedStatement | ThrowStatement | TryStatement ;
 
 EmptyStatement : s_semicolon ; 
 
@@ -390,7 +396,7 @@ ForUpdate : StatementExpressionList ;
 StatementExpressionList : StatementExpression op_StatementExpression
 op_StatementExpression : | s_comma StatementExpression op_StatementExpression
 EnhancedForStatement : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement
-EnhancedForStatementNoShortIf : k_for s_open_paren LocalVariableDeclaration : Expression s_close_paren StatementNoShortIf
+EnhancedForStatementNoShortIf : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf
 BreakStatement : k_break op_Identifier ;
 op_Identifier : | Identifier op_Identifier
 /*YieldStatement : k_yield Expression ;*/
@@ -409,10 +415,11 @@ CatchType:  ClassType | ClassType o_bitwise_or CatchType ;
 Finally: k_finally Block ;
 TryWithResourcesStatement: k_try ResourceSpecification Block op_Catches op_Finally
 op_Finally: | Finally;
-ResourceSpecification:s_open_paren ResourceList op_s_colon s_close_paren; 
-op_s_colon: | s_colon;
-ResourceList: Resource | Resource s_colon ResourceList ;
+ResourceSpecification:s_open_paren ResourceList op_o_colon s_close_paren; 
+op_o_colon: | o_colon;
+ResourceList: Resource | Resource o_colon ResourceList ;
 Resource: LocalVariableDeclaration | VariableAccess ;
+VariableAccess : TypeName | FieldAccess;
 Pattern: TypePattern ;
 TypePattern: LocalVariableDeclaration ;
 // -- statement_list:
@@ -494,8 +501,6 @@ TypePattern: LocalVariableDeclaration ;
 // --     | postfix_Expression DECREMENT
 // --     ;
 
-// ------------ Production 15 ------------
-
 Primary:
     PrimaryNoNewArray
     | ArrrayCreationExpression
@@ -505,7 +510,7 @@ PrimaryNoNewArray:
     Literal
     | ClassLiteral
     | k_this
-    | Typename s_dot k_this
+    | TypeName s_dot k_this
     | s_open_paren Expression s_close_paren
     | ClassInstanceCreationExpression
     | FieldAccess
@@ -515,24 +520,24 @@ PrimaryNoNewArray:
     ;
 
 ClassLiteral: 
-    TypeName op_dims s_dot k_class
-    | NumericType op_dims s_dot k_class
-    | k_boolean op_dims s_dot k_class
+    TypeName op_Dims s_dot k_class
+    | NumericType op_Dims s_dot k_class
+    | k_boolean op_Dims s_dot k_class
     | k_void s_dot k_class
     ;
     
 ClassInstanceCreationExpression:
     UnqualifiedClassInstanceCreationExpression
-    | ExpressionName s_dot UnqualifiedClassInstanceCreationExpression
+    | TypeName s_dot UnqualifiedClassInstanceCreationExpression
     | Primary s_dot UnqualifiedClassInstanceCreationExpression
     ;
 
 UnqualifiedClassInstanceCreationExpression:
-    k_new op_TypeArguments ClassOrInterfaceTypeToInstantiate s_open_paren op_ArgumentList s_close_paren op_classbody
+    k_new  ClassOrInterfaceTypeToInstantiate s_open_paren op_ArgumentList s_close_paren | k_new  ClassOrInterfaceTypeToInstantiate s_open_paren op_ArgumentList s_close_paren ClassBody ;
     ;
 
 ClassOrInterfaceTypeToInstantiate:
-    Identifier op_TypeArguments 
+    Identifier  
     | Identifier s_dot ClassOrInterfaceTypeToInstantiate
     ;
 
@@ -543,17 +548,17 @@ FieldAccess:
     ;
 
 ArrayAccess:
-    ExpressionName s_open_square_bracket Expression s_close_square_bracket
+    TypeName s_open_square_bracket Expression s_close_square_bracket
     | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
     ;
 
 MethodInvocation:
     MethodName s_open_paren op_ArgumentList s_close_paren
-    | TypeName s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
-    | ExpressionName s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
-    | Primary s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
-    | k_super s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
-    | TypeName s_dot k_super s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
+    | TypeName s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
+    | TypeName s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
+    | Primary s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
+    | k_super s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
+    | TypeName s_dot k_super s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
     ;
 
 MethodRefere:
