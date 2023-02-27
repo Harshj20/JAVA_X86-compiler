@@ -638,7 +638,7 @@ Assignment:
     ;
 
 LeftHandSide:
-    ExpressionName
+    TypeName
     | FieldAccess
     | ArrayAccess
     ;
@@ -690,7 +690,7 @@ AndExpression:
 
 EqualityExpression:
     RelationalExpression
-    | EqualityExpression o_equals_equals RelationalExpression
+    | EqualityExpression o_equals RelationalExpression
     | EqualityExpression o_not_equals RelationalExpression
     ;
 
@@ -698,8 +698,8 @@ RelationalExpression:
     ShiftExpression
     | RelationalExpression o_less_than ShiftExpression
     | RelationalExpression o_greater_than ShiftExpression
-    | RelationalExpression o_less_than_or_equals ShiftExpression
-    | RelationalExpression o_greater_than_or_equals ShiftExpression
+    | RelationalExpression o_less_than_or_equal ShiftExpression
+    | RelationalExpression o_greater_than_or_equal ShiftExpression
     | RelationalExpression k_instanceof ReferenceType
     ;
 
@@ -717,8 +717,8 @@ ShiftExpression:
 
 AdditiveExpression:
     MultiplicativeExpression
-    | AdditiveExpression o_plus MultiplicativeExpression
-    | AdditiveExpression o_minus MultiplicativeExpression
+    | AdditiveExpression o_add MultiplicativeExpression
+    | AdditiveExpression o_subtract MultiplicativeExpression
     ;
 
 MultiplicativeExpression:
@@ -735,19 +735,17 @@ UnaryExpression:
     ;
 
 PreIncrementExpression:
-    o_plus_plus UnaryExpression
+    o_increment UnaryExpression
     ;
 
 PreDecrementExpression:
-    o_minus_minus UnaryExpression
+    o_decrement UnaryExpression
     ;
 
 UnaryExpressionNotPlusMinus:
     PostfixExpression
-    | o_plus UnaryExpression
-    | o_minus UnaryExpression
-    | o_bitwise_not UnaryExpression
     | o_logical_not UnaryExpression
+    | o_bitwise_complement UnaryExpression
     | CastExpression
     ;
 
@@ -758,24 +756,23 @@ PostfixExpression:
     ;
 
 PostIncrementExpression:    
-    PostfixExpression o_plus_plus
+    PostfixExpression o_increment
     ;
 
 PostDecrementExpression:
-    PostfixExpression o_minus_minus
+    PostfixExpression o_decrement
     ;
 
-CastExpression:   
+CastExpression:
+    s_open_paren PrimitiveType s_close_paren UnaryExpression
+    | s_open_paren ReferenceType AdditionalBounds s_close_paren UnaryExpressionNotPlusMinus
+    | s_open_paren ReferenceType AdditionalBounds s_close_paren LambdaExpression
+    ;
     
-
-SwitchExpression:
-    k_switch s_open_paren Expression s_close_paren SwitchBlock
-    ;
 
 ConstantExpression:
     Expression
     ;
-
 
 
 %%
