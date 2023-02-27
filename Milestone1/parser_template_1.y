@@ -689,8 +689,7 @@ StatementWithoutTrailingSubstatement :
     | ExpressionStatement 
     | BreakStatement 
     | ContinueStatement 
-    | ReturnStatement 
-    | ReturnStatement 
+    | ReturnStatement  
     | SynchronizedStatement 
     | ThrowStatement 
     | TryStatement 
@@ -778,35 +777,82 @@ ForInit :
     | LocalVariableDeclaration
     ;
 ForUpdate : StatementExpressionList ;
-StatementExpressionList : StatementExpression op_StatementExpression
-op_StatementExpression : | s_comma StatementExpression op_StatementExpression
+StatementExpressionList : 
+StatementExpression
+| StatementExpression s_comma StatementExpressionList
+
 EnhancedForStatement : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement
 EnhancedForStatementNoShortIf : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf
-BreakStatement : k_break op_Identifier ;
-op_Identifier : | Identifier op_Identifier
+BreakStatement : k_break | k_break Identifier;
 /*YieldStatement : k_yield Expression ;*/
-ContinueStatement : k_continue op_Identifier ;
-ReturnStatement : k_return op_Expression ;
+ContinueStatement : k_continue | k_continue Identifier ;
+ReturnStatement : k_return | k_return Expression ;
 
 
-ThrowStatement: k_throw Expression ;
-SynchronizedStatement: k_synchronized s_open_paren Expression s_close_paren Block ;
-TryStatement: k_try Block Catches | k_try Block op_Catches Finally | TryWithResourcesStatement ;
-op_Catches: | Catches;
-Catches: CatchClause | CatchClause Catches ;
-CatchClause: k_catch s_open_paren CatchFormalParameter s_open_paren Block ;
-CatchFormalParameter: CatchType VariableDeclaratorId ;
-CatchType:  ClassType | ClassType o_bitwise_or CatchType ;
-Finally: k_finally Block ;
-TryWithResourcesStatement: k_try ResourceSpecification Block op_Catches op_Finally
-op_Finally: | Finally;
-ResourceSpecification:s_open_paren ResourceList op_o_colon s_close_paren; 
-op_o_colon: | o_colon;
-ResourceList: Resource | Resource o_colon ResourceList ;
-Resource: LocalVariableDeclaration | VariableAccess ;
-VariableAccess : ClassType | FieldAccess;
-Pattern: TypePattern ;
-TypePattern: LocalVariableDeclaration ;
+ThrowStatement: 
+    k_throw Expression 
+    ;
+
+SynchronizedStatement: 
+    k_synchronized s_open_paren Expression s_close_paren Block 
+    ;
+
+TryStatement: 
+    k_try Block Catches 
+    | k_try Block Finally 
+    | k_try Block Catches Finally 
+    | TryWithResourcesStatement 
+    ;
+
+Catches: 
+    CatchClause 
+    | CatchClause Catches 
+    ;
+
+CatchClause: 
+    k_catch s_open_paren CatchFormalParameter s_open_paren Block 
+    ;
+
+CatchFormalParameter: 
+    CatchType VariableDeclaratorId 
+    ;
+CatchType:  
+    ClassType 
+    | ClassType o_bitwise_or CatchType 
+    ;
+Finally: 
+    k_finally Block 
+    ;
+
+TryWithResourcesStatement: 
+    k_try ResourceSpecification Block Catches Finally
+    | k_try ResourceSpecification Block Finally
+    | k_try ResourceSpecification Block Catches 
+    | k_try ResourceSpecification Block 
+    ;
+
+ResourceSpecification:
+    s_open_paren ResourceList o_colon s_close_paren
+    | s_open_paren ResourceList s_close_paren
+    ; 
+ResourceList: 
+    Resource 
+    | Resource o_colon ResourceList 
+    ;
+Resource: 
+    LocalVariableDeclaration 
+    | VariableAccess 
+    ;
+VariableAccess : 
+    ClassType 
+    | FieldAccess
+    ;
+Pattern: 
+    TypePattern 
+    ;
+TypePattern: 
+    LocalVariableDeclaration 
+    ;
 // -- statement_list:
 // --     | statement_list statement
 // --     ;
