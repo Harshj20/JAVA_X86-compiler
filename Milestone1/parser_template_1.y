@@ -588,7 +588,7 @@ DimExpr:
     ;
 
 LambdaExpression:
-    LambdaParemeter
+    LambdaParameters o_arrow LambdaBody
 // -- variable:
 // --     ID
 // --     ;
@@ -598,5 +598,184 @@ LambdaExpression:
 // --     | DOUBLE_LITERAL
 // --     | BOOL_LITERAL
 // --     ;
+s_LambdaParameter: | s_comma LambdaParameter s_LambdaParameter;
+
+s_Identifier: | s_comma Identifier s_Identifier;
+
+
+LambdaParameters:
+    s_open_paren s_close_paren
+    | s_open_paren LambdaParameterList s_close_paren
+    | Identifier
+    ;
+
+LambdaParameterList:
+     LambdaParameter s_LambdaParameter
+    | Identifier s_Identifier
+    ;
+
+LambdaParameter:
+    s_VariableModifier LambdaParameterType VariableDeclaratorId
+    | VariableArityParameter
+
+LambdaParameterType:
+    Type
+    | k_var
+    ;
+
+LambdaBody:
+    Expression
+    | Block
+    ;
+
+AssignmentExpression:
+    ConditionalExpression
+    | Assignment
+    ;
+
+Assignment:
+    LeftHandSide AssignmentOperator Expression
+    ;
+
+LeftHandSide:
+    ExpressionName
+    | FieldAccess
+    | ArrayAccess
+    ;
+
+AssignmentOperator:
+    o_equals
+    | o_multiply_assign
+    | o_divide_assign
+    | o_modulo_assign
+    | o_add_assign
+    | o_subtract_assign
+    | o_left_shift_assign
+    | o_right_shift_assign
+    | o_unsigned_right_shift_assign
+    | o_bitwise_and_assign
+    | o_bitwise_xor_assign
+    | o_bitwise_or_assign
+    ;
+
+ConditionalExpression:
+    ConditionalOrExpression
+    | ConditionalOrExpression o_question_mark Expression o_colon ConditionalExpression
+    | ConditionalOrExpression o_question_mark Expression o_colon LambdaExpression
+
+ConditionalOrExpression:
+    ConditionalAndExpression
+    | ConditionalOrExpression o_logical_or ConditionalAndExpression
+    ;
+
+ConditionalAndExpression:
+    InclusiveOrExpression
+    | ConditionalAndExpression o_logical_and InclusiveOrExpression
+    ;
+
+InclusiveOrExpression:
+    ExclusiveOrExpression
+    | InclusiveOrExpression o_bitwise_or ExclusiveOrExpression
+    ;
+
+ExclusiveOrExpression:
+    AndExpression
+    | ExclusiveOrExpression o_bitwise_xor AndExpression
+    ;
+
+AndExpression:
+    EqualityExpression
+    | AndExpression o_bitwise_and EqualityExpression
+    ;
+
+EqualityExpression:
+    RelationalExpression
+    | EqualityExpression o_equals_equals RelationalExpression
+    | EqualityExpression o_not_equals RelationalExpression
+    ;
+
+RelationalExpression:
+    ShiftExpression
+    | RelationalExpression o_less_than ShiftExpression
+    | RelationalExpression o_greater_than ShiftExpression
+    | RelationalExpression o_less_than_or_equals ShiftExpression
+    | RelationalExpression o_greater_than_or_equals ShiftExpression
+    | RelationalExpression k_instanceof ReferenceType
+    ;
+
+InstanceOfExpression:
+    RelationalExpression k_instanceof ReferenceType
+    | RelationalExpression k_instanceof Pattern
+    ;
+
+ShiftExpression:
+    AdditiveExpression
+    | ShiftExpression o_left_shift AdditiveExpression
+    | ShiftExpression o_right_shift AdditiveExpression
+    | ShiftExpression o_unsigned_right_shift AdditiveExpression
+    ;
+
+AdditiveExpression:
+    MultiplicativeExpression
+    | AdditiveExpression o_plus MultiplicativeExpression
+    | AdditiveExpression o_minus MultiplicativeExpression
+    ;
+
+MultiplicativeExpression:
+    UnaryExpression
+    | MultiplicativeExpression o_multiply UnaryExpression
+    | MultiplicativeExpression o_divide UnaryExpression
+    | MultiplicativeExpression o_modulo UnaryExpression
+    ;
+
+UnaryExpression:
+    PreIncrementExpression
+    | PreDecrementExpression
+    | UnaryExpressionNotPlusMinus
+    ;
+
+PreIncrementExpression:
+    o_plus_plus UnaryExpression
+    ;
+
+PreDecrementExpression:
+    o_minus_minus UnaryExpression
+    ;
+
+UnaryExpressionNotPlusMinus:
+    PostfixExpression
+    | o_plus UnaryExpression
+    | o_minus UnaryExpression
+    | o_bitwise_not UnaryExpression
+    | o_logical_not UnaryExpression
+    | CastExpression
+    ;
+
+PostfixExpression:
+    Primary
+    | PostIncrementExpression
+    | PostDecrementExpression
+    ;
+
+PostIncrementExpression:    
+    PostfixExpression o_plus_plus
+    ;
+
+PostDecrementExpression:
+    PostfixExpression o_minus_minus
+    ;
+
+CastExpression:   
+    
+
+SwitchExpression:
+    k_switch s_open_paren Expression s_close_paren SwitchBlock
+    ;
+
+ConstantExpression:
+    Expression
+    ;
+
+
 
 %%
