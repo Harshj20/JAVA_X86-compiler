@@ -94,10 +94,10 @@ op_Expression: | Expression;
 // -------------------Declarations over -----------------
 
 //  --------------------ignore--------------
-VariableDeclaratorList : VariableDeclarator | VariableDeclarator s_comma VariableDeclaratorList ;
-
-VariableDeclarator : VariableDeclaratorId | VariableDeclaratorId o_assign VariableDeclarator ;
-
+VariableDeclaratorList : VariableDeclarator s_VariableDeclaratorList ;
+s_VariableDeclaratorList : | s_comma VariableDeclarator s_VariableDeclaratorList ;
+VariableDeclarator : VariableDeclaratorId s_VariableDeclarator ;
+s_VariableDeclarator : o_assign VariableInitializer s_VariableDeclarator ;
 VariableDeclaratorId : Identifier op_Dims ;
 
 VariableInitializer: Expression
@@ -108,9 +108,6 @@ VariableInitializer: Expression
 // ------------production 3--------------
 TypeIdentifier:
 Identifier | k_exports | k_module | k_non_sealed | k_open | k_opens | k_provide | k_requires | k_to | k_transitive | k_uses | k_with ;
-
-UnqualifiedMethodIdentifier:
-Identifier | k_exports | k_module | k_non_sealed | k_open | k_opens | k_provide | k_requires | k_to | k_transitive | k_uses | k_with | k_permits | k_record | k_sealed | k_var ;
 
 // ------production 4-------
 
@@ -126,14 +123,14 @@ FloatingPointType: k_float | k_double;
 
 ReferenceType: ClassOrInterfaceType | TypeVariable | ArrayType ;
 
-ClassOrInterfaceType: ClassType | InterfaceType ;
+ClassOrInterfaceType: ClassType /*| InterfaceType*/ ;
 
 ClassType: TypeIdentifier //
-            | PackageName s_dot TypeIdentifier //
+            | TypeName s_dot TypeIdentifier //
             | ClassOrInterfaceType s_dot TypeIdentifier /**/ ;
 //: | TypeArguments;
 
-InterfaceType: ClassType ;
+//InterfaceType: ClassType ;
 
 TypeVariable: TypeIdentifier ;
 ArrayType: PrimitiveType Dims
@@ -143,33 +140,32 @@ ArrayType: PrimitiveType Dims
 Dims: s_open_square_bracket s_close_square_bracket | s_open_square_bracket s_close_square_bracket Dims ;
 
 //TypeParameter: TypeIdentifier op_TypeBound ;
-op_TypeBound: | TypeBound;
+/* op_TypeBound: | TypeBound;
 
 TypeBound: k_extends TypeVariable
             | k_extends ClassOrInterfaceType AdditionalBounds;
 
 AdditionalBounds: | AdditionalBound AdditionalBounds;
 
-AdditionalBound: o_bitwise_and InterfaceType ;
+AdditionalBound: o_bitwise_and InterfaceType ; */
 
-TypeArguments: o_less_than TypeArgumentList o_greater_than ;
+/* TypeArguments: o_less_than TypeArgumentList o_greater_than ;
 
 TypeArgumentList: TypeArgument | TypeArgument s_comma TypeArgumentList;
 
 TypeArgument: ReferenceType 
-            | Wildcard ;
-Wildcard: o_question_mark op_WildcardBounds
+            | Wildcard ; */
+/* Wildcard: o_question_mark op_WildcardBounds
 op_WildcardBounds: | WildcardBounds;
 WildcardBounds: k_extends ReferenceType
-            | k_super ReferenceType
+            | k_super ReferenceType */
 
 
 
 //  -------------------Production 6----------------
-PackageName: Identifier
-            | PackageName s_dot Identifier ;
+
 TypeName: TypeIdentifier
-            | PackageName s_dot TypeIdentifier;
+            | TypeName s_dot TypeIdentifier;
 
 // --------------production 10-----------
 ArrayInitializer:
@@ -200,7 +196,7 @@ Expression_statement: Expression
 
 // Expression: ternary_Expression
 //           ;
-Expression: 
+Expression: /*LambdaExpression |*/ AssignmentExpression
 
 ternary_Expression: logical_or_Expression op_ternary_Expression ;
 op_ternary_Expression : | o_question_mark ternary_Expression o_colon ternary_Expression ;
@@ -587,8 +583,8 @@ DimExpr:
     s_open_square_bracket Expression s_close_square_bracket
     ;
 
-LambdaExpression:
-    LambdaParameters o_arrow LambdaBody
+/* LambdaExpression:
+    LambdaParameters o_arrow LambdaBody */
 // -- variable:
 // --     ID
 // --     ;
@@ -661,7 +657,7 @@ AssignmentOperator:
 ConditionalExpression:
     ConditionalOrExpression
     | ConditionalOrExpression o_question_mark Expression o_colon ConditionalExpression
-    | ConditionalOrExpression o_question_mark Expression o_colon LambdaExpression
+    | ConditionalOrExpression o_question_mark Expression o_colon //LambdaExpression
 
 ConditionalOrExpression:
     ConditionalAndExpression
@@ -765,8 +761,8 @@ PostDecrementExpression:
 
 CastExpression:
     s_open_paren PrimitiveType s_close_paren UnaryExpression
-    | s_open_paren ReferenceType AdditionalBounds s_close_paren UnaryExpressionNotPlusMinus
-    | s_open_paren ReferenceType AdditionalBounds s_close_paren LambdaExpression
+    /* | s_open_paren ReferenceType AdditionalBounds s_close_paren UnaryExpressionNotPlusMinus
+    | s_open_paren ReferenceType AdditionalBounds s_close_paren LambdaExpression */
     ;
     
 
