@@ -354,7 +354,7 @@ LocalClassDeclaration :
 ClassDeclaration : 
     NormalClassDeclaration 
     | EnumDeclaration 
-    | RecordDeclaration 
+    RecordDeclaration 
     ;
 
 NormalClassDeclaration : 
@@ -421,11 +421,8 @@ ClassMemberDeclaration :
     ;
 
 FieldDeclaration: 
-    op_field_modifiers Type VariableDeclaratorList s_semicolon 
-    ;
-
-op_field_modifiers : 
-    | FieldModifiers 
+    FieldModifiers Type VariableDeclaratorList s_semicolon 
+    | Type VariableDeclaratorList s_semicolon 
     ;
 
 FieldModifiers : 
@@ -444,11 +441,8 @@ FieldModifier :
     ;
 
 MethodDeclaration : 
-    op_MethodModifiers MethodHeader MethodBody
-    ;
-
-op_MethodModifiers : 
-    | MethodModifiers 
+    MethodModifiers MethodHeader MethodBody
+    | MethodHeader MethodBody
     ;
 
 MethodModifiers : 
@@ -615,13 +609,14 @@ EnumConstantList:
     ;
 
 EnumConstant: 
-    Identifier op_enum_constant 
+    Identifier 
     | Identifier op_enum_constant ClassBody
+    | Identifier ClassBody
+    | Identifier op_enum_constant
     ;
 
-op_enum_constant : 
-    | s_open_paren /*ArgumentList?*/ s_close_paren
-    ;
+
+op_enum_constant : s_open_paren s_close_paren | s_open_paren ArgumentList s_close_paren ;
 
 EnumBodyDeclarations: 
     s_semicolon ClassBodyDeclarations
@@ -634,15 +629,13 @@ RecordDeclaration:
     ;
 
 RecordBody : 
-    s_open_curly_bracket op_RecordBodyDeclarations s_close_curly_bracket 
+    s_open_curly_bracket RecordBodyDeclarations s_close_curly_bracket 
+    | s_open_curly_bracket  s_close_curly_bracket 
+    
     ;
 RecordBodyDeclarations:
     RecordBodyDeclaration
     | RecordBodyDeclaration RecordBodyDeclarations
-    ;
-
-op_RecordBodyDeclarations : 
-    | RecordBodyDeclarations
     ;
 
 RecordBodyDeclaration :
@@ -656,11 +649,7 @@ CompactConstructorDeclaration :
     ;
 
 RecordHeader : 
-    s_open_paren op_RecordComponentList s_close_paren 
-    ;
-
-op_RecordComponentList : 
-    | RecordComponentList 
+    s_open_paren RecordComponentList s_close_paren | s_open_paren  s_close_paren 
     ;
 
 RecordComponentList : 
@@ -678,40 +667,116 @@ VariableArityRecordComponent :
     ; 
 
 
-Statement : StatementWithoutTrailingSubstatement | LabeledStatement | IfThenStatement | IfThenElseStatement | WhileStatement | ForStatement ; 
+Statement : 
+    StatementWithoutTrailingSubstatement 
+    | LabeledStatement 
+    | IfThenStatement 
+    | IfThenElseStatement 
+    | WhileStatement 
+    | ForStatement 
+    ; 
  
-StatementNoShortIf : LabeledStatementNoShortIf | IfThenElseStatementNoShortIf | WhileStatementNoShortIf | ForStatementNoShortIf ; 
+StatementNoShortIf : 
+    LabeledStatementNoShortIf 
+    | IfThenElseStatementNoShortIf 
+    | WhileStatementNoShortIf 
+    | ForStatementNoShortIf 
+    ; 
 
-StatementWithoutTrailingSubstatement : Block | EmptyStatement | ExpressionStatement | BreakStatement | ContinueStatement | ReturnStatement | ReturnStatement | SynchronizedStatement | ThrowStatement | TryStatement ;
+StatementWithoutTrailingSubstatement : 
+    Block 
+    | EmptyStatement 
+    | ExpressionStatement 
+    | BreakStatement 
+    | ContinueStatement 
+    | ReturnStatement 
+    | ReturnStatement 
+    | SynchronizedStatement 
+    | ThrowStatement 
+    | TryStatement 
+    ;
 
-EmptyStatement : s_semicolon ; 
+EmptyStatement : 
+    s_semicolon 
+    ; 
 
-LabeledStatement : Identifier o_colon Statement ;
+LabeledStatement : 
+    Identifier o_colon Statement 
+    ;
 
-LabeledStatementNoShortIf : Identifier o_colon StatementNoShortIf ;
+LabeledStatementNoShortIf : 
+    Identifier o_colon StatementNoShortIf 
+    ;
 
-ExpressionStatement : StatementExpression s_semicolon ;
+ExpressionStatement : 
+    StatementExpression s_semicolon 
+    ;
 
-StatementExpression : Assignment | PreIncrementExpression | PreDecrementExpression | PostIncrementExpression | PostDecrementExpression | MethodInvocation | ClassInstanceCreationExpression ;
+StatementExpression : 
+    Assignment 
+    | PreIncrementExpression 
+    | PreDecrementExpression 
+    | PostIncrementExpression 
+    | PostDecrementExpression 
+    | MethodInvocation 
+    | ClassInstanceCreationExpression 
+    ;
 
-IfThenStatement : k_if s_open_paren Expression s_close_paren Statement ;
+IfThenStatement : 
+    k_if s_open_paren Expression s_close_paren Statement 
+    ;
 
-IfThenElseStatement : k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else Statement ;
+IfThenElseStatement : 
+    k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else Statement 
+    ;
 
-IfThenElseStatementNoShortIf : k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf ;
+IfThenElseStatementNoShortIf : 
+    k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
+    ;
 
-WhileStatement : k_while s_open_paren Expression s_close_paren Statement ;
+WhileStatement : 
+    k_while s_open_paren Expression s_close_paren Statement 
+    ;
 
-WhileStatementNoShortIf : k_while s_open_paren Expression s_close_paren StatementNoShortIf ;
+WhileStatementNoShortIf : 
+    k_while s_open_paren Expression s_close_paren StatementNoShortIf 
+    ;
 
-ForStatement : BasicForStatement | EnhancedForStatement ; 
-ForStatementNoShortIf : BasicForStatementNoShortIf | EnhancedForStatementNoShortIf ;
+ForStatement : 
+    BasicForStatement 
+    | EnhancedForStatement 
+    ; 
+ForStatementNoShortIf : 
+    BasicForStatementNoShortIf 
+    | EnhancedForStatementNoShortIf 
+    ;
 
-BasicForStatement : k_for s_open_paren op_ForInit s_semicolon op_Expression s_semicolon op_ForUpdate s_close_paren Statement ;
-op_ForInit : | ForInit ;
-op_ForUpdate : | ForUpdate
-BasicForStatementNoShortIf: k_for s_open_paren op_ForInit s_semicolon op_Expression s_semicolon op_ForUpdate s_close_paren StatementNoShortIf ;
-ForInit : StatementExpressionList | LocalVariableDeclaration;
+BasicForStatement : 
+    k_for s_open_paren s_semicolon s_semicolon s_close_paren Statement 
+    | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
+    | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    ;
+
+BasicForStatementNoShortIf: 
+    k_for s_open_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
+    | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
+    | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
+    | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
+    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    ;
+
+ForInit : 
+    StatementExpressionList 
+    | LocalVariableDeclaration
+    ;
 ForUpdate : StatementExpressionList ;
 StatementExpressionList : StatementExpression op_StatementExpression
 op_StatementExpression : | s_comma StatementExpression op_StatementExpression
