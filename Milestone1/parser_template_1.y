@@ -94,10 +94,10 @@ op_Expression: | Expression;
 // -------------------Declarations over -----------------
 
 //  --------------------ignore--------------
-VariableDeclaratorList : VariableDeclarator s_VariableDeclaratorList ;
-s_VariableDeclaratorList : | s_comma VariableDeclarator s_VariableDeclaratorList ;
-VariableDeclarator : VariableDeclaratorId s_VariableDeclarator ;
-s_VariableDeclarator : o_assign VariableInitializer s_VariableDeclarator ;
+VariableDeclaratorList : VariableDeclarator | VariableDeclarator s_comma VariableDeclaratorList ;
+
+VariableDeclarator : VariableDeclaratorId | VariableDeclaratorId o_assign VariableDeclarator ;
+
 VariableDeclaratorId : Identifier op_Dims ;
 
 VariableInitializer: Expression
