@@ -594,12 +594,12 @@ DimExpr:
 // --     | DOUBLE_LITERAL
 // --     | BOOL_LITERAL
 // --     ;
-s_LambdaParameter: | s_comma LambdaParameter s_LambdaParameter;
+//s_LambdaParameter: | s_comma LambdaParameter s_LambdaParameter;
 
 s_Identifier: | s_comma Identifier s_Identifier;
 
 
-LambdaParameters:
+/* LambdaParameters:
     s_open_paren s_close_paren
     | s_open_paren LambdaParameterList s_close_paren
     | Identifier
@@ -622,7 +622,7 @@ LambdaParameterType:
 LambdaBody:
     Expression
     | Block
-    ;
+    ; */
 
 AssignmentExpression:
     ConditionalExpression
