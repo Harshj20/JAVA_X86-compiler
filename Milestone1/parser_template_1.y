@@ -200,6 +200,9 @@ Expression_statement: Expression
 // Expression: ternary_Expression
 //           ;
 Expression: 
+    Assignment_Expression
+    | LambdaExpression
+    ;
 
 ternary_Expression: logical_or_Expression op_ternary_Expression ;
 op_ternary_Expression : | o_question_mark ternary_Expression o_colon ternary_Expression ;
@@ -491,6 +494,8 @@ TypePattern: LocalVariableDeclaration ;
 // --     | postfix_Expression DECREMENT
 // --     ;
 
+// ------------ Production 15 ------------
+
 Primary:
     PrimaryNoNewArray
     | ArrrayCreationExpression
@@ -551,8 +556,34 @@ MethodInvocation:
     | TypeName s_dot k_super s_dot op_TypeArguments Identifier s_open_paren op_ArgumentList s_close_paren
     ;
 
-MethodRefere
+MethodRefere:
+    ExpressionName s_double_colon op_TypeArguments Identifier
+    | Primary s_double_colon op_TypeArguments Identifier
+    | ReferenceType s_double_colon op_TypeArguments Identifier
+    | k_super s_double_colon op_TypeArguments Identifier
+    | TypeName s_dot k_super s_double_colon op_TypeArguments Identifier
+    | ClassType s_double_colon op_TypeArguments k_new
+    | ArrayType s_double_colon k_new
+    ;
 
+ArrayCreationExpression:
+    k_new PrimitiveType DimExprs op_Dims
+    | k_new ClassOrInterfaceType DimExprs op_Dims
+    | k_new PrimitiveType Dims ArrayInitializer
+    | k_new ClassOrInterfaceType Dims ArrayInitializer
+    ;
+
+DimExprs: 
+    DimExpr
+    | DimExpr DimExprs
+    ;
+
+DimExpr:
+    s_open_square_bracket Expression s_close_square_bracket
+    ;
+
+LambdaExpression:
+    LambdaParemeter
 // -- variable:
 // --     ID
 // --     ;
