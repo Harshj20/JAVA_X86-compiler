@@ -113,7 +113,7 @@ VariableDeclarator :
 //     ;
 
 VariableDeclaratorId : 
-    Identifier op_Dims 
+    Identifier | Identifier Dims 
     ;
 
 VariableInitializer : 
@@ -318,12 +318,8 @@ Expression: /*LambdaExpression |*/ AssignmentExpression ;
 
 // -----------production 8 + production 14--------------
 Block : 
-    s_open_curly_bracket op_BlockStatements s_close_curly_bracket 
-    ;
-
-op_BlockStatements : 
-    
-    | BlockStatements 
+    s_open_curly_bracket s_close_curly_bracket 
+    | s_open_curly_bracket BlockStatements s_close_curly_bracket
     ;
 
 BlockStatements : 
@@ -342,7 +338,8 @@ LocalVariableDeclarationStatement :
     ;
 
 LocalVariableDeclaration : 
-    op_VariableModifiers LocalVariableType VariableDeclaratorList 
+    VariableModifiers LocalVariableType VariableDeclaratorList
+    | LocalVariableType VariableDeclaratorList 
     ;
 
 LocalVariableType : 
@@ -361,27 +358,20 @@ ClassDeclaration :
     ;
 
 NormalClassDeclaration : 
-    op_ClassModifiers k_class TypeIdentifier op_classextends /*classimplements*/ op_classpermits ClassBody 
+    ClassModifiers k_class TypeIdentifier ClassExtends /*classimplements*/ ClassPermits ClassBody
+    | ClassModifiers k_class TypeIdentifier  /*classimplements*/  ClassBody 
+    | ClassModifiers k_class TypeIdentifier ClassExtends /*classimplements*/ ClassBody 
+    | ClassModifiers k_class TypeIdentifier  /*classimplements*/ ClassPermits ClassBody 
+    |  k_class TypeIdentifier ClassExtends /*classimplements*/ ClassPermits ClassBody 
+    |  k_class TypeIdentifier ClassExtends /*classimplements*/ ClassBody 
+    |  k_class TypeIdentifier  /*classimplements*/ ClassBody 
+    |  k_class TypeIdentifier  /*classimplements*/ ClassPermits ClassBody  
     ;
 
-op_ClassModifiers : 
-    
-    | ClassModifiers
-    ;
 
 ClassModifiers :
     ClassModifier
     | ClassModifier ClassModifiers
-    ;
-
-op_classextends : 
-    
-    | ClassExtends
-    ;
-
-op_classpermits : 
-    
-    | ClassPermits
     ;
 
 ClassModifier : 
@@ -407,12 +397,8 @@ ClassPermits :
 
  
 ClassBody: 
-    s_open_curly_bracket op_ClassBodyDeclarations s_close_curly_bracket 
-    ;
-
-op_ClassBodyDeclarations :
-    
-    | ClassBodyDeclarations 
+    s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket
+    | s_open_curly_bracket s_close_curly_bracket 
     ;
 
 ClassBodyDeclarations : 
@@ -422,7 +408,7 @@ ClassBodyDeclarations :
 
 ClassBodyDeclaration : 
     ClassMemberDeclaration 
-    | InstanceInitializer 
+    | Block 
     | StaticInitializer 
     | ConstructorDeclaration 
     ;
@@ -493,30 +479,19 @@ Result:
     ;
 
 MethodDeclarator : 
-    Identifier s_open_paren op_ReceiverParameter op_FormalParameterList s_close_paren op_Dims
+    Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren Dims
+    | Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren 
+    | Identifier s_open_paren ReceiverParameter s_close_paren Dims
+    | Identifier s_open_paren ReceiverParameter s_close_paren 
+    | Identifier s_open_paren  FormalParameterList s_close_paren Dims
+    | Identifier s_open_paren  FormalParameterList s_close_paren 
+    | Identifier s_open_paren s_close_paren Dims
+    | Identifier s_open_paren s_close_paren 
+    
     ;   
-    
-op_Dims : 
-    
-    | Dims
-    ;
-
-op_FormalParameterList : 
-    
-    | FormalParameterList
-    ;
-
-
-op_ReceiverParameter : 
-    | ReceiverParameter s_comma
-    ;
 
 ReceiverParameter: 
-    Type op_IdentifierDot k_this 
-    ;
-
-op_IdentifierDot : 
-    | Identifier s_dot
+    Type  k_this | Type Identifier s_dot k_this
     ;
 
 FormalParameterList : 
@@ -525,21 +500,19 @@ FormalParameterList :
     ;
 
 FormalParameter: 
-    op_VariableModifiers Type VariableDeclaratorId 
+    VariableModifiers Type VariableDeclaratorId
+    | Type VariableDeclaratorId  
     | VariableArityParameter
     ;
 
 VariableArityParameter : 
-    op_VariableModifiers Type s_varargs Identifier 
+     Type s_varargs Identifier
+    |VariableModifiers Type s_varargs Identifier 
     ;
 
 VariableModifiers:
     VariableModifier
     | VariableModifier VariableModifiers
-    ;
-
-op_VariableModifiers :
-    | VariableModifiers
     ;
 
 VariableModifier : 
@@ -564,24 +537,15 @@ MethodBody:
     | s_semicolon 
     ;
 
-InstanceInitializer: 
-    Block 
-    ;
-
 StaticInitializer: 
     k_static Block 
     ;
 
 ConstructorDeclaration: 
-    op_ConstructorModifiers ConstructorDeclarator op_Throws ConstructorBody 
-    ;
-
-op_Throws:  
-    | Throws
-    ;
-
-op_ConstructorModifiers : 
-    | ConstructorModifiers
+    ConstructorModifiers ConstructorDeclarator Throws ConstructorBody 
+    | ConstructorModifiers ConstructorDeclarator ConstructorBody
+    |  ConstructorDeclarator Throws ConstructorBody
+    |  ConstructorDeclarator ConstructorBody
     ;
 
 ConstructorModifiers: 
@@ -596,7 +560,10 @@ ConstructorModifier:
     ;
 
 ConstructorDeclarator: 
-    SimpleClassType s_open_paren op_ReceiverParameter op_FormalParameterList s_close_paren 
+    SimpleClassType s_open_paren ReceiverParameter FormalParameterList s_close_paren 
+    | SimpleClassType s_open_paren ReceiverParameter s_close_paren
+    | SimpleClassType s_open_paren  FormalParameterList s_close_paren 
+    | SimpleClassType s_open_paren s_close_paren 
     ;
 
 SimpleClassType: 
@@ -604,18 +571,21 @@ SimpleClassType:
     ;
 
 ConstructorBody: 
-    s_open_curly_bracket op_ExplicitConstructorInvocation op_BlockStatements s_close_curly_bracket
-    ;
-
-op_ExplicitConstructorInvocation : 
-    | ExplicitConstructorInvocation
+    s_open_curly_bracket s_close_curly_bracket 
+    | s_open_curly_bracket BlockStatements s_close_curly_bracket
+    | s_open_curly_bracket ExplicitConstructorInvocation s_close_curly_bracket 
+    | s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket
     ;
 
 ExplicitConstructorInvocation: 
-    k_this s_open_paren op_ArgumentList s_close_paren s_semicolon 
-    | k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon 
-    | ClassType s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon 
-    | Primary s_dot k_super s_open_paren  op_ArgumentList s_close_paren s_semicolon
+    k_this s_open_paren ArgumentList s_close_paren s_semicolon 
+    | k_super s_open_paren  ArgumentList s_close_paren s_semicolon 
+    | ClassType s_dot k_super s_open_paren  ArgumentList s_close_paren s_semicolon 
+    | Primary s_dot k_super s_open_paren  ArgumentList s_close_paren s_semicolon
+    | k_this s_open_paren s_close_paren s_semicolon 
+    | k_super s_open_paren  s_close_paren s_semicolon 
+    | ClassType s_dot k_super s_open_paren  s_close_paren s_semicolon 
+    | Primary s_dot k_super s_open_paren  s_close_paren s_semicolon
     ;
 
 ArgumentList : 
@@ -623,28 +593,20 @@ ArgumentList :
     | Expression s_comma ArgumentList 
     ;
 
-op_ArgumentList : 
-    | ArgumentList
-    ;
-
 EnumDeclaration : 
-    op_ClassModifiers k_enum TypeIdentifier EnumBody 
+    ClassModifiers k_enum TypeIdentifier EnumBody 
+    | k_enum TypeIdentifier EnumBody
     ; 
 
 EnumBody: 
-    s_open_curly_bracket op_enum_constant_list op_comma op_enum_body_declarations s_close_curly_bracket 
-    ;
-
-op_enum_constant_list : 
-    | EnumConstantList 
-    ;
-
-op_comma : 
-    | s_comma 
-    ;
-
-op_enum_body_declarations : 
-    | EnumBodyDeclarations 
+    s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket
+    | s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket
+    | s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket
+    | s_open_curly_bracket EnumConstantList  s_close_curly_bracket
+    | s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket
+    | s_open_curly_bracket s_comma  s_close_curly_bracket
+    | s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket
+    | s_open_curly_bracket  s_close_curly_bracket 
     ;
 
 EnumConstantList: 
@@ -662,11 +624,13 @@ op_enum_constant :
     ;
 
 EnumBodyDeclarations: 
-    s_semicolon op_ClassBodyDeclarations
+    s_semicolon ClassBodyDeclarations
+    | s_semicolon 
     ;
 
 RecordDeclaration: 
-    op_ClassModifiers k_record TypeIdentifier RecordHeader RecordBody 
+    ClassModifiers k_record TypeIdentifier RecordHeader RecordBody 
+    | k_record TypeIdentifier RecordHeader RecordBody 
     ;
 
 RecordBody : 
@@ -687,7 +651,8 @@ RecordBodyDeclaration :
     ;
 
 CompactConstructorDeclaration : 
-    op_ConstructorModifiers SimpleClassType ConstructorBody 
+    ConstructorModifiers SimpleClassType ConstructorBody 
+    | SimpleClassType ConstructorBody 
     ;
 
 RecordHeader : 
@@ -875,9 +840,12 @@ PrimaryNoNewArray:
     ;
 
 ClassLiteral: 
-    ClassType op_Dims s_dot k_class
-    | NumericType op_Dims s_dot k_class
-    | k_boolean op_Dims s_dot k_class
+    ClassType s_dot k_class
+    | NumericType s_dot k_class
+    | k_boolean s_dot k_class
+    | ClassType Dims s_dot k_class
+    | NumericType Dims s_dot k_class
+    | k_boolean Dims s_dot k_class
     | k_void s_dot k_class
     ;
     
@@ -888,7 +856,10 @@ ClassInstanceCreationExpression:
     ;
 
 UnqualifiedClassInstanceCreationExpression:
-    k_new  ClassTypeToInstantiate s_open_paren op_ArgumentList s_close_paren | k_new  ClassTypeToInstantiate s_open_paren op_ArgumentList s_close_paren ClassBody ;
+    k_new  ClassTypeToInstantiate s_open_paren s_close_paren 
+    | k_new  ClassTypeToInstantiate s_open_paren s_close_paren ClassBody 
+    | k_new  ClassTypeToInstantiate s_open_paren ArgumentList s_close_paren 
+    | k_new  ClassTypeToInstantiate s_open_paren ArgumentList s_close_paren ClassBody
     ;
 
 ClassTypeToInstantiate:
@@ -908,12 +879,16 @@ ArrayAccess:
     ;
 
 MethodInvocation:
-    ClassType s_open_paren op_ArgumentList s_close_paren
-    | ClassType s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
-    | ClassType s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
-    | Primary s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
-    | k_super s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
-    | ClassType s_dot k_super s_dot  Identifier s_open_paren op_ArgumentList s_close_paren
+    ClassType s_open_paren s_close_paren
+    | ClassType s_dot  Identifier s_open_paren s_close_paren
+    | Primary s_dot  Identifier s_open_paren s_close_paren
+    | k_super s_dot  Identifier s_open_paren s_close_paren
+    | ClassType s_dot k_super s_dot Identifier s_open_paren s_close_paren
+    | ClassType s_open_paren ArgumentList s_close_paren
+    | ClassType s_dot  Identifier s_open_paren ArgumentList s_close_paren
+    | Primary s_dot  Identifier s_open_paren ArgumentList s_close_paren
+    | k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
+    | ClassType s_dot k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
     ;
 
 MethodReference:
@@ -927,8 +902,10 @@ MethodReference:
     ;
 
 ArrayCreationExpression:
-    k_new PrimitiveType DimExprs op_Dims
-    | k_new ClassType DimExprs op_Dims
+    k_new PrimitiveType DimExprs 
+    | k_new ClassType DimExprs 
+    | k_new PrimitiveType DimExprs Dims
+    | k_new ClassType DimExprs Dims
     | k_new PrimitiveType Dims ArrayInitializer
     | k_new ClassType Dims ArrayInitializer
     ;
