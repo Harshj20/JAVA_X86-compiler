@@ -1,9 +1,13 @@
 %{
+#include <bits/stdc++.h>
+using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <math.h>
+extern int yylex();
+extern int yylineno;
+void yyerror(char* s){
+    printf("Error %s in line %d\n",s,yylineno);
+}
 
 int node_count = 0;
 
@@ -54,10 +58,15 @@ void print_token(char* token_type, char* token_value) {
 %type <string> variable_declarator
 
 %%
+// ------ Start ------- 
+CompilationUnit : TopLevelClassOrInterfaceDeclarations {printf("Executed");};
 
-// program: /* empty */
-//        | program statement s_semicolon
-//        ;
+TopLevelClassOrInterfaceDeclarations : 
+TopLevelClassOrInterfaceDeclaration
+| TopLevelClassOrInterfaceDeclaration TopLevelClassOrInterfaceDeclarations ;
+
+TopLevelClassOrInterfaceDeclaration :
+ClassDeclaration 
 
 
 //  --------------------ignore--------------
@@ -926,3 +935,9 @@ CastExpression:
     ;
     
 %%
+
+int main(){
+    yyparse();
+    return 0;
+}
+
