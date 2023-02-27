@@ -129,7 +129,7 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 
 "?" { return o_question_mark; }
 ":" { return o_colon; }
-
+"->" {return o_arrow;}
 
 
 ";" { return s_semicolon; }
