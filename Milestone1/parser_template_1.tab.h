@@ -38,7 +38,7 @@
 # define YY_YY_PARSER_TEMPLATE_1_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -153,19 +153,20 @@ extern int yydebug;
     o_bitwise_complement = 359,
     o_question_mark = 360,
     o_colon = 361,
-    Identifier = 362,
-    Literal = 363,
-    s_open_paren = 364,
-    s_close_paren = 365,
-    s_open_curly_bracket = 366,
-    s_close_curly_bracket = 367,
-    s_open_square_bracket = 368,
-    s_close_square_bracket = 369,
-    s_semicolon = 370,
-    s_comma = 371,
-    s_dot = 372,
-    s_varargs = 373,
-    s_double_colon = 374
+    o_arrow = 362,
+    Identifier = 363,
+    Literal = 364,
+    s_open_paren = 365,
+    s_close_paren = 366,
+    s_open_curly_bracket = 367,
+    s_close_curly_bracket = 368,
+    s_open_square_bracket = 369,
+    s_close_square_bracket = 370,
+    s_semicolon = 371,
+    s_comma = 372,
+    s_dot = 373,
+    s_varargs = 374,
+    s_double_colon = 375
   };
 #endif
 
@@ -180,7 +181,7 @@ union YYSTYPE
     double floating_point;
     bool boolean;
 
-#line 184 "parser_template_1.tab.h"
+#line 185 "parser_template_1.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
