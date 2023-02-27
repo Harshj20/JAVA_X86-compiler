@@ -13,7 +13,6 @@ RESERVED_WORD "abstract"|"assert"|"boolean"|"break"|"byte"|"case"|"catch"|"char"
 CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provides"|"record"|"requires"|"sealed"|"to"|"transitive"|"uses"|"var"|"with"|"yield"
 
 %%
-<<<<<<< HEAD
 "exports" {return k_exports;}
 "module"  { return k_module;}
 "non-sealed" {return k_non_sealed;}
@@ -31,9 +30,6 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "with" {return k_with;}
 "yield" {return k_yield;}
 
-=======
-//  Keywords
->>>>>>> b02f591e988168ecec97e1f5043a074baf9b5c7f
 "abstract" { return k_abstract; }
 "assert" { return k_assert; }
 "boolean" { return k_boolean; }
@@ -84,13 +80,8 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "void" { return k_void; }
 "volatile" { return k_volatile; }
 "while" { return k_while; }
-<<<<<<< HEAD
 "_" {return k_underscore; }
 
-=======
-
-// Literals
->>>>>>> b02f591e988168ecec97e1f5043a074baf9b5c7f
 "true" { return l_true; }
 "false" { return l_false; }
 "null" { return l_null; }
