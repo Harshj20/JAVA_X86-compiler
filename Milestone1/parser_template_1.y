@@ -372,7 +372,7 @@ LabeledStatementNoShortIf : Identifier o_colon StatementNoShortIf ;
 
 ExpressionStatement : StatementExpression s_semicolon ;
 
-StatementExpression : Assignment /*| PreIncrementExpression | PreDecrementExpression | PostIncrementExpression | PostDecrementExpression | MethodInvocation | ClassInstanceCreationExpression*/ ;
+StatementExpression : Assignment | PreIncrementExpression | PreDecrementExpression | PostIncrementExpression | PostDecrementExpression | MethodInvocation | ClassInstanceCreationExpression ;
 Assignment : o_assign | o_add_assign | o_subtract_assign | o_multiply_assign | o_divide_assign | o_bitwise_and_assign
 IfThenStatement : k_if s_open_paren Expression s_close_paren Statement ;
 
