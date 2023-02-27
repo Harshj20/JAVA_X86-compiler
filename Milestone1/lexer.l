@@ -13,7 +13,23 @@ RESERVED_WORD "abstract"|"assert"|"boolean"|"break"|"byte"|"case"|"catch"|"char"
 CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provides"|"record"|"requires"|"sealed"|"to"|"transitive"|"uses"|"var"|"with"|"yield"
 
 %%
-//  Keywords
+"exports" {return k_exports;}
+"module"  { return k_module;}
+"non-sealed" {return k_non_sealed;}
+"open" {return k_open;}
+"opens"  {return k_opens;}
+"permits" {return k_permits;}
+"provides" {return k_provide;}
+"record" {return k_record;}
+"requires" {return k_requires;}
+"sealed" {return k_sealed;}
+"to" {return k_to;}
+"transitive" {return k_transitive;}
+"uses" {return k_uses;}
+"var" {return k_var;}
+"with" {return k_with;}
+"yield" {return k_yield;}
+
 "abstract" { return k_abstract; }
 "assert" { return k_assert; }
 "boolean" { return k_boolean; }
@@ -64,14 +80,12 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "void" { return k_void; }
 "volatile" { return k_volatile; }
 "while" { return k_while; }
+"_" {return k_underscore; }
 
-// Literals
 "true" { return l_true; }
 "false" { return l_false; }
 "null" { return l_null; }
 
-}
-// Assignment Operators
 "=" { return o_assign; }
 "+=" { return o_add_assign; }
 "-=" { return o_subtract_assign; }
@@ -85,53 +99,37 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 ">>=" { return o_right_shift_assign; }
 ">>>=" { return o_unsigned_right_shift_assign; }
 
-// Arithmetic Operators
+"&" { return o_bitwise_and; }
+"|" { return o_bitwise_or; }
+"^" { return o_bitwise_xor; }
+"<<" { return o_left_shift; }
+">>" { return o_right_shift; }
+">>>" { return o_unsigned_right_shift; }
+
 "+" { return o_add; }
 "-" { return o_subtract; }
 "*" { return o_multiply; }
 "/" { return o_divide; }
 "%" { return o_modulo; }
 
-// Relational Operators
 "<" { return o_less_than; }
-"<=" { return o_less_than_or_equal_to; }
+"<=" { return o_less_than_or_equal; }
 ">" { return o_greater_than; }
-">=" { return o_greater_than_or_equal_to; }
-"instanceof" { return o_instance_of; }
+">=" { return o_greater_than_or_equal; }
 "==" { return o_equals; }
 "!=" { return o_not_equals; }
 
-// Logical Operators
-"&" { return o_bitwise_and; }
-"|" { return o_bitwise_or; }
-"^" { return o_bitwise_xor; }
 "!" { return o_logical_not; }
 "&&" { return o_logical_and; }
 "||" { return o_logical_or; }
 
-// Unary Operators
 "++" { return o_increment; }
 "--" { return o_decrement; }
-"+" { return o_unary_plus; }
-"-" { return o_unary_minus; }
 "~" { return o_bitwise_complement; }
 
-// Ternary Operator
 "?" { return o_question_mark; }
 ":" { return o_colon; }
 
-// Other Operators
-"." { return o_dot; }
-"," { return o_comma; }
-";" { return o_semicolon; }
-"(" { return o_open_paren; }
-")" { return o_close_paren; }
-"[" { return o_open_square_bracket; }
-"]" { return o_close_square_bracket; }
-"{" { return o_open_curly_bracket; }
-"}" { return o_close_curly_bracket; }
-"@" { return o_annotation; }
-"..." { return o_varargs; }
 
 
 ";" { return s_semicolon; }
@@ -143,21 +141,20 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "]" { return s_close_square_bracket; }
 "{" { return s_open_curly_bracket; }
 "}" { return s_close_curly_bracket; }
-"@" { return s_annotation; }
 "::" { return s_double_colon; }
 "..." { return s_varargs; }
   
-[0-9]+                  { return l_int; }
+[0-9]+                  { return Literal; }
 
-[0-9]+\.[0-9]+[fF]?          { return l_float; }
-[0-9]+[eE][+-]?[0-9]+[fF]?   { return l_float; }
+[0-9]+\.[0-9]+[fF]?          { return Literal; }
+[0-9]+[eE][+-]?[0-9]+[fF]?   { return Literal; }
 
 
-"'"[^"'"\\]"'" {return l_char; }
+"'"[^"'"\\]"'" {return Literal; }
 "\"\"\"" yymore(); BEGIN(textBlock);
 <textBlock>"\"\"\"" {
     BEGIN(INITIAL);
-    return l_text_box;
+    return Literal;
 }
 <textBlock>[^\\]+ yymore();
 <textBlock>\\(["\"""'"\\nstrbf]|[0-7]{1,2}|[0-3][0-7]{2}) yymore();
@@ -167,10 +164,9 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 <string>\\(["\"""'"\\ntrbsf]|[0-7]{1,2}|[0-3][0-7]{2}) yymore();
 <string>"\"" {
     BEGIN(INITIAL);
-    return l_string;
+    return Literal;
 }
-[a-zA-Z$_][a-zA-Z0-9$_]* { return identifier;}
-
+[a-zA-Z$_][a-zA-Z0-9$_]* { return Identifier;}
 
 "//"(.)*               /* single-line comments */
 "/*"([^*]|\*[^/])*"*/" /* multi-line comments */
