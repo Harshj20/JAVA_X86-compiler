@@ -6,7 +6,7 @@ using namespace std;
 extern int yylex();
 extern int yylineno;
 void yyerror(char* s){
-    printf("Error %s in line %d\n",s,yylineno);
+    printf("Error123 %s in line %d\n",s,yylineno);
 }
 
 int node_count = 0;
@@ -554,16 +554,16 @@ ForStatementNoShortIf :
     ;
 
 BasicForStatement : 
-    k_for s_open_paren s_semicolon s_semicolon s_close_paren Statement 
-    | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
-    | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
-    | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
-    | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
-    | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    k_FOR s_open_paren s_semicolon s_semicolon s_close_paren Statement 
+    | k_FOR s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_FOR s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_FOR s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    | k_FOR s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
+    | k_FOR s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_FOR s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_FOR s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     ;
-
+k_FOR: k_for {printf("Printing for\n");};
 BasicForStatementNoShortIf: 
     k_for s_open_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
     | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
@@ -576,8 +576,8 @@ BasicForStatementNoShortIf:
     ;
 
 ForInit : 
-    StatementExpressionList 
-    | LocalVariableDeclaration
+    StatementExpressionList {printf("Forinti statement\n");}
+    | LocalVariableDeclaration 
     ;
 ForUpdate : StatementExpressionList ;
 StatementExpressionList : 
@@ -659,7 +659,7 @@ TypePattern:
 
 Primary:
     PrimaryNoNewArray
-    | ArrayCreationExpression
+    | ArrayCreationExpression {printf("Primary\n");}
     ;
 
 PrimaryNoNewArray:
@@ -794,7 +794,7 @@ LambdaBody:
 
 AssignmentExpression:
     ConditionalExpression
-    | Assignment
+    | Assignment 
     ;
 
 Assignment:
@@ -915,7 +915,7 @@ UnaryExpressionNotPlusMinus:
     ;
 
 PostfixExpression:
-    Primary
+    Primary {printf("Primary printing literal at line %d\n", yylineno);}
     | PostIncrementExpression
     | PostDecrementExpression
     ;
@@ -940,4 +940,3 @@ int main(){
     yyparse();
     return 0;
 }
-
