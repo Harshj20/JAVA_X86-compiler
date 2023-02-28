@@ -44,19 +44,6 @@ void print_token(char* token_type, char* token_value) {
 %token s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
 
-%type <string> type_specifier
-%type <string> class_declaration
-%type <string> field_declaration
-%type <string> method_declaration
-%type <string> block_statement
-%type <string> statement
-%type <string> Expression
-%type <string> primary_Expression
-%type <string> postfix_Expression
-%type <string> argument_list
-%type <string> variable_declaration
-%type <string> variable_declarator
-
 %%
 // ------ Start ------- 
 CompilationUnit : | TopLevelClassOrInterfaceDeclarations {printf("Executed");};
@@ -116,6 +103,7 @@ IntegralType :
     | k_long 
     | k_char
     ;
+ClassType : Name ;
 
 FloatingPointType : 
     k_float 
@@ -138,7 +126,7 @@ ReferenceType :
 
 ArrayType: 
     PrimitiveType s_open_square_bracket s_close_square_bracket
-    | ClassType s_open_square_bracket s_close_square_bracket
+    | Name s_open_square_bracket s_close_square_bracket
     | ArrayType s_open_square_bracket s_close_square_bracket
     ;
 
@@ -149,10 +137,11 @@ Dims:
 
 //  -------------------Production 6----------------
 
-ClassType: 
-    Identifier
-    | ClassType s_dot Identifier
-    ;
+Name: 
+    SimpleName
+    | QualifiedName ;
+SimpleName : Identifier ;
+QualifiedName : Name s_dot Identifier ;
 
 // --------------production 10-----------
 ArrayInitializer:
@@ -358,8 +347,8 @@ ConstructorDeclaration:
 ConstructorDeclarator: 
     // Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren 
     // | Identifier s_open_paren ReceiverParameter s_close_paren
-    Identifier s_open_paren  FormalParameterList s_close_paren 
-    | Identifier s_open_paren s_close_paren 
+    SimpleName s_open_paren  FormalParameterList s_close_paren 
+    | SimpleName s_open_paren s_close_paren 
     ;
 
 ConstructorBody: 
@@ -582,14 +571,14 @@ StatementExpression
 
 // EnhancedForStatement : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement
 // EnhancedForStatementNoShortIf : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf
-BreakStatement : k_break | k_break Identifier;
+BreakStatement : k_break s_semicolon| k_break Identifier s_semicolon;
 /*YieldStatement : k_yield Expression ;*/
-ContinueStatement : k_continue | k_continue Identifier ;
-ReturnStatement : k_return | k_return Expression ;
+ContinueStatement : k_continue s_semicolon| k_continue Identifier s_semicolon;
+ReturnStatement : k_return s_semicolon | k_return Expression s_semicolon ;
 
 
 ThrowStatement: 
-    k_throw Expression 
+    k_throw Expression s_semicolon
     ;
 
 SynchronizedStatement: 
@@ -706,14 +695,14 @@ FieldAccess:
     ;
 
 ArrayAccess:
-    ClassType s_open_square_bracket Expression s_close_square_bracket
+    Name s_open_square_bracket Expression s_close_square_bracket
     | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
     ;
 
 MethodInvocation:
-    ClassType s_open_paren s_close_paren
-    | ClassType s_open_paren ArgumentList s_close_paren
-    // | ClassType s_dot  Identifier s_open_paren s_close_paren
+    Name s_open_paren s_close_paren
+    | Name s_open_paren ArgumentList s_close_paren
+    // | Name s_dot  Identifier s_open_paren s_close_paren
     | Primary s_dot  Identifier s_open_paren s_close_paren
     | Primary s_dot  Identifier s_open_paren ArgumentList s_close_paren
     | k_super s_dot  Identifier s_open_paren s_close_paren
@@ -916,7 +905,7 @@ PostfixExpression:
     Primary {printf("Primary printing literal at line %d\n", yylineno);}
     | PostIncrementExpression
     | PostDecrementExpression
-    | ClassType
+    | Name
     ;
 
 PostIncrementExpression:    
@@ -930,8 +919,8 @@ PostDecrementExpression:
 CastExpression:
     s_open_paren PrimitiveType s_close_paren UnaryExpression
     | s_open_paren PrimitiveType Dims s_close_paren UnaryExpression
-    | s_open_paren Expression s_close_paren UnaryExpressionNotPlusMinus
-    | s_open_paren ClassType Dims s_close_paren UnaryExpressionNotPlusMinus
+    //| s_open_paren Expression s_close_paren UnaryExpressionNotPlusMinus
+    //| s_open_paren Name Dims s_close_paren UnaryExpressionNotPlusMinus
     /* | s_open_paren ReferenceType AdditionalBounds s_close_paren UnaryExpressionNotPlusMinus
     | s_open_paren ReferenceType AdditionalBounds s_close_paren LambdaExpression */
     ;
