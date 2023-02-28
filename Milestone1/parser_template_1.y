@@ -210,7 +210,8 @@ MethodDeclarator:
 FormalParameterList: FormalParameter
 	                |FormalParameterList s_comma FormalParameter
 
-FormalParameter: Type VariableDeclaratorId
+FormalParameter: Type VariableDeclaratorId 
+                | k_final Type VariableDeclaratorId 
 
 Throws: k_throws ClassTypeList
 
@@ -334,8 +335,11 @@ LocalVariableDeclarationStatement :
     ;
 
 LocalVariableDeclaration : 
-    Type VariableDeclarators
+    k_final LocalVariableType VariableDeclarators
+    | LocalVariableType VariableDeclarators
     ;
+
+LocalVariableType : Type | k_var
 
 Statement : 
     StatementWithoutTrailingSubstatement 
