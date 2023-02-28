@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "parser_template_1.tab.h"
 %}
 
 /* Enumeration of Java token types */
@@ -82,9 +83,9 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "while" { return k_while; }
 "_" {return k_underscore; }
 
-"true" { return l_true; }
-"false" { return l_false; }
-"null" { return l_null; }
+"true" { return Literal; }
+"false" { return Literal; }
+"null" { return Literal; }
 
 "=" { return o_assign; }
 "+=" { return o_add_assign; }
