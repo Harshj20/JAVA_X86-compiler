@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "parser_template_1.tab.h"
+#include "parser.tab.h"
 %}
 
 /* Enumeration of Java token types */
@@ -9,6 +9,12 @@
 %option yylineno
 %x string
 %x textBlock
+
+Integer [1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
+
+deci_floats [0-9]*"."[0-9]+[fFdD]?|[0-9]+"."[0-9]*[fFdD]?|[0-9][0-9_]*[0-9]+"."[0-9]*[fFdD]?|[0-9]*"."[0-9][0-9_]*[0-9]+[fFdD]|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+[fFdD]?
+
+hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F]*"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+
 
 RESERVED_WORD "abstract"|"assert"|"boolean"|"break"|"byte"|"case"|"catch"|"char"|"class"|"const"|"_"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extends"|"final"|"finally"|"float"|"for"|"if"|"goto"|"implements"|"import"|"instanceof"|"int"|"interface"|"long"|"naive"|"new"|"package"|"private"|"protected"|"public"|"return"|"short"|"static"|"strictfp"|"super"|"switch"|"synchronized"|"this"|"throw"|"throws"|"transient"|"try"|"void"|"volatile"|"while"
 CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provides"|"record"|"requires"|"sealed"|"to"|"transitive"|"uses"|"var"|"with"|"yield"
@@ -145,10 +151,21 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 "::" { return s_double_colon; }
 "..." { return s_varargs; }
   
-[0-9]+                  { return Literal; }
+{Integer}                  { return Literal; }
 
-[0-9]+\.[0-9]+[fF]?          { return Literal; }
-[0-9]+[eE][+-]?[0-9]+[fF]?   { return Literal; }
+{deci_floats}        { return Literal; }
+{hex_floats}        {return Literal;}
+
+{deci_floats}|{deci_floats}[eE]{deci_floats}|{Integer}[eE]{deci_floats}|{deci_floats}[eE]{Integer}|{Integer}[eE]{Integer} {return Literal;}
+
+0[xX][0-9a-fA-F]|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]   {   return Literal; }
+
+{hex_floats}|{hex_floats}[pP]{Integer}      {   return Literal; }
+
+
+0[bB][01]|0[bB][01][01_]*[01]+  {   return Literal; }
+
+0|0[0-9_]*[0-9]+  {   return Literal; }
 
 
 "'"[^"'"\\]"'" {return Literal; }
@@ -170,7 +187,7 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 [a-zA-Z$_][a-zA-Z0-9$_]* { return Identifier;}
 
 "//"(.)*               /* single-line comments */
-"/*"([^*]|\*[^/])*"*/" /* multi-line comments */
+"/*"[^*/]*"*/"  /* multi-line comments */
 [ \t\r\n]+             /* white space */
 
 <INITIAL,string,textBlock>.|\n  printf("Error at line no. %d, text is %s\n", yylineno, yytext); return 0;
