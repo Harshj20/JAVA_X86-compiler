@@ -59,11 +59,11 @@ void print_token(char* token_type, char* token_value) {
 
 %%
 // ------ Start ------- 
-CompilationUnit : TopLevelClassOrInterfaceDeclarations {printf("Executed");};
+CompilationUnit : | TopLevelClassOrInterfaceDeclarations {printf("Executed");};
 
 TopLevelClassOrInterfaceDeclarations : 
 TopLevelClassOrInterfaceDeclaration
-| TopLevelClassOrInterfaceDeclaration TopLevelClassOrInterfaceDeclarations ;
+| TopLevelClassOrInterfaceDeclarations TopLevelClassOrInterfaceDeclaration ;
 
 TopLevelClassOrInterfaceDeclaration :
 ClassDeclaration 
@@ -72,7 +72,7 @@ ClassDeclaration
 //  --------------------ignore--------------
 VariableDeclaratorList : 
     VariableDeclarator 
-    | VariableDeclarator s_comma VariableDeclaratorList 
+    | VariableDeclaratorList s_comma VariableDeclarator 
     ;
 
 VariableDeclarator : 
@@ -81,7 +81,7 @@ VariableDeclarator :
     ;
 
 VariableDeclaratorId : 
-    Identifier | Identifier Dims 
+    Identifier | VariableDeclaratorId s_open_square_bracket s_close_square_bracket
     ;
 
 VariableInitializer : 
@@ -137,14 +137,14 @@ ReferenceType :
 //InterfaceType: ClassType ;
 
 ArrayType: 
-    PrimitiveType Dims
-    | ClassType Dims
-    // | Identifier Dims
+    PrimitiveType s_open_square_bracket s_close_square_bracket
+    | ClassType s_open_square_bracket s_close_square_bracket
+    | ArrayType s_open_square_bracket s_close_square_bracket
     ;
 
 Dims: 
     s_open_square_bracket s_close_square_bracket 
-    | s_open_square_bracket s_close_square_bracket Dims 
+    | Dims s_open_square_bracket s_close_square_bracket 
     ;
 
 //  -------------------Production 6----------------
@@ -164,7 +164,7 @@ ArrayInitializer:
 
 VariableInitializerList:
     VariableInitializer 
-    | VariableInitializer s_comma VariableInitializerList
+    | VariableInitializerList s_comma VariableInitializer
     ;
 
 
@@ -179,7 +179,7 @@ Block :
 
 BlockStatements : 
     BlockStatement 
-    | BlockStatement BlockStatements 
+    | BlockStatements BlockStatement 
     ; 
 
 BlockStatement : 
@@ -194,13 +194,14 @@ LocalVariableDeclarationStatement :
 
 LocalVariableDeclaration : 
     // k_final LocalVariableType VariableDeclaratorList
-    LocalVariableType VariableDeclaratorList 
+    // LocalVariableType VariableDeclaratorList 
+    Type VariableDeclaratorList 
     ;
 
-LocalVariableType : 
-    Type 
-    | k_var
-    ;
+// LocalVariableType : 
+//     Type 
+//     | k_var
+//     ;
 
 /* LocalClassDeclaration : 
     ClassDeclaration /*| NormalInterface Declaration
@@ -213,7 +214,7 @@ ClassDeclaration :
     ;
 
 NormalClassDeclaration : 
-    // Modifiers k_class Identifier ClassExtends /*classimplements*/ ClassPermits ClassBody
+    // Modifiers k_class Identifier ClassExtends /classimplements/ ClassPermits ClassBody
      Modifiers k_class Identifier  /*classimplements*/  ClassBody 
     | Modifiers k_class Identifier ClassExtends /*classimplements*/ ClassBody 
     // | Modifiers k_class Identifier  /*classimplements*/ ClassPermits ClassBody 
@@ -240,7 +241,7 @@ ClassBody:
 
 ClassBodyDeclarations : 
     ClassBodyDeclaration 
-    | ClassBodyDeclaration ClassBodyDeclarations
+    | ClassBodyDeclarations ClassBodyDeclaration
     ;
 
 ClassBodyDeclaration : 
@@ -254,7 +255,7 @@ ClassMemberDeclaration :
     FieldDeclaration 
     | MethodDeclaration 
     // | ClassDeclaration 
-   // | /*InterfaceDeclaration |*/ s_semicolon 
+   // | /InterfaceDeclaration |/ s_semicolon 
     ;
 
 FieldDeclaration: 
@@ -283,7 +284,7 @@ Modifier :
     ;
 
 MethodDeclaration : 
-     MethodHeader MethodBody
+    MethodHeader MethodBody
     ;
 
 
@@ -303,10 +304,9 @@ MethodDeclarator :
     // | Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren 
     // | Identifier s_open_paren ReceiverParameter s_close_paren Dims
     // | Identifier s_open_paren ReceiverParameter s_close_paren 
-     Identifier s_open_paren  FormalParameterList s_close_paren Dims
-    | Identifier s_open_paren  FormalParameterList s_close_paren 
-    | Identifier s_open_paren s_close_paren Dims
+    Identifier s_open_paren  FormalParameterList s_close_paren
     | Identifier s_open_paren s_close_paren 
+    | MethodDeclarator s_open_square_bracket s_close_square_bracket
     
     ;  
 
@@ -316,12 +316,12 @@ MethodDeclarator :
 
 FormalParameterList : 
     FormalParameter 
-    | FormalParameter s_comma FormalParameterList 
+    | FormalParameterList s_comma FormalParameter
     ;
 
 FormalParameter: 
     // k_final Type VariableDeclaratorId
-     Type VariableDeclaratorId  
+    Type VariableDeclaratorId  
     // | VariableArityParameter
     ;
 
@@ -331,16 +331,12 @@ FormalParameter:
 //     ;
 
 Throws: 
-    k_throws ExceptionTypeList
+    k_throws ClassTypeList
     ;
 
-ExceptionTypeList: 
-    ExceptionType 
-    | ExceptionType s_comma ExceptionTypeList 
-    ;
-
-ExceptionType: 
-    ClassType
+ClassTypeList: 
+    ClassType 
+    | ClassTypeList s_comma ClassType
     ;
 
 MethodBody: 
@@ -362,7 +358,7 @@ ConstructorDeclaration:
 ConstructorDeclarator: 
     // Identifier s_open_paren ReceiverParameter FormalParameterList s_close_paren 
     // | Identifier s_open_paren ReceiverParameter s_close_paren
-     Identifier s_open_paren  FormalParameterList s_close_paren 
+    Identifier s_open_paren  FormalParameterList s_close_paren 
     | Identifier s_open_paren s_close_paren 
     ;
 
@@ -382,11 +378,11 @@ ExplicitConstructorInvocation:
     | k_super s_open_paren  s_close_paren s_semicolon 
     // | ClassType s_dot k_super s_open_paren  s_close_paren s_semicolon 
     // | Primary s_dot k_super s_open_paren  s_close_paren s_semicolon
-    ; 
+    ;
 
 ArgumentList : 
     Expression 
-    | Expression s_comma ArgumentList 
+    | ArgumentList s_comma Expression
     ;
 
 // EnumDeclaration : 
@@ -582,7 +578,7 @@ ForInit :
 ForUpdate : StatementExpressionList ;
 StatementExpressionList : 
 StatementExpression
-| StatementExpression s_comma StatementExpressionList
+| StatementExpressionList s_comma StatementExpression
 
 // EnhancedForStatement : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement
 // EnhancedForStatementNoShortIf : k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf
@@ -609,7 +605,7 @@ TryStatement:
 
 Catches: 
     CatchClause 
-    | CatchClause Catches 
+    | Catches CatchClause
     ;
 
 CatchClause: 
@@ -743,12 +739,12 @@ ArrayCreationExpression:
     | k_new PrimitiveType DimExprs Dims
     | k_new ClassType DimExprs 
     | k_new ClassType DimExprs Dims
-    // | k_new ClassType Dims ArrayInitializer
+    | k_new ClassType Dims ArrayInitializer
     ;
 
 DimExprs: 
     DimExpr
-    | DimExpr DimExprs
+    | DimExprs DimExpr
     ;
 
 DimExpr:
