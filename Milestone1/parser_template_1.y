@@ -43,20 +43,21 @@ void print_token(char* token_type, char* token_value) {
 
 %token s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
+%start Program
 
 %%
-//19.2 Productions from §2.3: The Syntactic Grammar
-Goal: CompilationUnit {printf("Executed\n");}
+// ------------------ Start -----------------------
+
+Program : CompilationUnit {printf("Executed\n");}
 
 
-
-//19.4 Productions from §4: Types, Values, and Variables */
+// -------------------------------- Production 4 -----------------------
 
 Type: PrimitiveType
     | ReferenceType
 
-PrimitiveType: NumericType
-            |k_boolean
+PrimitiveType: NumericType 
+             | k_boolean
 
 NumericType:IntegralType
     |FloatingPointType
@@ -83,7 +84,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 	|ArrayType s_open_square_bracket s_close_square_bracket
 
 
-//19.5 Productions from §6: Names
+// ------------------------------- Production 6 --------------------------
 
 Name:SimpleName
 	| QualifiedName
@@ -92,7 +93,7 @@ SimpleName: Identifier
 
 QualifiedName: Name s_dot Identifier
 
-//19.6 Productions from §7: Packages
+// --------------------------- Production 7 --------------------------
 
 CompilationUnit: PackageDeclaration ImportDeclarations TypeDeclarations
                 | PackageDeclaration ImportDeclarations
@@ -120,7 +121,7 @@ TypeImportOnDemandDeclaration: k_import Name s_dot o_multiply s_semicolon
 TypeDeclaration: ClassDeclaration
 	            |InterfaceDeclaration
                 | s_semicolon
-//19.7 Productions Used Only in the LALR(1) Grammar
+// ---------------------------- Production 8 -----------------------
 
 Modifiers:Modifier
          |Modifiers Modifier
@@ -136,11 +137,10 @@ Modifier: k_public
         | k_transient 
         | k_volatile
 
-/* 19.8 Productions from §8: Classes
-19.8.1 Productions from §8.1: Class Declaration */
+ClassDeclaration : NormalClassDeclaration
+                  |EnumDeclaration
 
-ClassDeclaration:
-
+NormalClassDeclaration:
 	Modifiers k_class Identifier Super Interfaces ClassBody
     | Modifiers k_class Identifier Super ClassBody
     | Modifiers k_class Identifier Interfaces ClassBody
@@ -149,6 +149,7 @@ ClassDeclaration:
     | k_class Identifier Super ClassBody
     | k_class Identifier Interfaces ClassBody
     | k_class Identifier ClassBody
+
 
 
 Super: k_extends ClassType
@@ -170,14 +171,12 @@ ClassBodyDeclaration:ClassMemberDeclaration
 ClassMemberDeclaration:FieldDeclaration
                       |MethodDeclaration
 
-//19.8.2 Productions from §8.3: Field Declarations
-
 FieldDeclaration:
 
-	Modifiers Type VariableDeclarators s_semicolon | Type VariableDeclarators s_semicolon
+	Modifiers Type VariableDeclaratorList s_semicolon | Type VariableDeclaratorList s_semicolon
 
-VariableDeclarators:VariableDeclarator
-	               |VariableDeclarators s_comma VariableDeclarator
+VariableDeclaratorList:VariableDeclarator
+	               |VariableDeclaratorList s_comma VariableDeclarator
 
 VariableDeclarator: VariableDeclaratorId
 	               |VariableDeclaratorId o_assign VariableInitializer
@@ -187,8 +186,6 @@ VariableDeclaratorId: Identifier
 
 VariableInitializer:Expression
 	               |ArrayInitializer
-
-//19.8.3 Productions from §8.4: Method Declarations
 
 MethodDeclaration: MethodHeader MethodBody
 
@@ -255,7 +252,32 @@ ExplicitConstructorInvocation:
 	| k_super s_open_paren s_close_paren s_semicolon
 	;
 
-// -----------------Production 9
+EnumDeclaration : Modifiers k_enum Identifier ClassImplements EnumBody
+                 |Modifiers k_enum Identifier EnumBody
+                 |k_enum Identifier ClassImplements EnumBody
+                 |k_enum Identifier EnumBody
+
+ClassImplements : k_implements InterfaceTypeList
+
+EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket
+          |s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket
+          |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket
+          |s_open_curly_bracket EnumConstantList s_close_curly_bracket
+          |s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket
+          |s_open_curly_bracket s_comma s_close_curly_bracket
+          |s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket
+          |s_open_curly_bracket s_close_curly_bracket
+
+EnumBodyDeclarations : s_semicolon | s_semicolon ClassBodyDeclaration
+
+EnumConstantList : Identifier s_open_paren ArgumentList s_close_paren ClassBody
+                  |Identifier s_open_paren s_close_paren ClassBody
+                  |Identifier s_open_paren ArgumentList s_close_paren
+                  |Identifier s_open_paren s_close_paren
+                  |Identifier ClassBody
+                  |Identifier
+// ---------------------------- Production 9 -----------------------
+
 InterfaceDeclaration:
 
 	Modifiers k_interface Identifier ExtendsInterfaces InterfaceBody
@@ -276,47 +298,39 @@ InterfaceBody:
 	|s_open_curly_bracket s_close_curly_bracket
 	;
 
-InterfaceMemberDeclarations:
-
-	InterfaceMemberDeclaration
+InterfaceMemberDeclarations: InterfaceMemberDeclaration
 	| InterfaceMemberDeclarations InterfaceMemberDeclaration
 	;
 
-InterfaceMemberDeclaration:
-
-	ConstantDeclaration
+InterfaceMemberDeclaration: ConstantDeclaration
 	| AbstractMethodDeclaration
 	;
 
-ConstantDeclaration:
-
-	FieldDeclaration
+ConstantDeclaration: FieldDeclaration
 	;
 
-AbstractMethodDeclaration:
-
-	MethodHeader s_semicolon
+AbstractMethodDeclaration: MethodHeader s_semicolon 
 	;
 
-	// --------------production 10
+
+// ------------------------------- Production 10 ---------------------
+
 ArrayInitializer:
 
-	s_open_curly_bracket VariableInitializers s_comma s_close_curly_bracket
-	| s_open_curly_bracket VariableInitializers  s_close_curly_bracket
+	s_open_curly_bracket VariableInitializerList s_comma s_close_curly_bracket
+	| s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
 	| s_open_curly_bracket  s_comma s_close_curly_bracket
 	| s_open_curly_bracket  s_close_curly_bracket
 	;
 
-VariableInitializers:
-
-	VariableInitializer
-	| VariableInitializers s_comma VariableInitializer
+VariableInitializerList: VariableInitializer
+	| VariableInitializerList s_comma VariableInitializer
 	;
 
-// ---------Production 14
 
-Block : 
-    s_open_curly_bracket s_close_curly_bracket 
+// ------------------------ Production 14 -------------------------------------
+
+Block : s_open_curly_bracket s_close_curly_bracket 
     | s_open_curly_bracket BlockStatements s_close_curly_bracket
     ;
 
@@ -325,18 +339,16 @@ BlockStatements :
     | BlockStatements BlockStatement 
     ; 
 
-BlockStatement : 
-    LocalVariableDeclarationStatement 
-    | Statement 
+BlockStatement : LocalVariableDeclarationStatement 
+                | Statement 
     ;
 
-LocalVariableDeclarationStatement : 
-    LocalVariableDeclaration s_semicolon
+LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
     ;
 
 LocalVariableDeclaration : 
-    k_final LocalVariableType VariableDeclarators
-    | LocalVariableType VariableDeclarators
+    k_final LocalVariableType VariableDeclaratorList
+    | LocalVariableType VariableDeclaratorList
     ;
 
 LocalVariableType : Type | k_var
