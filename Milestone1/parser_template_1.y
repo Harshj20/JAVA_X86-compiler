@@ -7,38 +7,6 @@ extern int yylineno;
 void yyerror(char* s){
     printf("Error123 %s in line %d\n",s,yylineno);
 }
-
-//int node_count = 0;
-
-// void print_node(char* label) {
-//     printf("node%d[label=\"%s\"];\n", node_count++, label);
-// }
-
-// void print_edge(int from, int to) {
-//     printf("node%d -> node%d;\n", from, to);
-// }
-
-// typedef struct Node{
-//     string id,token;
-//     bool op;
-//     vector<Node*>children;
-//     Node(string id, bool op){
-//         this->id=id;
-//         this->op=op;
-//     }
-//     Node(string id, bool op, string token){
-//         this->id=id;
-//         this->op=op;
-//         this->token=token;
-//     }
-// }Node;
-
-// void print_token(char* token_type, char* token_value) {
-//     print_node(token_value);
-//     print_edge(node_count - 1, node_count);
-//     print_node(token_type);
-//     print_edge(node_count - 1, node_count);
-// }
 Node* root=NULL;
 %}
 
@@ -67,7 +35,7 @@ Node* root=NULL;
 %%
 // ------------------ Start -----------------------
 
-Program : CompilationUnit {root=new Node("Program",false); root->children.push_back($1);} 
+Program : {root=new Node("Program");root->children.push_back(new Node("EOF","EOF"));}| CompilationUnit {root=new Node("Program"); root->children.push_back($1);root->children.push_back(new Node("EOF","EOF"));} 
 
 
 // -------------------------------- Production 4 -----------------------
@@ -116,66 +84,61 @@ QualifiedName: Name s_dot Identifier
 
 CompilationUnit: PackageDeclaration ImportDeclarations TypeDeclarations  
                 {
-                    $$=new Node("CompilationUnit",false); 
+                    $$=new Node("CompilationUnit"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                     $$->children.push_back($3);
                 }
                 | PackageDeclaration ImportDeclarations 
                 {
-                    $$=new Node("CompilationUnit",false); 
+                    $$=new Node("CompilationUnit"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                 }
                 | PackageDeclaration TypeDeclarations
                 {
-                    $$=new Node("CompilationUnit",false); 
+                    $$=new Node("CompilationUnit"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                 }
                 | PackageDeclaration
                 {
-                    $$=new Node("CompilationUnit",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
                 | ImportDeclarations TypeDeclarations
                 {
-                    $$=new Node("CompilationUnit",false); 
+                    $$=new Node("CompilationUnit"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                 }
                 | TypeDeclarations
                 {
-                    $$=new Node("CompilationUnit",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
                 //|
                 | ImportDeclarations
                 {
-                    $$=new Node("CompilationUnit",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
 
 ImportDeclarations: ImportDeclaration 
                 {
-                    $$=new Node("CompilationUnit",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
                 | ImportDeclarations ImportDeclaration
                 {
-                    $$=new Node("ImportDeclarations",false); 
+                    $$=new Node("ImportDeclarations"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                 }
 
 TypeDeclarations:TypeDeclaration 
                 {
-                    $$=new Node("TypeDeclarations",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
 	            |TypeDeclarations TypeDeclaration 
                 {
-                    $$=new Node("ImportDeclarations",false); 
+                    $$=new Node("ImportDeclarations"); 
                     $$->children.push_back($1);
                     $$->children.push_back($2);
                 }
@@ -191,8 +154,7 @@ TypeImportOnDemandDeclaration: k_import Name s_dot o_multiply s_semicolon
 
 TypeDeclaration: ClassDeclaration 
                 {
-                    $$=new Node("TypeDeclaration",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                 }
 	            |InterfaceDeclaration
                 | s_semicolon
@@ -214,8 +176,7 @@ Modifier: k_public
 
 ClassDeclaration : NormalClassDeclaration 
                    {
-                    $$=new Node("ClassDeclarations",false); 
-                    $$->children.push_back($1);
+                    $$=$1;
                    }
                   |EnumDeclaration
 
@@ -229,9 +190,9 @@ NormalClassDeclaration:
     | k_class Identifier Interfaces ClassBody
     | k_class Identifier ClassBody 
     {
-        $$=new Node("TypeDeclarations",false); 
-        $$->children.push_back(new Node("class",true,"Keyword"));
-        $$->children.push_back(new Node($2,true,"Identifier"));
+        $$=new Node("TypeDeclarations"); 
+        $$->children.push_back(new Node("class","Keyword"));
+        $$->children.push_back(new Node($2,"Identifier"));
         $$->children.push_back($3);
     }
 
@@ -247,9 +208,9 @@ InterfaceTypeList:InterfaceType
 ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
 | s_open_curly_bracket s_close_curly_bracket 
 {
-    $$=new Node("ClassBody",false);
-    $$->children.push_back(new Node("{",true,"Separator"));
-    $$->children.push_back(new Node("}",true,"Separator"));
+    $$=new Node("ClassBody");
+    $$->children.push_back(new Node("{","Separator"));
+    $$->children.push_back(new Node("}","Separator"));
 }
 
 ClassBodyDeclarations:ClassBodyDeclaration
@@ -801,10 +762,31 @@ Expression:
 
 %%
 
+void traverse(Node* node, int &counter, std::ofstream &dotfile) {
+  node->count = counter++;
+  dotfile << "  node" << node->count << " [label=\"" << node->token << "\\n" << node->id << "\"];" << std::endl;
+  for (int i=0;i<node->children.size();i++) {
+    int child_id = counter;
+    dotfile << "  node" << node->count << " -> node" << child_id << ";" << std::endl;
+    traverse(node->children[i], counter, dotfile);
+  }
+}
+
+void print_dot() {
+  ofstream dotfile("parse_tree.dot");
+  dotfile << "digraph PARSE_TREE {" << endl;
+  int counter = 0;
+  traverse(root, counter, dotfile);
+  dotfile << "}" << endl;
+  dotfile.close();
+}
+
 int main(){
     yyparse();
-    if(root)
-    printf("ahbvhg");
+    if(root){
+        //printf("ahbvhg");
+        print_dot();
+    }
     else printf("sjbckwjeb");
     return 0;
 }
