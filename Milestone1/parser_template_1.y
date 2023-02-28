@@ -1,54 +1,73 @@
 %{
 #include <bits/stdc++.h>
+#include "Node.h"
 using namespace std;
-#include <stdio.h>
-#include <stdlib.h>
 extern int yylex();
 extern int yylineno;
 void yyerror(char* s){
     printf("Error123 %s in line %d\n",s,yylineno);
 }
 
-int node_count = 0;
+//int node_count = 0;
 
-void print_node(char* label) {
-    printf("node%d[label=\"%s\"];\n", node_count++, label);
-}
+// void print_node(char* label) {
+//     printf("node%d[label=\"%s\"];\n", node_count++, label);
+// }
 
-void print_edge(int from, int to) {
-    printf("node%d -> node%d;\n", from, to);
-}
+// void print_edge(int from, int to) {
+//     printf("node%d -> node%d;\n", from, to);
+// }
 
-void print_token(char* token_type, char* token_value) {
-    print_node(token_value);
-    print_edge(node_count - 1, node_count);
-    print_node(token_type);
-    print_edge(node_count - 1, node_count);
-}
+// typedef struct Node{
+//     string id,token;
+//     bool op;
+//     vector<Node*>children;
+//     Node(string id, bool op){
+//         this->id=id;
+//         this->op=op;
+//     }
+//     Node(string id, bool op, string token){
+//         this->id=id;
+//         this->op=op;
+//         this->token=token;
+//     }
+// }Node;
+
+// void print_token(char* token_type, char* token_value) {
+//     print_node(token_value);
+//     print_edge(node_count - 1, node_count);
+//     print_node(token_type);
+//     print_edge(node_count - 1, node_count);
+// }
+Node* root=NULL;
 %}
 
+%code requires{
+    #include "Node.h"
+}
+
 %union {
-    char* string;
-    int integer;
-    double floating_point;
-    bool boolean;
+    char* str;
+    Node* node;
 }
 
 %token k_abstract k_assert k_boolean k_break k_byte k_case k_catch k_char k_class k_const k_continue k_default k_do k_double k_else k_enum k_extends k_final k_finally k_float k_for k_goto k_if k_implements k_import k_instanceof k_int k_interface k_long k_native k_new k_package k_private k_protected k_public k_return k_short k_static k_strictfp k_super k_switch k_synchronized k_this k_throw k_throws k_transient k_try k_void k_volatile k_while k_underscore
 %token k_exports k_module k_non_sealed k_open k_opens k_permits k_provide k_record k_requires k_sealed k_to k_transitive k_uses k_var k_with k_yield 
 
-%token o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow
+%token<str> o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow
 
-%token Identifier Literal 
+%token<str> Identifier Literal 
 
-%token s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
+%token<str> s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
 %start Program
+
+%type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration
 
 %%
 // ------------------ Start -----------------------
 
-Program : CompilationUnit {printf("Executed\n");}
+Program : CompilationUnit {root=new Node("Program",false); root->children.push_back($1);} 
 
 
 // -------------------------------- Production 4 -----------------------
@@ -95,19 +114,71 @@ QualifiedName: Name s_dot Identifier
 
 // --------------------------- Production 7 --------------------------
 
-CompilationUnit: PackageDeclaration ImportDeclarations TypeDeclarations
-                | PackageDeclaration ImportDeclarations
+CompilationUnit: PackageDeclaration ImportDeclarations TypeDeclarations  
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                    $$->children.push_back($3);
+                }
+                | PackageDeclaration ImportDeclarations 
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                }
                 | PackageDeclaration TypeDeclarations
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                }
                 | PackageDeclaration
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                }
                 | ImportDeclarations TypeDeclarations
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                }
                 | TypeDeclarations
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                }
                 //|
                 | ImportDeclarations
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                }
 
-ImportDeclarations: ImportDeclaration | ImportDeclarations ImportDeclaration
+ImportDeclarations: ImportDeclaration 
+                {
+                    $$=new Node("CompilationUnit",false); 
+                    $$->children.push_back($1);
+                }
+                | ImportDeclarations ImportDeclaration
+                {
+                    $$=new Node("ImportDeclarations",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                }
 
 TypeDeclarations:TypeDeclaration 
-	            |TypeDeclarations TypeDeclaration
+                {
+                    $$=new Node("TypeDeclarations",false); 
+                    $$->children.push_back($1);
+                }
+	            |TypeDeclarations TypeDeclaration 
+                {
+                    $$=new Node("ImportDeclarations",false); 
+                    $$->children.push_back($1);
+                    $$->children.push_back($2);
+                }
 
 PackageDeclaration: k_package Name s_semicolon
 
@@ -118,7 +189,11 @@ SingleTypeImportDeclaration: k_import Name s_semicolon
 
 TypeImportOnDemandDeclaration: k_import Name s_dot o_multiply s_semicolon
 
-TypeDeclaration: ClassDeclaration
+TypeDeclaration: ClassDeclaration 
+                {
+                    $$=new Node("TypeDeclaration",false); 
+                    $$->children.push_back($1);
+                }
 	            |InterfaceDeclaration
                 | s_semicolon
 // ---------------------------- Production 8 -----------------------
@@ -137,7 +212,11 @@ Modifier: k_public
         | k_transient 
         | k_volatile
 
-ClassDeclaration : NormalClassDeclaration
+ClassDeclaration : NormalClassDeclaration 
+                   {
+                    $$=new Node("ClassDeclarations",false); 
+                    $$->children.push_back($1);
+                   }
                   |EnumDeclaration
 
 NormalClassDeclaration:
@@ -148,7 +227,13 @@ NormalClassDeclaration:
     | k_class Identifier Super Interfaces ClassBody
     | k_class Identifier Super ClassBody
     | k_class Identifier Interfaces ClassBody
-    | k_class Identifier ClassBody
+    | k_class Identifier ClassBody 
+    {
+        $$=new Node("TypeDeclarations",false); 
+        $$->children.push_back(new Node("class",true,"Keyword"));
+        $$->children.push_back(new Node($2,true,"Identifier"));
+        $$->children.push_back($3);
+    }
 
 
 
@@ -159,7 +244,13 @@ Interfaces: k_implements InterfaceTypeList
 InterfaceTypeList:InterfaceType
 	|InterfaceTypeList s_comma InterfaceType
 
-ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket | s_open_curly_bracket s_close_curly_bracket
+ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
+| s_open_curly_bracket s_close_curly_bracket 
+{
+    $$=new Node("ClassBody",false);
+    $$->children.push_back(new Node("{",true,"Separator"));
+    $$->children.push_back(new Node("}",true,"Separator"));
+}
 
 ClassBodyDeclarations:ClassBodyDeclaration
 	|ClassBodyDeclarations ClassBodyDeclaration
@@ -712,5 +803,8 @@ Expression:
 
 int main(){
     yyparse();
+    if(root)
+    printf("ahbvhg");
+    else printf("sjbckwjeb");
     return 0;
 }
