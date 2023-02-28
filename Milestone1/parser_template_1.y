@@ -103,7 +103,7 @@ IntegralType :
     | k_long 
     | k_char
     ;
-ClassType : Name ;
+//Name : Name ;
 
 FloatingPointType : 
     k_float 
@@ -111,18 +111,18 @@ FloatingPointType :
     ;
 
 ReferenceType : 
-    ClassType 
+    Name 
     | ArrayType 
     ;
 
-// ClassType: ClassType /*| InterfaceType*/ ;
+// Name: Name /*| InterfaceType*/ ;
 
-// ClassType: Identifier //
-//             | ClassType s_dot Identifier //
-//             | ClassType s_dot Identifier /**/ ;
+// Name: Identifier //
+//             | Name s_dot Identifier //
+//             | Name s_dot Identifier /**/ ;
 //: | TypeArguments;
 
-//InterfaceType: ClassType ;
+//InterfaceType: Name ;
 
 ArrayType: 
     PrimitiveType s_open_square_bracket s_close_square_bracket
@@ -214,12 +214,12 @@ NormalClassDeclaration :
     ;
 
 ClassExtends : 
-    k_extends ClassType
+    k_extends Name
     ;
 
 // ClassPermits : 
-//     k_permits ClassType
-//     | ClassPermits s_comma ClassType
+//     k_permits Name
+//     | ClassPermits s_comma Name
 //     ; 
 
  
@@ -320,12 +320,12 @@ FormalParameter:
 //     ;
 
 Throws: 
-    k_throws ClassTypeList
+    k_throws NameList
     ;
 
-ClassTypeList: 
-    ClassType 
-    | ClassTypeList s_comma ClassType
+NameList: 
+    Name 
+    | NameList s_comma Name
     ;
 
 MethodBody: 
@@ -361,11 +361,11 @@ ConstructorBody:
 ExplicitConstructorInvocation: 
     k_this s_open_paren ArgumentList s_close_paren s_semicolon 
     | k_super s_open_paren  ArgumentList s_close_paren s_semicolon 
-    // | ClassType s_dot k_super s_open_paren  ArgumentList s_close_paren s_semicolon 
+    // | Name s_dot k_super s_open_paren  ArgumentList s_close_paren s_semicolon 
     // | Primary s_dot k_super s_open_paren  ArgumentList s_close_paren s_semicolon
     | k_this s_open_paren s_close_paren s_semicolon 
     | k_super s_open_paren  s_close_paren s_semicolon 
-    // | ClassType s_dot k_super s_open_paren  s_close_paren s_semicolon 
+    // | Name s_dot k_super s_open_paren  s_close_paren s_semicolon 
     // | Primary s_dot k_super s_open_paren  s_close_paren s_semicolon
     ;
 
@@ -431,8 +431,8 @@ RecordBodyDeclaration :
     ;
 
 CompactConstructorDeclaration : 
-    ConstructorModifiers SimpleClassType ConstructorBody 
-    | SimpleClassType ConstructorBody 
+    ConstructorModifiers SimpleName ConstructorBody 
+    | SimpleName ConstructorBody 
     ;
 
 RecordHeader : 
@@ -605,8 +605,8 @@ CatchClause:
 //     CatchType VariableDeclaratorId 
 //     ;
 // CatchType:  
-//     ClassType 
-//     | ClassType o_bitwise_or CatchType 
+//     Name 
+//     | Name o_bitwise_or CatchType 
 //     ;
 Finally: 
     k_finally Block 
@@ -632,7 +632,7 @@ Resource:
     | VariableAccess 
     ;
 VariableAccess : 
-    ClassType 
+    Name 
     | FieldAccess
      ;*/
 // Pattern: 
@@ -651,20 +651,20 @@ PrimaryNoNewArray:
     Literal
     //| ClassLiteral
     | k_this
-    // | ClassType s_dot k_this
+    // | Name s_dot k_this
     | s_open_paren Expression s_close_paren
     | ClassInstanceCreationExpression
-    | FieldAccess
-    | ArrayAccess
+    //| FieldAccess
+    //| ArrayAccess
     | MethodInvocation
     // MethodReference
     ;
 
 /* ClassLiteral: 
-    ClassType s_dot k_class
+    Name s_dot k_class
     | NumericType s_dot k_class
     | k_boolean s_dot k_class
-    | ClassType Dims s_dot k_class
+    | Name Dims s_dot k_class
     | NumericType Dims s_dot k_class
     | k_boolean Dims s_dot k_class
     | k_void s_dot k_class
@@ -672,26 +672,26 @@ PrimaryNoNewArray:
     
 ClassInstanceCreationExpression:
     UnqualifiedClassInstanceCreationExpression
-    // | ClassType s_dot UnqualifiedClassInstanceCreationExpression
+    // | Name s_dot UnqualifiedClassInstanceCreationExpression
     // | Primary s_dot UnqualifiedClassInstanceCreationExpression
     ;
 
 UnqualifiedClassInstanceCreationExpression:
-    k_new  ClassType s_open_paren s_close_paren 
-    // | k_new  ClassType s_open_paren s_close_paren ClassBody 
-    | k_new  ClassType s_open_paren ArgumentList s_close_paren 
-    // | k_new  ClassType s_open_paren ArgumentList s_close_paren ClassBody
+    k_new  Name s_open_paren s_close_paren 
+    // | k_new  Name s_open_paren s_close_paren ClassBody 
+    | k_new  Name s_open_paren ArgumentList s_close_paren 
+    // | k_new  Name s_open_paren ArgumentList s_close_paren ClassBody
     ;
 
-// ClassTypeToInstantiate:
+// NameToInstantiate:
 //     Identifier  
-//     | Identifier s_dot ClassTypeToInstantiate
+//     | Identifier s_dot NameToInstantiate
 //     ;
 
 FieldAccess:
     Primary s_dot Identifier
     | k_super s_dot Identifier
-    // | ClassType s_dot k_super s_dot Identifier
+    // | Name s_dot k_super s_dot Identifier
     ;
 
 ArrayAccess:
@@ -707,18 +707,18 @@ MethodInvocation:
     | Primary s_dot  Identifier s_open_paren ArgumentList s_close_paren
     | k_super s_dot  Identifier s_open_paren s_close_paren
     | k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
-    // | ClassType s_dot k_super s_dot Identifier s_open_paren s_close_paren
-    // | ClassType s_dot  Identifier s_open_paren ArgumentList s_close_paren
-    // | ClassType s_dot k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
+    // | Name s_dot k_super s_dot Identifier s_open_paren s_close_paren
+    // | Name s_dot  Identifier s_open_paren ArgumentList s_close_paren
+    // | Name s_dot k_super s_dot  Identifier s_open_paren ArgumentList s_close_paren
     ;
 
 /* MethodReference:
-    ClassType s_double_colon  Identifier
+    Name s_double_colon  Identifier
     | Primary s_double_colon  Identifier
     | ReferenceType s_double_colon  Identifier
     | k_super s_double_colon  Identifier
-    | ClassType s_dot k_super s_double_colon  Identifier
-    | ClassType s_double_colon  k_new
+    | Name s_dot k_super s_double_colon  Identifier
+    | Name s_double_colon  k_new
     | ArrayType s_double_colon k_new
     ; */
 
@@ -726,9 +726,9 @@ ArrayCreationExpression:
     k_new PrimitiveType DimExprs 
     | k_new PrimitiveType Dims ArrayInitializer
     | k_new PrimitiveType DimExprs Dims
-    | k_new ClassType DimExprs 
-    | k_new ClassType DimExprs Dims
-    | k_new ClassType Dims ArrayInitializer
+    | k_new Name DimExprs 
+    | k_new Name DimExprs Dims
+    | k_new Name Dims ArrayInitializer
     ;
 
 DimExprs: 
@@ -783,13 +783,13 @@ AssignmentExpression:
     ;
 
 Assignment:
-    LeftHandSide AssignmentOperator AssignmentExpression
+    LeftHandSide AssignmentExpression
     ;
 
-LeftHandSide:
-    ClassType
-    | FieldAccess
-    | ArrayAccess
+LeftHandSide :
+    Name AssignmentOperator
+    | FieldAccess AssignmentOperator
+    | ArrayAccess AssignmentOperator
     ;
 
 AssignmentOperator:
