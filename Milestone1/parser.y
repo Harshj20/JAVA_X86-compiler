@@ -4,6 +4,7 @@
 using namespace std;
 extern int yylex();
 extern int yylineno;
+extern FILE *yyin;
 void yyerror(const char* s){
     printf("Error123 %s in line %d\n",s,yylineno);
 }
@@ -34,8 +35,7 @@ Node* root=NULL;
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide
-
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf 
 
 %%
 // ------------------ Start -----------------------
@@ -1331,11 +1331,14 @@ WhileStatementNoShortIf :
     }
     ;
 
-ForStatement:
 
+ForStatement : BasicForStatement {$$=$1;}| EnhancedForStatement {$$=$1;}
+ForStatementNoShortIf : BasicForStatementNoShortIf {$$=$1;}| EnhancedForStatementNoShortIf {$$=$1;}
+
+BasicForStatement:
 	k_for s_open_paren s_semicolon s_semicolon s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1345,7 +1348,7 @@ ForStatement:
     }
     | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1356,7 +1359,7 @@ ForStatement:
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1367,7 +1370,7 @@ ForStatement:
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1379,7 +1382,7 @@ ForStatement:
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1390,7 +1393,7 @@ ForStatement:
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1402,7 +1405,7 @@ ForStatement:
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1414,7 +1417,7 @@ ForStatement:
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
-        $$ = new Node("ForStatement");
+        $$ = new Node("BasicForStatement");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1428,10 +1431,10 @@ ForStatement:
     ;
 
 
-ForStatementNoShortIf:
+BasicForStatementNoShortIf:
 	k_for s_open_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
      {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1441,7 +1444,7 @@ ForStatementNoShortIf:
      }
     | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1452,7 +1455,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1463,7 +1466,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back(new Node(";", "Separator"));
@@ -1475,7 +1478,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1486,7 +1489,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1498,7 +1501,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1510,7 +1513,7 @@ ForStatementNoShortIf:
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
-        $$ = new Node("ForStatementNoShortIf");
+        $$ = new Node("BasicForStatementNoShortIf");
         $$->children.push_back(new Node("for", "Keyword"));
         $$->children.push_back(new Node("(", "Separator"));
         $$->children.push_back($3);
@@ -1522,6 +1525,18 @@ ForStatementNoShortIf:
         $$->children.push_back($9);
     }
     ;
+
+EnhancedForStatementNoShortIf: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
+{
+    $$ = new Node("EnhancedForStatementNoShortIf");
+    $$->children.push_back(new Node("for", "Keyword"));
+    $$->children.push_back(new Node("(", "Separator"));
+    $$->children.push_back($3);
+    $$->children.push_back(new Node(":", "Separator"));
+    $$->children.push_back($5);
+    $$->children.push_back(new Node(")", "Separator"));
+    $$->children.push_back($7);
+}
 
 ForInit : 
     StatementExpressionList
@@ -1540,6 +1555,18 @@ ForUpdate :
         $$ = $1;
     }
 	;
+
+EnhancedForStatement: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
+{
+    $$ = new Node("EnhancedForStatement");
+    $$->children.push_back(new Node("for", "Keyword"));
+    $$->children.push_back(new Node("(", "Separator"));
+    $$->children.push_back($3);
+    $$->children.push_back(new Node(":", "Separator"));
+    $$->children.push_back($5);
+    $$->children.push_back(new Node(")", "Separator"));
+    $$->children.push_back($7);
+}
 
 StatementExpressionList:StatementExpression {$$ = $1;}
                        |StatementExpressionList s_comma StatementExpression
@@ -2299,8 +2326,8 @@ void traverse(Node* node, int &counter, ofstream &dotfile) {
   }
 }
 
-void print_dot() {
-  ofstream dotfile("parse_tree.dot");
+void print_dot(const char* filename) {
+  ofstream dotfile(filename);
   dotfile << "digraph PARSE_TREE {" << endl;
   int counter = 0;
   traverse(root, counter, dotfile);
@@ -2309,8 +2336,6 @@ void print_dot() {
 }
 
 int main(int argc, char**argv){
-
-    extern FILE *yyin;
 
     if (argc > 1) {
         yyin = fopen(argv[1], "r");
@@ -2324,9 +2349,10 @@ int main(int argc, char**argv){
     }
     yyparse();
     if(root){
-        //printf("ahbvhg");
-        print_dot();
+        if(argc==3)
+            print_dot(argv[2]);
+        else print_dot("parse_tree.dot");
     }
-    else printf("sjbckwjeb");
+    else printf("Error in generating the parse tree\nAborting...");
     return 0;
 }
