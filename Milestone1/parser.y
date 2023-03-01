@@ -32,9 +32,9 @@ Node* root=NULL;
 %token k_abstract k_assert k_boolean k_break k_byte k_case k_catch k_char k_class k_const k_continue k_default k_do k_double k_else k_enum k_extends k_final k_finally k_float k_for k_goto k_if k_implements k_import k_instanceof k_int k_interface k_long k_native k_new k_package k_private k_protected k_public k_return k_short k_static k_strictfp k_super k_switch k_synchronized k_this k_throw k_throws k_transient k_try k_void k_volatile k_while k_underscore
 %token k_exports k_module k_non_sealed k_open k_opens k_permits k_provide k_record k_requires k_sealed k_to k_transitive k_uses k_var k_with k_yield 
 
-%token<str> o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow
+%token<str> o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow 
 
-%token<str> Identifier Literal 
+%token<str> Identifier Literal Text_Block_Literal
 
 %token<str> s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
@@ -42,7 +42,7 @@ Node* root=NULL;
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf 
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant
 
 %%
 // ------------------ Start -----------------------
@@ -905,14 +905,23 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
 EnumBodyDeclarations : s_semicolon  {  
                     $$=new Node(";","Separator");
                     }
-                    | s_semicolon ClassBodyDeclaration {  
+                    | s_semicolon ClassBodyDeclarations {  
                     $$=new Node("EnumBodyDeclarations"); 
                     $$->children.push_back(new Node(";","Separator"));
                     $$->children.push_back($2);
                     }
 
-EnumConstantList : Identifier s_open_paren ArgumentList s_close_paren ClassBody {  
-                    $$=new Node("EnumConstantList"); 
+EnumConstantList : EnumConstant {$$=$1;}
+                  | EnumConstantList s_comma EnumConstant 
+                    {
+                    $$=new Node("EnumConstantList");
+                    $$->children.push_back($1);
+                    $$->children.push_back(new Node(",","Separator"));
+                    $$->children.push_back($3);
+                    }
+
+EnumConstant : Identifier s_open_paren ArgumentList s_close_paren ClassBody {  
+                    $$=new Node("EnumConstant"); 
                     $$->children.push_back(new Node($1,"Identifier"));
                     $$->children.push_back(new Node("(","Separator"));
                     $$->children.push_back($3);
@@ -920,27 +929,27 @@ EnumConstantList : Identifier s_open_paren ArgumentList s_close_paren ClassBody 
                     $$->children.push_back($5);
                     }
                   |Identifier s_open_paren s_close_paren ClassBody {  
-                    $$=new Node("EnumConstantList"); 
+                    $$=new Node("EnumConstant"); 
                     $$->children.push_back(new Node($1,"Identifier"));
                     $$->children.push_back(new Node("(","Separator"));
                     $$->children.push_back(new Node(")","Separator"));
                     $$->children.push_back($4);
                     }
                   |Identifier s_open_paren ArgumentList s_close_paren {  
-                    $$=new Node("EnumConstantList"); 
+                    $$=new Node("EnumConstant"); 
                     $$->children.push_back(new Node($1,"Identifier"));
                     $$->children.push_back(new Node("(","Separator"));
                     $$->children.push_back($3);
                     $$->children.push_back(new Node(")","Separator"));
                     }
                   |Identifier s_open_paren s_close_paren {  
-                    $$=new Node("EnumConstantList"); 
+                    $$=new Node("EnumConstant"); 
                     $$->children.push_back(new Node($1,"Identifier"));
                     $$->children.push_back(new Node("(","Separator"));
                     $$->children.push_back(new Node(")","Separator"));
                     }
                   |Identifier ClassBody {  
-                    $$=new Node("EnumConstantList"); 
+                    $$=new Node("EnumConstant"); 
                     $$->children.push_back(new Node($1,"Identifier"));
                     $$->children.push_back($2);
                     }
@@ -1711,6 +1720,7 @@ Primary:
 PrimaryNoNewArray:
     Literal {$$ = new Node($1,"Literal");}
     | k_this {$$ = new Node("this","Keyword");}
+    | Text_Block_Literal {$$ = new Node("TextBlock","Literal");}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->children.push_back(new Node("(","Separator"));
@@ -2344,8 +2354,8 @@ void print_dot(const char* filename) {
 
 int main(int argc, char**argv){
     
-    int input_index = (argc>1)?1:0;
-    int output_index = (argc>2)?2:0;
+    int input_index = 0;
+    int output_index = 0;
     bool flag_help=false;
 
     for (int i = 1; i < argc; i++) {
@@ -2353,17 +2363,25 @@ int main(int argc, char**argv){
         if (arg.find("--output=") == 0) {
             argv[i] = argv[i]+9;
             output_index = i;
+            continue;
         }
         else if(arg.find("--input=") == 0){
             argv[i] = argv[i]+8;
             input_index = i;
+            continue;
         }
         else if(arg.find("--help") == 0){
             flag_help = true;
+            continue;
         }
         else if(arg.find("--verbose")==0){
             flag_verbose=true;
+            continue;
         }
+        if(i == 1)
+            input_index = 1;
+        if(i == 2)
+            output_index = 2;
     }
 
     if(flag_help){
@@ -2400,6 +2418,6 @@ int main(int argc, char**argv){
         else 
             print_dot("parse_tree.dot");
     }
-    else printf("Error in generating the parse tree\nAborting...");
+    else printf("Error in generating the parse tree\nAborting...\n");
     return 0;
 }
