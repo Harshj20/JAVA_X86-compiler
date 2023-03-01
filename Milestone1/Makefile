@@ -21,5 +21,5 @@ $(OBJECT): $(LEXER) $(PARSER)
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) lex.yy.c parser.tab.c parser.tab.h parser.output myASTGenerator parse_tree.dot parse_tree.pdf
+	rm -f $(OBJECT) lex.yy.c parser.tab.c parser.tab.h parser.output myASTGenerator parse_tree.dot
 	

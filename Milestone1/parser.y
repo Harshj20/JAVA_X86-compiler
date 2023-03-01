@@ -4,11 +4,13 @@
 using namespace std;
 extern int yylex();
 extern int yylineno;
-void yyerror(char* s){
+void yyerror(const char* s){
     printf("Error123 %s in line %d\n",s,yylineno);
 }
 Node* root=NULL;
 %}
+
+%define parse.error verbose
 
 %code requires{
     #include "Node.h"
@@ -2306,7 +2308,20 @@ void print_dot() {
   dotfile.close();
 }
 
-int main(){
+int main(int argc, char**argv){
+
+    extern FILE *yyin;
+
+    if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            fprintf(stderr, "error: could not open file %s\n", argv[1]);
+            return 1;
+        }
+    }
+    else {
+        yyin = stdin;
+    }
     yyparse();
     if(root){
         //printf("ahbvhg");
