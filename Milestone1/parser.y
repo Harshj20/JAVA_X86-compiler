@@ -2335,10 +2335,26 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
-int main(int argc, char**argv){
+int main(int argc, const char**argv){
+
+    int input_index = (argc>1)?1:0;
+    int output_index = (argc>2)?2:0;
+
+    for (int i = 1; i < argc; i++) {
+        string arg = argv[i];
+        if (arg.find("--output=") == 0) {
+            argv[i] = arg.substr(9).c_str();
+            output_index = i;
+        }
+        else if(arg.find("--input=") == 0){
+            argv[i] = arg.substr(8).c_str();
+            input_index = i;
+        }
+    }
 
     if (argc > 1) {
-        yyin = fopen(argv[1], "r");
+        if(input_index)
+            yyin = fopen(argv[input_index], "r");
         if (!yyin) {
             fprintf(stderr, "error: could not open file %s\n", argv[1]);
             return 1;
@@ -2347,11 +2363,14 @@ int main(int argc, char**argv){
     else {
         yyin = stdin;
     }
+
     yyparse();
+
     if(root){
-        if(argc==3)
-            print_dot(argv[2]);
-        else print_dot("parse_tree.dot");
+        if(output_index)
+            print_dot(argv[output_index]);
+        else 
+            print_dot("parse_tree.dot");
     }
     else printf("Error in generating the parse tree\nAborting...");
     return 0;
