@@ -5,8 +5,15 @@ using namespace std;
 extern int yylex();
 extern int yylineno;
 extern FILE *yyin;
+
+bool flag_verbose=false;
 void yyerror(const char* s){
-    printf("Error123 %s in line %d\n",s,yylineno);
+    if(flag_verbose){
+        printf("Error %s in line %d\n",s,yylineno);
+    }
+    else{
+        printf("Syntax error in line %d\n",yylineno);
+    }
 }
 Node* root=NULL;
 %}
@@ -2335,21 +2342,42 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
-int main(int argc, const char**argv){
-
+int main(int argc, char**argv){
+    
     int input_index = (argc>1)?1:0;
     int output_index = (argc>2)?2:0;
+    bool flag_help=false;
 
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
         if (arg.find("--output=") == 0) {
-            argv[i] = arg.substr(9).c_str();
+            argv[i] = argv[i]+9;
             output_index = i;
         }
         else if(arg.find("--input=") == 0){
-            argv[i] = arg.substr(8).c_str();
+            argv[i] = argv[i]+8;
             input_index = i;
         }
+        else if(arg.find("--help") == 0){
+            flag_help = true;
+        }
+        else if(arg.find("--verbose")==0){
+            flag_verbose=true;
+        }
+    }
+
+    if(flag_help){
+        cout<<endl<<"Usage: ./myASTGenerator [options] [input_file]}"<<endl;
+        cout<<"Generates a Dot file for the AST representation for an input JAVA file"<<endl<<endl;
+        cout<<"Debugging : "<<endl;
+        cout<<"\t--verbose\tsupports debugging of the input file"<<endl<<endl;
+        cout<<"Files : "<<endl;
+        cout<<"\t--output=FILE\tspecify output filename"<<endl;
+        cout<<"\t--input=FILE\tspecify input filename"<<endl<<endl;
+        cout<<"Miscellaneous : "<<endl;
+        cout<<"\t--help\t\tproduces this help message"<<endl<<endl;
+        cout<<"By default the first argument will be treated as the input file and the second argument as the output file unless specified otherwise.\nIf there is only one argument, then it will be taken as the input file and the default name of the output file will be parse_tree.dot."<<endl<<endl;
+        return 0;
     }
 
     if (argc > 1) {
