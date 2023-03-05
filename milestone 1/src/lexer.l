@@ -10,7 +10,6 @@
 %x string
 %x textBlock
 
-line_terminators \n|\r|\r\n
 
 Integer [1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
 
@@ -18,8 +17,6 @@ deci_floats [0-9]*"."[0-9]+|[0-9]+"."[0-9]*|[0-9][0-9_]*[0-9]+"."[0-9]*|[0-9]*".
 
 hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F]*"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+
 
-RESERVED_WORD "abstract"|"assert"|"boolean"|"break"|"byte"|"case"|"catch"|"char"|"class"|"const"|"_"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extends"|"final"|"finally"|"float"|"for"|"if"|"goto"|"implements"|"import"|"instanceof"|"int"|"interface"|"long"|"naive"|"new"|"package"|"private"|"protected"|"public"|"return"|"short"|"static"|"strictfp"|"super"|"switch"|"synchronized"|"this"|"throw"|"throws"|"transient"|"try"|"void"|"volatile"|"while"
-CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provides"|"record"|"requires"|"sealed"|"to"|"transitive"|"uses"|"var"|"with"|"yield"
 
 %%
 "exports" {return k_exports;}
