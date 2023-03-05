@@ -10,9 +10,11 @@
 %x string
 %x textBlock
 
+line_terminators \n|\r|\r\n
+
 Integer [1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
 
-deci_floats [0-9]*"."[0-9]+[fFdD]?|[0-9]+"."[0-9]*[fFdD]?|[0-9][0-9_]*[0-9]+"."[0-9]*[fFdD]?|[0-9]*"."[0-9][0-9_]*[0-9]+[fFdD]|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+[fFdD]?
+deci_floats [0-9]*"."[0-9]+|[0-9]+"."[0-9]*|[0-9][0-9_]*[0-9]+"."[0-9]*|[0-9]*"."[0-9][0-9_]*[0-9]+[fFdD]|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+
 
 hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F]*"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+
 
@@ -156,7 +158,7 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
     return Literal; 
     }
 
-{deci_floats}        { 
+{deci_floats}[fFdD]?      { 
     yylval.str=strdup(yytext);
     return Literal; 
     }
@@ -165,7 +167,7 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
     return Literal;
     }
 
-{deci_floats}|{deci_floats}[eE]{deci_floats}|{Integer}[eE]{deci_floats}|{deci_floats}[eE]{Integer}|{Integer}[eE]{Integer} {
+{deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]?|{deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]? {
     yylval.str=strdup(yytext);
     return Literal;
     }
@@ -196,14 +198,13 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
     yylval.str=strdup(yytext);
     return Literal; 
 }
-"\"\"\"" yymore(); BEGIN(textBlock);
-<textBlock>"\"\"\"" {
-    BEGIN(INITIAL);
+\"\"\"       { yymore(); BEGIN(textBlock); }
+<textBlock>\"\"\" { BEGIN(INITIAL);
     yylval.str=strdup(yytext);
-    return Literal;
-}
-<textBlock>[^\\]+ yymore();
-<textBlock>\\(["\"""'"\\nstrbf]|[0-7]{1,2}|[0-3][0-7]{2}) yymore();
+    return Text_Block_Literal; 
+    }
+<textBlock>\n    { yymore(); }
+<textBlock>.     { yymore();}
 
 "\"" yymore(); BEGIN(string);
 <string>[^"\""\\\n\r]+ yymore();

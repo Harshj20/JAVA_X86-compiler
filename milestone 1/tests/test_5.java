@@ -1,11 +1,10 @@
-package TestCases;
-public class BubbleSort {
+public class GFG {
     public static void main(final String[] args) {
         int n = 10, c, d, swap;
 
         final int array[] = new int[] { 23, 1, 78, 45, 46, 90, 2, 12, 75, 0 };
-
-        for (c = 0; c < (n - 1); c++) {
+        c=10;
+        for(c = 0; c < (n - 1); c++) {
             for (d = 0; d < n - c - 1; d++) {
                 if (array[d] > array[d + 1]) /* For descending order use < */
                 {
