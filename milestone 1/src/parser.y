@@ -461,7 +461,7 @@ InterfaceTypeList:InterfaceType
 
 ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
 {
-    $$=new Node("ClassBody");
+    $$=new Node("ClassBody", true);
     $$->children.push_back(new Node("{","Separator"));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}","Separator"));
@@ -761,7 +761,7 @@ ConstructorBody:
             $$->children.push_back(new Node("}","Separator"));
             }
 	| s_open_curly_bracket BlockStatements s_close_curly_bracket {  
-            $$=new Node("ConstructorBody"); 
+            $$=new Node("ConstructorBody", true); 
             $$->children.push_back(new Node("{","Separator"));
             $$->children.push_back($2);
             $$->children.push_back(new Node("}","Separator"));
@@ -773,7 +773,7 @@ ConstructorBody:
             $$->children.push_back(new Node("}","Separator"));
             }
 	| s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket {  
-            $$=new Node("ConstructorBody"); 
+            $$=new Node("ConstructorBody", true); 
             $$->children.push_back(new Node("{","Separator"));
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -850,7 +850,7 @@ ClassImplements : k_implements InterfaceTypeList {
                     }
 
 EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node(",","Separator"));
@@ -858,46 +858,46 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket  {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody"m true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back($3);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back($3);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_comma s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_close_curly_bracket {  
-                    $$=new Node("EnumBody"); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
@@ -1008,7 +1008,7 @@ ExtendsInterfaces:
 InterfaceBody:
 	s_open_curly_bracket InterfaceMemberDeclarations s_close_curly_bracket
     {
-        $$=new Node("InterfaceBody");
+        $$=new Node("InterfaceBody", true);
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator"));
@@ -1113,7 +1113,7 @@ Block : s_open_curly_bracket s_close_curly_bracket
     }
     | s_open_curly_bracket BlockStatements s_close_curly_bracket
     {
-        $$=new Node("Block");
+        $$=new Node("Block", true);
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator"));
