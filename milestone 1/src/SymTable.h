@@ -9,7 +9,7 @@ struct symEntry{
         string t(type);
         this->type=t;
     }
-}
+};
 
 class symtab {
 public:
