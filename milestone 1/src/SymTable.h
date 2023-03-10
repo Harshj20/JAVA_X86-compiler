@@ -3,7 +3,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-public enum TYPE{
+enum TYPE{
     INT,
     FLOAT,
     CHAR,
