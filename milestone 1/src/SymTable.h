@@ -3,11 +3,27 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+public enum TYPE{
+    INT,
+    FLOAT,
+    CHAR,
+    BOOL,
+    VOID,
+    STRING,
+    ARRAY,
+    STRUCT,
+    FUNCTION,
+    CLASS,
+    INTERFACE,
+    ENUM,
+    UNION,
+    TYPEDEF,
+    UNKNOWN
+}
 struct symEntry{
-    string type;
-    symEntry(const char* type){
-        string t(type);
-        this->type=t;
+    TYPE type;
+    symEntry(TYPE type){
+        this->type = type;
     }
 };
 
@@ -22,9 +38,10 @@ public:
         string b(parentID);
         this->parentID = b; 
     }
-    void insertSymEntry(const char*lexeme, const char*type){
+    void insertSymEntry(const char*lexeme, TYPE type){
+        string lex(lexeme);
         struct symEntry* entry = new symEntry(type);
-        this->entries
+        this->entries[lex] = *entry;
     }
     bool lookup(const char*lexeme){
         string lex(lexeme)
