@@ -34,7 +34,7 @@ Node* root=NULL;
 
 %token<str> o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow 
 
-%token<str> Identifier Literal Text_Block_Literal
+%token<str> Identifier int_Literal bin_Literal deci_flo_Literal oct_Literal hex_flo_Literal string_Literal hex_Literal Text_Block_Literal char_Literal true_Literal false_Literal null_Literal
 
 %token<str> s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
@@ -364,7 +364,7 @@ ClassDeclaration : NormalClassDeclaration
 NormalClassDeclaration:
 	Modifiers k_class Identifier Super Interfaces ClassBody
     {   
-        $$=new Node("NormalClassDeclarations"); 
+        $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword"));
         $$->children.push_back(new Node($3,"Identifier"));
@@ -374,7 +374,7 @@ NormalClassDeclaration:
     }
     | Modifiers k_class Identifier Super ClassBody
       {   
-        $$=new Node("NormalClassDeclarations"); 
+        $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword"));
         $$->children.push_back(new Node($3,"Identifier"));
@@ -383,7 +383,7 @@ NormalClassDeclaration:
       }
     | Modifiers k_class Identifier Interfaces ClassBody
       {   
-        $$=new Node("NormalClassDeclarations"); 
+        $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword"));
         $$->children.push_back(new Node($3,"Identifier"));
@@ -392,7 +392,7 @@ NormalClassDeclaration:
       }
     | Modifiers k_class Identifier ClassBody
       {   
-        $$=new Node("NormalClassDeclarations"); 
+        $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword"));
         $$->children.push_back(new Node($3,"Identifier"));
@@ -400,7 +400,7 @@ NormalClassDeclaration:
       }
     | k_class Identifier Super Interfaces ClassBody
       {   
-        $$=new Node("NormalClassDeclarations"); 
+        $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back(new Node("class","Keyword"));
         $$->children.push_back(new Node($2,"Identifier"));
         $$->children.push_back($3);
@@ -409,7 +409,7 @@ NormalClassDeclaration:
       }
     | k_class Identifier Super ClassBody
         {   
-            $$=new Node("NormalClassDeclarations"); 
+            $$=new Node("NormalClassDeclaration"); 
             $$->children.push_back(new Node("class","Keyword"));
             $$->children.push_back(new Node($2,"Identifier"));
             $$->children.push_back($3);
@@ -417,7 +417,7 @@ NormalClassDeclaration:
         }
     | k_class Identifier Interfaces ClassBody
         {   
-            $$=new Node("NormalClassDeclarations"); 
+            $$=new Node("NormalClassDeclaration"); 
             $$->children.push_back(new Node("class","Keyword"));
             $$->children.push_back(new Node($2,"Identifier"));
             $$->children.push_back($3);
@@ -425,7 +425,7 @@ NormalClassDeclaration:
         }
     | k_class Identifier ClassBody 
        {
-            $$=new Node("NormalClassDeclarations"); 
+            $$=new Node("NormalClassDeclaration"); 
             $$->children.push_back(new Node("class","Keyword"));
             $$->children.push_back(new Node($2,"Identifier"));
             $$->children.push_back($3);
@@ -1718,9 +1718,19 @@ Primary:
     ;
 
 PrimaryNoNewArray:
-    Literal {$$ = new Node($1,"Literal");}
+    int_Literal {$$ = new Node($1,"Literal");}
+    | bin_Literal {$$ = new Node($1,"Literal");} 
+    | deci_flo_Literal {$$ = new Node($1,"Literal");} 
+    | oct_Literal {$$ = new Node($1,"Literal");} 
+    | hex_flo_Literal {$$ = new Node($1,"Literal");} 
+    | string_Literal {$$ = new Node($1,"Literal");} 
+    | hex_Literal {$$ = new Node($1,"Literal");}
     | k_this {$$ = new Node("this","Keyword");}
     | Text_Block_Literal {$$ = new Node("TextBlock","Literal");}
+    | char_Literal {$$ = new Node($1,"Literal");}
+    | true_Literal {$$ = new Node("true","Keyword");}
+    | false_Literal {$$ = new Node("false","Keyword");}
+    | null_Literal {$$ = new Node("null","Keyword");}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->children.push_back(new Node("(","Separator"));
