@@ -10,13 +10,16 @@
 %x string
 %x textBlock
 
+line_terminators \n|\r|\r\n
 
-Integer [1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
+Integer 0|[1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
 
 deci_floats [0-9]*"."[0-9]+|[0-9]+"."[0-9]*|[0-9][0-9_]*[0-9]+"."[0-9]*|[0-9]*"."[0-9][0-9_]*[0-9]+[fFdD]|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+
 
 hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F]*"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+
 
+RESERVED_WORD "abstract"|"assert"|"boolean"|"break"|"byte"|"case"|"catch"|"char"|"class"|"const"|"_"|"continue"|"default"|"do"|"double"|"else"|"enum"|"extends"|"final"|"finally"|"float"|"for"|"if"|"goto"|"implements"|"import"|"instanceof"|"int"|"interface"|"long"|"naive"|"new"|"package"|"private"|"protected"|"public"|"return"|"short"|"static"|"strictfp"|"super"|"switch"|"synchronized"|"this"|"throw"|"throws"|"transient"|"try"|"void"|"volatile"|"while"
+CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provides"|"record"|"requires"|"sealed"|"to"|"transitive"|"uses"|"var"|"with"|"yield"
 
 %%
 "exports" {return k_exports;}
@@ -88,9 +91,9 @@ hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[x
 "while" { return k_while; }
 "_" {return k_underscore; }
 
-"true" { return Literal; }
-"false" { return Literal; }
-"null" { return Literal; }
+"true" { return true_Literal; }
+"false" { return false_Literal; }
+"null" { return null_Literal; }
 
 "=" { return o_assign; }
 "+=" { return o_add_assign; }
@@ -152,48 +155,44 @@ hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[x
   
 {Integer}                  { 
     yylval.str=strdup(yytext);
-    return Literal; 
+    return int_Literal; 
     }
 
 {deci_floats}[fFdD]?      { 
     yylval.str=strdup(yytext);
-    return Literal; 
-    }
-{hex_floats}        {
-    yylval.str=strdup(yytext);
-    return Literal;
+    return deci_flo_Literal; 
     }
 
 {deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]?|{deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]? {
     yylval.str=strdup(yytext);
-    return Literal;
+    return deci_flo_Literal;
     }
 
 0[xX][0-9a-fA-F]|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]   {   
     yylval.str=strdup(yytext);
-    return Literal; 
-    }
+    return hex_Literal; 
+}
 
-{hex_floats}|{hex_floats}[pP]{Integer}      {   
+{hex_floats}|{hex_floats}[pP]{Integer}  {   
     yylval.str=strdup(yytext);
-    return Literal; 
-    }
+    return hex_flo_Literal; 
+}
 
 
 0[bB][01]|0[bB][01][01_]*[01]+  {  
     yylval.str=strdup(yytext); 
-    return Literal; 
+    return bin_Literal; 
 }
 
-0|0[0-9_]*[0-9]+  {  
+0[0-9_]*[0-9]+  {  
     yylval.str=strdup(yytext); 
-    return Literal; 
+    return oct_Literal; 
 }
 
 
 "'"[^"'"\\]"'" {
     yylval.str=strdup(yytext);
-    return Literal; 
+    return char_Literal; 
 }
 \"\"\"       { yymore(); BEGIN(textBlock); }
 <textBlock>\"\"\" { BEGIN(INITIAL);
@@ -208,7 +207,7 @@ hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[x
 <string>\\(["\"""'"\\ntrbsf]|[0-7]{1,2}|[0-3][0-7]{2}) yymore();
 <string>"\"" {
     BEGIN(INITIAL);
-    return Literal;
+    return string_Literal;
 }
 [a-zA-Z$_][a-zA-Z0-9$_]* { 
     yylval.str=strdup(yytext);
