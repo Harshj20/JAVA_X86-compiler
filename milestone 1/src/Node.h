@@ -8,22 +8,32 @@ public:
     string id;
     unsigned int count=0;
     string token="";
-    bool isBool = false;
+    bool isBlock = false;
     vector<Node*> children;
-    TYPE literal_type;
+    TYPE literal_type = UNKNOWN;
 
-    Node(const char* id, bool isBool = false, TYPE type = UNKNOWN) {
+    Node(const char* id, bool isBlock = false) {
         string s(id);
         this->id=s;
-        this->isBool = isBool
+        this->isBlock = isBlock;
+    }
+    Node(const char*id, TYPE type){
+        string s(id);
+        this->id=s;
         this->literal_type = type;
     }
-    Node(const char* id,const char* token, bool isBool = false, TYPE type = UNKNOWN){
+    Node(const char* id,const char* token, bool isBlock = false){
         string s(id);
         this->id=s;
         string t(token);
         this->token=t;
-        this->isBool = isBool;
+        this->isBlock = isBlock;
+    }
+    Node(const char*id, const char* token, TYPE type){
+        string s(id);
+        this->id=s;
+        string t(token);
+        this->token=t;
         this->literal_type = type;
     }
 };

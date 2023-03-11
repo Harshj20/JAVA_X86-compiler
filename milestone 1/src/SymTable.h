@@ -21,7 +21,7 @@ enum TYPE{
     UNION,
     TYPEDEF,
     UNKNOWN
-}
+};
 struct symEntry{
     TYPE type;
     symEntry(TYPE type){
@@ -47,24 +47,25 @@ public:
         va_start(args, count); 
 
         for (int i = 0; i < count; i++) {
-            this->entries[lex].push_back(*(new sumEntry(va_arg(args, TYPE)))); 
+            struct symEntry *a = new symEntry(va_arg(args, TYPE));
+            this->entries[lex].push_back(*a); 
         }
 
         va_end(args);
     }
 
     bool lookup(const char*lexeme){
-        string lex(lexeme)
+        string lex(lexeme);
         if(this->entries.find(lex)!=this->entries.end()){
             return true;
         }
         return false;
     }
 
-    vector<struct symEntry> getSymEntry(const char*lexeme){
-        string lex(lexeme)
+    vector<struct symEntry>* getSymEntry(const char*lexeme){
+        string lex(lexeme);
         if(this->entries.find(lex)!=this->entries.end()){
-            return this->entries[lex];
+            return &this->entries[lex];
         }
         return NULL;
     }

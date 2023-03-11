@@ -869,7 +869,7 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody"m true); 
+                    $$=new Node("EnumBody", true); 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back($3);
@@ -1722,19 +1722,19 @@ Primary:
     ;
 
 PrimaryNoNewArray:
-    int_Literal {$$ = new Node($1,"Literal", , INT);}
-    | bin_Literal {$$ = new Node($1,"Literal" , , BIN);} 
-    | deci_flo_Literal {$$ = new Node($1,"Literal", , FLOAT);} 
-    | oct_Literal {$$ = new Node($1,"Literal", , OCT);} 
-    | hex_flo_Literal {$$ = new Node($1,"Literal", , HEX_FLOAT);} 
-    | string_Literal {$$ = new Node($1,"Literal", , STRING);} 
-    | hex_Literal {$$ = new Node($1,"Literal", , HEX);}
+    int_Literal {$$ = new Node($1,"Literal" , INT);}
+    | bin_Literal {$$ = new Node($1,"Literal" , BIN);} 
+    | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT);} 
+    | oct_Literal {$$ = new Node($1,"Literal", OCT);} 
+    | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT);} 
+    | string_Literal {$$ = new Node($1,"Literal", STRING);} 
+    | hex_Literal {$$ = new Node($1,"Literal", HEX);}
     | k_this {$$ = new Node("this","Keyword");}
-    | Text_Block_Literal {$$ = new Node("TextBlock","Literal", ,STRING);}
-    | char_Literal {$$ = new Node($1,"Literal", , CHAR);}
-    | true_Literal {$$ = new Node("true","Keyword", , BOOL);}
-    | false_Literal {$$ = new Node("false","Keyword", , BOOL);}
-    | null_Literal {$$ = new Node("null","Keyword", , NULL);}
+    | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING);}
+    | char_Literal {$$ = new Node($1,"Literal", CHAR);}
+    | true_Literal {$$ = new Node("true","Keyword", BOOL);}
+    | false_Literal {$$ = new Node("false","Keyword", BOOL);}
+    | null_Literal {$$ = new Node("null","Keyword", NULL);}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->children.push_back(new Node("(","Separator"));
@@ -2377,7 +2377,7 @@ void traverse_semantics(Node*node, int &counter){
     }
     for (int i=0;i<node->children.size();i++) {
 
-        traverse(node->children[i], counter);
+        traverse_semantics(node->children[i], counter);
     }
     if(a){
         currentSymTableId = a->parentID; 

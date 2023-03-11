@@ -44,7 +44,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 23 "parser.y"
+#line 27 "parser.y"
 
     #include "Node.h"
 
@@ -161,19 +161,29 @@ extern int yydebug;
     o_colon = 361,
     o_arrow = 362,
     Identifier = 363,
-    Literal = 364,
-    Text_Block_Literal = 365,
-    s_open_paren = 366,
-    s_close_paren = 367,
-    s_open_curly_bracket = 368,
-    s_close_curly_bracket = 369,
-    s_open_square_bracket = 370,
-    s_close_square_bracket = 371,
-    s_semicolon = 372,
-    s_comma = 373,
-    s_dot = 374,
-    s_varargs = 375,
-    s_double_colon = 376
+    int_Literal = 364,
+    bin_Literal = 365,
+    deci_flo_Literal = 366,
+    oct_Literal = 367,
+    hex_flo_Literal = 368,
+    string_Literal = 369,
+    hex_Literal = 370,
+    Text_Block_Literal = 371,
+    char_Literal = 372,
+    true_Literal = 373,
+    false_Literal = 374,
+    null_Literal = 375,
+    s_open_paren = 376,
+    s_close_paren = 377,
+    s_open_curly_bracket = 378,
+    s_close_curly_bracket = 379,
+    s_open_square_bracket = 380,
+    s_close_square_bracket = 381,
+    s_semicolon = 382,
+    s_comma = 383,
+    s_dot = 384,
+    s_varargs = 385,
+    s_double_colon = 386
   };
 #endif
 
@@ -181,12 +191,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 27 "parser.y"
+#line 31 "parser.y"
 
     char* str;
     Node* node;
 
-#line 190 "parser.tab.h"
+#line 200 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
