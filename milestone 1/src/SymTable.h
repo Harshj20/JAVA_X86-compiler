@@ -31,18 +31,28 @@ class symtab {
 public:
     string parentID = "";
     string ID = "";
-    map<string, struct symEntry> entries;
+    map<string, vector<struct symEntry>> entries;
+
     symtab(const char* id, const char* parentID) {
         string a(id);
         this->ID = a;
         string b(parentID);
         this->parentID = b; 
     }
-    void insertSymEntry(const char*lexeme, TYPE type){
+
+    void insertSymEntry(const char*lexeme, int count, ...){
         string lex(lexeme);
-        struct symEntry* entry = new symEntry(type);
-        this->entries[lex] = *entry;
+
+        va_list args;          
+        va_start(args, count); 
+
+        for (int i = 0; i < count; i++) {
+            this->entries[lex].push_back(*(new sumEntry(va_arg(args, TYPE)))); 
+        }
+
+        va_end(args);
     }
+
     bool lookup(const char*lexeme){
         string lex(lexeme)
         if(this->entries.find(lex)!=this->entries.end()){
@@ -50,7 +60,8 @@ public:
         }
         return false;
     }
-    symEntry getSymEntry(const char*lexeme){
+    
+    vector<struct symEntry> getSymEntry(const char*lexeme){
         string lex(lexeme)
         if(this->entries.find(lex)!=this->entries.end()){
             return this->entries[lex];
