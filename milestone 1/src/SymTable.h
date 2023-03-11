@@ -31,9 +31,14 @@ struct symEntry{
 
 class symtab {
 public:
-    int parentID = -1;
-    int ID = -1;
+    int parentID;
+    int ID;
     map<string, vector<struct symEntry>> entries;
+
+    symtab(){
+        this->ID = -1;
+        this->parentID = -1;
+    }
 
     symtab(int id, int parentID) {
         this->ID = id;
