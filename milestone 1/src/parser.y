@@ -58,7 +58,8 @@ Program :
     }
     | CompilationUnit
     {
-        root=new Node("Program", true); 
+        root=new Node("Program");
+        root->isBlock=true; 
         root->children.push_back($1);
         root->children.push_back(new Node("EOF","EOF"));
     } 
@@ -465,7 +466,8 @@ InterfaceTypeList:InterfaceType
 
 ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
 {
-    $$=new Node("ClassBody", true);
+    $$=new Node("ClassBody");
+    $$->isBlock=true;
     $$->children.push_back(new Node("{","Separator"));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}","Separator"));
@@ -765,7 +767,8 @@ ConstructorBody:
             $$->children.push_back(new Node("}","Separator"));
             }
 	| s_open_curly_bracket BlockStatements s_close_curly_bracket {  
-            $$=new Node("ConstructorBody", true); 
+            $$=new Node("ConstructorBody"); 
+            $$->isBlock = true;
             $$->children.push_back(new Node("{","Separator"));
             $$->children.push_back($2);
             $$->children.push_back(new Node("}","Separator"));
@@ -777,7 +780,8 @@ ConstructorBody:
             $$->children.push_back(new Node("}","Separator"));
             }
 	| s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket {  
-            $$=new Node("ConstructorBody", true); 
+            $$=new Node("ConstructorBody"); 
+            $$->isBlock = true;
             $$->children.push_back(new Node("{","Separator"));
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -786,7 +790,6 @@ ConstructorBody:
 	;
 
 ExplicitConstructorInvocation:
-
 	k_this s_open_paren ArgumentList s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
             $$->children.push_back(new Node("this","Keyword"));
@@ -854,7 +857,8 @@ ClassImplements : k_implements InterfaceTypeList {
                     }
 
 EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody"); 
+                    $$->isBlock = true;
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node(",","Separator"));
@@ -862,46 +866,52 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket  {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody"); 
+                    $$->isBlock = true;
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
-                    $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back($3);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumConstantList s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back($3);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_comma s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node(",","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator"));
                     }
           |s_open_curly_bracket s_close_curly_bracket {  
-                    $$=new Node("EnumBody", true); 
+                    $$=new Node("EnumBody");
+                    $$->isBlock=true; 
                     $$->children.push_back(new Node("{","Separator"));
                     $$->children.push_back(new Node("}","Separator"));
                     }
@@ -1012,7 +1022,8 @@ ExtendsInterfaces:
 InterfaceBody:
 	s_open_curly_bracket InterfaceMemberDeclarations s_close_curly_bracket
     {
-        $$=new Node("InterfaceBody", true);
+        $$=new Node("InterfaceBody");
+        $$->isBlock=true;
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator"));
@@ -1062,7 +1073,7 @@ AbstractMethodDeclaration: MethodHeader s_semicolon
 // ------------------------------- Production 10 ---------------------
 
 ArrayInitializer:
-	s_open_curly_bracket VariableInitializerList s_comma s_close_curly_bracket
+	/*s_open_curly_bracket VariableInitializerList s_comma s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->children.push_back(new Node("{","Separator"));
@@ -1070,23 +1081,26 @@ ArrayInitializer:
         $$->children.push_back(new Node(",","Separator"));
         $$->children.push_back(new Node("}","Separator"));
     }
-	| s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
+	|*/ s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
+        $$->isBlock=true;
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator"));
     }
-	| s_open_curly_bracket  s_comma s_close_curly_bracket
+	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back(new Node(",","Separator"));
         $$->children.push_back(new Node("}","Separator"));
     }
-	| s_open_curly_bracket  s_close_curly_bracket
+	*/| s_open_curly_bracket  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
+        $$->isBlock=true;
+        $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back(new Node("}","Separator"));
     }
@@ -1117,7 +1131,8 @@ Block : s_open_curly_bracket s_close_curly_bracket
     }
     | s_open_curly_bracket BlockStatements s_close_curly_bracket
     {
-        $$=new Node("Block", true);
+        $$=new Node("Block");
+        $$->isBlock=true;
         $$->children.push_back(new Node("{","Separator"));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator"));
@@ -1734,7 +1749,7 @@ PrimaryNoNewArray:
     | char_Literal {$$ = new Node($1,"Literal", CHAR);}
     | true_Literal {$$ = new Node("true","Keyword", BOOL);}
     | false_Literal {$$ = new Node("false","Keyword", BOOL);}
-    | null_Literal {$$ = new Node("null","Keyword", NULL);}
+    | null_Literal {$$ = new Node("null","Keyword", _NULL);}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->children.push_back(new Node("(","Separator"));
@@ -2366,22 +2381,32 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
+void symTab_csv(symtab* a){
+    ofstream fout;
+    string s= "symtab"+to_string(a->ID)+".csv";
+    fout.open(s);
+    fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
+}
+
 void traverse_semantics(Node*node, int &counter){
     node->count = counter++;
     symtab *a = NULL;
-
     if(node->isBlock){
         a = new symtab(node->count, currentSymTableId);
+        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID"<<node->id<<" "<<node->isBlock<<endl;
         currentSymTableId = node->count;
         symTables[currentSymTableId] = *a;
     }
     for (int i=0;i<node->children.size();i++) {
-
         traverse_semantics(node->children[i], counter);
     }
     if(a){
-        currentSymTableId = a->parentID; 
+        if(node->id != "MethodHeader")
+            currentSymTableId = a->parentID; 
+        symTab_csv(a);
+        
     }
+
 }
 
 void check_semantics(){
