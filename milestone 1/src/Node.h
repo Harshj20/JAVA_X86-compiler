@@ -12,22 +12,20 @@ public:
     vector<Node*> children;
     TYPE literal_type = UNKNOWN;
 
-    Node(const char* id, bool isBlock = false) {
+    Node(const char* id) {
         string s(id);
         this->id=s;
-        this->isBlock = isBlock;
     }
     Node(const char*id, TYPE type){
         string s(id);
         this->id=s;
         this->literal_type = type;
     }
-    Node(const char* id,const char* token, bool isBlock = false){
+    Node(const char* id,const char* token){
         string s(id);
         this->id=s;
         string t(token);
         this->token=t;
-        this->isBlock = isBlock;
     }
     Node(const char*id, const char* token, TYPE type){
         string s(id);
