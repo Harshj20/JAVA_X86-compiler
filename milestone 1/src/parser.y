@@ -1,10 +1,14 @@
 %{
 #include <bits/stdc++.h>
 #include "Node.h"
+#include "SymTable.h"
 using namespace std;
 extern int yylex();
 extern int yylineno;
 extern FILE *yyin;
+map<unsigned long long int, symtab> symTables; 
+
+int currentSymTableId = -1;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -54,7 +58,7 @@ Program :
     }
     | CompilationUnit
     {
-        root=new Node("Program"); 
+        root=new Node("Program", true); 
         root->children.push_back($1);
         root->children.push_back(new Node("EOF","EOF"));
     } 
@@ -144,22 +148,22 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("[","Separator"));
+                    $$->children.push_back(new Node("]","Separator"));
                 }
 	| Name s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("[","Separator"));
+                    $$->children.push_back(new Node("]","Separator"));
                 }
 	|ArrayType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("[","Separator"));
+                    $$->children.push_back(new Node("]","Separator"));
                 }
 
 
@@ -1718,19 +1722,19 @@ Primary:
     ;
 
 PrimaryNoNewArray:
-    int_Literal {$$ = new Node($1,"Literal");}
-    | bin_Literal {$$ = new Node($1,"Literal");} 
-    | deci_flo_Literal {$$ = new Node($1,"Literal");} 
-    | oct_Literal {$$ = new Node($1,"Literal");} 
-    | hex_flo_Literal {$$ = new Node($1,"Literal");} 
-    | string_Literal {$$ = new Node($1,"Literal");} 
-    | hex_Literal {$$ = new Node($1,"Literal");}
+    int_Literal {$$ = new Node($1,"Literal", , INT);}
+    | bin_Literal {$$ = new Node($1,"Literal" , , BIN);} 
+    | deci_flo_Literal {$$ = new Node($1,"Literal", , FLOAT);} 
+    | oct_Literal {$$ = new Node($1,"Literal", , OCT);} 
+    | hex_flo_Literal {$$ = new Node($1,"Literal", , HEX_FLOAT);} 
+    | string_Literal {$$ = new Node($1,"Literal", , STRING);} 
+    | hex_Literal {$$ = new Node($1,"Literal", , HEX);}
     | k_this {$$ = new Node("this","Keyword");}
-    | Text_Block_Literal {$$ = new Node("TextBlock","Literal");}
-    | char_Literal {$$ = new Node($1,"Literal");}
-    | true_Literal {$$ = new Node("true","Keyword");}
-    | false_Literal {$$ = new Node("false","Keyword");}
-    | null_Literal {$$ = new Node("null","Keyword");}
+    | Text_Block_Literal {$$ = new Node("TextBlock","Literal", ,STRING);}
+    | char_Literal {$$ = new Node($1,"Literal", , CHAR);}
+    | true_Literal {$$ = new Node("true","Keyword", , BOOL);}
+    | false_Literal {$$ = new Node("false","Keyword", , BOOL);}
+    | null_Literal {$$ = new Node("null","Keyword", , NULL);}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->children.push_back(new Node("(","Separator"));
@@ -2362,6 +2366,29 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
+void traverse_semantics(Node*node, int &counter){
+    node->count = counter++;
+    symtab *a = NULL;
+
+    if(node->isBlock){
+        a = new symtab(node->count, currentSymTableId);
+        currentSymTableId = node->count;
+        symTables[currentSymTableId] = *a;
+    }
+    for (int i=0;i<node->children.size();i++) {
+
+        traverse(node->children[i], counter);
+    }
+    if(a){
+        currentSymTableId = a->parentID; 
+    }
+}
+
+void check_semantics(){
+    int counter = 0;
+    traverse_semantics(root, counter);
+}
+
 int main(int argc, char**argv){
     if(argc==1){
         cout<<"No input file specified"<<endl;
@@ -2372,6 +2399,7 @@ int main(int argc, char**argv){
     int output_index = 0;
     bool flag_help=false;
     int t = 1;
+    bool isDot = false;
 
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
@@ -2394,6 +2422,11 @@ int main(int argc, char**argv){
         }
         else if(arg.find("--verbose")==0){
             flag_verbose=true;
+            t++;
+            continue;
+        }
+        else if(arg.find("--dot") == 0){
+            isDot = true;
             t++;
             continue;
         }
@@ -2432,10 +2465,15 @@ int main(int argc, char**argv){
     yyparse();
 
     if(root){
-        if(output_index)
-            print_dot(argv[output_index]);
-        else 
-            print_dot("parse_tree.dot");
+        if(isDot){
+            if(output_index)
+                print_dot(argv[output_index]);
+            else 
+                print_dot("parse_tree.dot");
+        }
+        else{
+            check_semantics();
+        }
     }
     else printf("Error in generating the parse tree\nAborting...\n");
     return 0;

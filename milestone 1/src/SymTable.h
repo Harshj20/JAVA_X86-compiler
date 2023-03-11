@@ -5,13 +5,15 @@ using namespace std;
 
 enum TYPE{
     INT,
+    BIN,
     FLOAT,
+    OCT,
+    HEX_FLOAT,
+    STRING,
+    HEX,
     CHAR,
     BOOL,
     VOID,
-    STRING,
-    ARRAY,
-    STRUCT,
     FUNCTION,
     CLASS,
     INTERFACE,
@@ -29,15 +31,13 @@ struct symEntry{
 
 class symtab {
 public:
-    string parentID = "";
-    string ID = "";
+    int parentID = -1;
+    int ID = -1;
     map<string, vector<struct symEntry>> entries;
 
-    symtab(const char* id, const char* parentID) {
-        string a(id);
-        this->ID = a;
-        string b(parentID);
-        this->parentID = b; 
+    symtab(int id, int parentID) {
+        this->ID = id;
+        this->parentID = parentID; 
     }
 
     void insertSymEntry(const char*lexeme, int count, ...){
@@ -60,7 +60,7 @@ public:
         }
         return false;
     }
-    
+
     vector<struct symEntry> getSymEntry(const char*lexeme){
         string lex(lexeme)
         if(this->entries.find(lex)!=this->entries.end()){
