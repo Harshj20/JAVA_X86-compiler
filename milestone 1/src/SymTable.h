@@ -20,7 +20,9 @@ enum TYPE{
     ENUM,
     UNION,
     TYPEDEF,
-    UNKNOWN
+    UNKNOWN,
+    VAR,
+    _NULL
 };
 struct symEntry{
     TYPE type;
@@ -45,22 +47,11 @@ public:
         this->parentID = parentID; 
     }
 
-    void insertSymEntry(const char*lexeme, int count, ...){
-        string lex(lexeme);
-
-        va_list args;          
-        va_start(args, count); 
-
-        for (int i = 0; i < count; i++) {
-            struct symEntry *a = new symEntry(va_arg(args, TYPE));
-            this->entries[lex].push_back(*a); 
-        }
-
-        va_end(args);
+    void insertSymEntry(string lex, TYPE t){
+        this->entries[lex].push_back(*(new symEntry(t))); 
     }
 
-    bool lookup(const char*lexeme){
-        string lex(lexeme);
+    bool lookup(string lex){
         if(this->entries.find(lex)!=this->entries.end()){
             return true;
         }

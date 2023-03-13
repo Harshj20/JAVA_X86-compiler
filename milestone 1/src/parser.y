@@ -1194,7 +1194,7 @@ LocalVariableType :
     }
     | k_var
     {
-        $$ = new Node("var", "Keyword");
+        $$ = new Node("var", "Keyword", VAR);
     }
 
 Statement : 
@@ -2381,14 +2381,68 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
+
+
+bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
+
+    if(node->id == "VariableDeclaratorList")
+        return check_semantic_LocalVariableDeclaration(node->children[0], t) && check_semantic_LocalVariableDeclaration(node->children[2], t);
+    if(node->id == "VariableDeclarator" || node->id == "Assignment"){
+        if(check_semantic_LocalVariableDeclaration(node->children[2], t))
+            check_semantic_LocalVariableDeclaration(node->children[0], t);
+    }
+    if(node->token == "Identifier"){
+        if(symTables[currentSymTableId].lookup(node->id))
+            return false;
+        else{
+            
+            symTables[currentSymTableId].insertSymEntry(node->id,t);
+            return true;
+        }
+    }
+    if(node->token == "Literal")
+        return node->literal_type == t;
+    return true;
+}
+
+void LocalVariableDeclaration(Node* node){
+    
+    TYPE t = UNKNOWN;
+    Node*temp = node;
+    while(temp->children.size()){
+        if(temp->id == "final")
+            temp = temp->children[1];
+        else    
+            temp = temp->children[0];
+    }
+    t = temp->literal_type;
+
+
+    check_semantic_LocalVariableDeclaration(node->children[node->children.size()-1], t);
+}
+
 void symTab_csv(symtab* a){
     ofstream fout;
     string s= "symtab"+to_string(a->ID)+".csv";
     fout.open(s);
     fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
+    for(auto i = a->entries.begin(); i != a->entries.end(); i++){
+        for(auto j = i->second.begin(); j != i->second.end(); j++)
+            fout<<i->first<<","<<"Identifier"<<","<<j->type<<","<<1<<endl;
+    }
+    fout.close();
+
 }
 
 void traverse_semantics(Node*node, int &counter){
+
+    if(node->id == "LocalVariableDeclaration"){
+        LocalVariableDeclaration(node);
+
+        return;
+    }
+
+
     node->count = counter++;
     symtab *a = NULL;
     if(node->isBlock){
@@ -2403,6 +2457,7 @@ void traverse_semantics(Node*node, int &counter){
     if(a){
         if(node->id != "MethodHeader")
             currentSymTableId = a->parentID; 
+            
         symTab_csv(a);
         
     }
