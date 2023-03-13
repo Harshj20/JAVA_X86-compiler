@@ -22,8 +22,11 @@ enum TYPE{
     TYPEDEF,
     UNKNOWN,
     VAR,
-    _NULL
+    _NULL, 
+    LONG,
+    DOUBLE
 };
+
 struct symEntry{
     TYPE type;
     symEntry(TYPE type){

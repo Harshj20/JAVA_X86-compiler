@@ -8,6 +8,9 @@ extern int yylineno;
 extern FILE *yyin;
 map<unsigned long long int, symtab> symTables; 
 
+vector<string> enum_types = {"INT", "BIN", "FLOAT", "OCT", "HEX_FLOAT", "STRING", "HEX", "CHAR", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL",  "LONG", "DOUBLE"};
+
+
 int currentSymTableId = -1;
 
 bool flag_verbose=false;
@@ -96,32 +99,32 @@ NumericType:IntegralType
 
 IntegralType: k_byte
               {
-                $$ = new Node("byte","Keyword");
+                $$ = new Node("byte","Keyword", INT);
               }
             |k_short
              {
-                $$ = new Node("short","Keyword");
+                $$ = new Node("short","Keyword", INT);
              }
             |k_int 
              {
-                $$ = new Node("int","Keyword");
+                $$ = new Node("int","Keyword", INT);
              }
             |k_long 
              {
-                $$ = new Node("long","Keyword");
+                $$ = new Node("long","Keyword", LONG);
              }
             |k_char
              {
-                $$ = new Node("char","Keyword");
+                $$ = new Node("char","Keyword", CHAR);
              }
 
 FloatingPointType: k_float 
                    {
-                        $$ = new Node("float","Keyword");
+                        $$ = new Node("float","Keyword", FLOAT);
                    }
                  | k_double
                    {
-                        $$ = new Node("double","Keyword");
+                        $$ = new Node("double","Keyword", DOUBLE);
                    }
 
 ReferenceType:ClassOrInterfaceType
@@ -2385,17 +2388,21 @@ void print_dot(const char* filename) {
 
 bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
 
-    if(node->id == "VariableDeclaratorList")
+    if(node->id == "VariableDeclaratorList"){
         return check_semantic_LocalVariableDeclaration(node->children[0], t) && check_semantic_LocalVariableDeclaration(node->children[2], t);
+    }
     if(node->id == "VariableDeclarator" || node->id == "Assignment"){
-        if(check_semantic_LocalVariableDeclaration(node->children[2], t))
-            check_semantic_LocalVariableDeclaration(node->children[0], t);
+        if(check_semantic_LocalVariableDeclaration(node->children[2], t)){
+            return check_semantic_LocalVariableDeclaration(node->children[0], t);
+        }
+        else 
+            return false;
     }
     if(node->token == "Identifier"){
-        if(symTables[currentSymTableId].lookup(node->id))
+        if(symTables[currentSymTableId].lookup(node->id)){
             return false;
+        }
         else{
-            
             symTables[currentSymTableId].insertSymEntry(node->id,t);
             return true;
         }
@@ -2428,7 +2435,7 @@ void symTab_csv(symtab* a){
     fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
     for(auto i = a->entries.begin(); i != a->entries.end(); i++){
         for(auto j = i->second.begin(); j != i->second.end(); j++)
-            fout<<i->first<<","<<"Identifier"<<","<<j->type<<","<<1<<endl;
+            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<1<<endl;
     }
     fout.close();
 
@@ -2457,9 +2464,6 @@ void traverse_semantics(Node*node, int &counter){
     if(a){
         if(node->id != "MethodHeader")
             currentSymTableId = a->parentID; 
-            
-        symTab_csv(a);
-        
     }
 
 }
@@ -2467,6 +2471,9 @@ void traverse_semantics(Node*node, int &counter){
 void check_semantics(){
     int counter = 0;
     traverse_semantics(root, counter);
+    for(auto i = symTables.begin(); i != symTables.end(); i++){
+        symTab_csv(&i->second);
+    }
 }
 
 int main(int argc, char**argv){
