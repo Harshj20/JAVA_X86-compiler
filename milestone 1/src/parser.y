@@ -57,14 +57,14 @@ AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement 
 Program : 
     {   
         root=new Node("Program");
-        root->children.push_back(new Node("EOF","EOF"));
+        root->children.push_back(new Node("EOF","EOF",-1));
     }
     | CompilationUnit
     {
         root=new Node("Program");
         root->isBlock=true; 
         root->children.push_back($1);
-        root->children.push_back(new Node("EOF","EOF"));
+        root->children.push_back(new Node("EOF","EOF",-1));
     } 
 
 
@@ -85,7 +85,7 @@ PrimitiveType: NumericType
                }
              | k_boolean
              {
-                $$ = new Node("boolean","Keyword");
+                $$ = new Node("boolean","Keyword",yylineno);
              }
 
 NumericType:IntegralType
@@ -99,19 +99,19 @@ NumericType:IntegralType
 
 IntegralType: k_byte
               {
-                $$ = new Node("byte","Keyword", INT);
+                $$ = new Node("byte","Keyword", INT, yylineno);
               }
             |k_short
              {
-                $$ = new Node("short","Keyword", INT);
+                $$ = new Node("short","Keyword", INT, yylineno);
              }
             |k_int 
              {
-                $$ = new Node("int","Keyword", INT);
+                $$ = new Node("int","Keyword", INT, yylineno);
              }
             |k_long 
              {
-                $$ = new Node("long","Keyword", LONG);
+                $$ = new Node("long","Keyword", LONG, yylineno);
              }
             |k_char
              {
@@ -120,11 +120,11 @@ IntegralType: k_byte
 
 FloatingPointType: k_float 
                    {
-                        $$ = new Node("float","Keyword", FLOAT);
+                        $$ = new Node("float","Keyword", FLOAT, yylineno);
                    }
                  | k_double
                    {
-                        $$ = new Node("double","Keyword", DOUBLE);
+                        $$ = new Node("double","Keyword", DOUBLE, yylineno);
                    }
 
 ReferenceType:ClassOrInterfaceType
@@ -152,22 +152,22 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("[","Separator"));
-                    $$->children.push_back(new Node("]","Separator"));
+                    $$->children.push_back(new Node("[","Separator", yylineno));
+                    $$->children.push_back(new Node("]","Separator", yylineno));
                 }
 	| Name s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("[","Separator"));
-                    $$->children.push_back(new Node("]","Separator"));
+                    $$->children.push_back(new Node("[","Separator", yylineno));
+                    $$->children.push_back(new Node("]","Separator", yylineno));
                 }
 	|ArrayType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("[","Separator"));
-                    $$->children.push_back(new Node("]","Separator"));
+                    $$->children.push_back(new Node("[","Separator", yylineno));
+                    $$->children.push_back(new Node("]","Separator", yylineno));
                 }
 
 
@@ -184,15 +184,15 @@ Name:SimpleName
 
 SimpleName: Identifier 
             {
-                $$ = new Node($1,"Identifier");
+                $$ = new Node($1,"Identifier",yylineno);
             }
 
 QualifiedName: Name s_dot Identifier 
                 {
                     $$=new Node("QualifiedName"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node(".","Separator"));
-                    $$->children.push_back(new Node($3,"Identifier"));
+                    $$->children.push_back(new Node(".","Separator", yylineno));
+                    $$->children.push_back(new Node($3,"Identifier",yylineno));
                 }
 
 // --------------------------- Production 7 --------------------------
@@ -261,9 +261,9 @@ TypeDeclarations:TypeDeclaration
 PackageDeclaration: k_package Name s_semicolon
                     {
                         $$=new Node("PackageDeclaration"); 
-                        $$->children.push_back(new Node("package","Keyword"));
+                        $$->children.push_back(new Node("package","Keyword", yylineno));
                         $$->children.push_back($2);
-                        $$->children.push_back(new Node(";","Separator"));
+                        $$->children.push_back(new Node(";","Separator", yylineno));
                     }
 
 ImportDeclaration: SingleTypeImportDeclaration
@@ -278,20 +278,20 @@ ImportDeclaration: SingleTypeImportDeclaration
 SingleTypeImportDeclaration: k_import Name s_semicolon
                              {
                                 $$=new Node("SingleImportTypeDeclaration"); 
-                                $$->children.push_back(new Node("import","Keyword"));
+                                $$->children.push_back(new Node("import","Keyword", yylineno));
                                 $$->children.push_back($2);
-                                $$->children.push_back(new Node(";","Separator"));
+                                $$->children.push_back(new Node(";","Separator", yylineno));
                              }
 
 
 TypeImportOnDemandDeclaration: k_import Name s_dot o_multiply s_semicolon
                                {
                                 $$=new Node("PackageDeclaration"); 
-                                $$->children.push_back(new Node("import","Keyword"));
+                                $$->children.push_back(new Node("import","Keyword", yylineno));
                                 $$->children.push_back($2);
-                                $$->children.push_back(new Node(".","Separator"));
-                                $$->children.push_back(new Node("*","Operator"));
-                                $$->children.push_back(new Node(";","Separator"));
+                                $$->children.push_back(new Node(".","Separator", yylineno));
+                                $$->children.push_back(new Node("*","Operator", yylineno));
+                                $$->children.push_back(new Node(";","Separator", yylineno));
                                }
 
 TypeDeclaration: ClassDeclaration 
@@ -304,7 +304,7 @@ TypeDeclaration: ClassDeclaration
                 }
                 | s_semicolon
                 {
-                $$ = new Node(";","Separator");
+                $$ = new Node(";","Separator", yylineno);
                 }
 // ---------------------------- Production 8 -----------------------
 
@@ -321,43 +321,43 @@ Modifiers:Modifier
 
 Modifier: k_public 
           {
-            $$ = new Node("public","Keyword");
+            $$ = new Node("public","Keyword", yylineno);
           }
         | k_protected 
           {
-            $$ = new Node("protected","Keyword");
+            $$ = new Node("protected","Keyword", yylineno);
           }
         | k_private
           {
-            $$ = new Node("private","Keyword");
+            $$ = new Node("private","Keyword", yylineno);
           }
 	    | k_static
           {
-            $$ = new Node("static","Keyword");
+            $$ = new Node("static","Keyword", yylineno);
           }
 	    | k_abstract 
           {
-            $$ = new Node("abstract","Keyword");
+            $$ = new Node("abstract","Keyword", yylineno);
           }
         | k_final 
           {
-            $$ = new Node("final","Keyword");
+            $$ = new Node("final","Keyword", yylineno);
           }
         | k_native 
           {
-            $$ = new Node("native","Keyword");
+            $$ = new Node("native","Keyword", yylineno);
           }
         | k_synchronized 
           {
-            $$ = new Node("synchronized","Keyword");
+            $$ = new Node("synchronized","Keyword", yylineno);
           }
         | k_transient 
           {
-            $$ = new Node("transient","Keyword");
+            $$ = new Node("transient","Keyword", yylineno);
           }
         | k_volatile
           {
-            $$ = new Node("volatile","Keyword");
+            $$ = new Node("volatile","Keyword", yylineno);
           }
 
 ClassDeclaration : NormalClassDeclaration 
@@ -374,8 +374,8 @@ NormalClassDeclaration:
     {   
         $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword"));
-        $$->children.push_back(new Node($3,"Identifier"));
+        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back(new Node($3,"Identifier",yylineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
         $$->children.push_back($6);
@@ -384,8 +384,8 @@ NormalClassDeclaration:
       {   
         $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword"));
-        $$->children.push_back(new Node($3,"Identifier"));
+        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back(new Node($3,"Identifier",yylineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
       }
@@ -393,8 +393,8 @@ NormalClassDeclaration:
       {   
         $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword"));
-        $$->children.push_back(new Node($3,"Identifier"));
+        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back(new Node($3,"Identifier",yylineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
       }
@@ -402,15 +402,15 @@ NormalClassDeclaration:
       {   
         $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword"));
-        $$->children.push_back(new Node($3,"Identifier"));
+        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back(new Node($3,"Identifier",yylineno));
         $$->children.push_back($4);
       }
     | k_class Identifier Super Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
-        $$->children.push_back(new Node("class","Keyword"));
-        $$->children.push_back(new Node($2,"Identifier"));
+        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back(new Node($2,"Identifier",yylineno));
         $$->children.push_back($3);
         $$->children.push_back($4);
         $$->children.push_back($5);
@@ -418,24 +418,24 @@ NormalClassDeclaration:
     | k_class Identifier Super ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-            $$->children.push_back(new Node("class","Keyword"));
-            $$->children.push_back(new Node($2,"Identifier"));
+            $$->children.push_back(new Node("class","Keyword", yylineno));
+            $$->children.push_back(new Node($2,"Identifier",yylineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
         }
     | k_class Identifier Interfaces ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-            $$->children.push_back(new Node("class","Keyword"));
-            $$->children.push_back(new Node($2,"Identifier"));
+            $$->children.push_back(new Node("class","Keyword", yylineno));
+            $$->children.push_back(new Node($2,"Identifier",yylineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
         }
     | k_class Identifier ClassBody 
        {
             $$=new Node("NormalClassDeclaration"); 
-            $$->children.push_back(new Node("class","Keyword"));
-            $$->children.push_back(new Node($2,"Identifier"));
+            $$->children.push_back(new Node("class","Keyword", yylineno));
+            $$->children.push_back(new Node($2,"Identifier",yylineno));
             $$->children.push_back($3);
        }
 
@@ -444,14 +444,14 @@ NormalClassDeclaration:
 Super: k_extends ClassType
         {
             $$=new Node("Super");
-            $$->children.push_back(new Node("extends","Keyword"));
+            $$->children.push_back(new Node("extends","Keyword", yylineno));
             $$->children.push_back($2);
         }
 
 Interfaces: k_implements InterfaceTypeList
             {
                 $$=new Node("Interfaces");
-                $$->children.push_back(new Node("implements","Keyword"));
+                $$->children.push_back(new Node("implements","Keyword", yylineno));
                 $$->children.push_back($2);
             }
 
@@ -463,7 +463,7 @@ InterfaceTypeList:InterfaceType
                     {
                         $$=new Node("InterfaceTypeList");
                         $$->children.push_back($1);
-                        $$->children.push_back(new Node(",","Separator"));
+                        $$->children.push_back(new Node(",","Separator", yylineno));
                         $$->children.push_back($3);
                     }
 
@@ -471,15 +471,15 @@ ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket
 {
     $$=new Node("ClassBody");
     $$->isBlock=true;
-    $$->children.push_back(new Node("{","Separator"));
+    $$->children.push_back(new Node("{","Separator", yylineno));
     $$->children.push_back($2);
-    $$->children.push_back(new Node("}","Separator"));
+    $$->children.push_back(new Node("}","Separator", yylineno));
 }
 | s_open_curly_bracket s_close_curly_bracket 
 {
     $$=new Node("ClassBody");
-    $$->children.push_back(new Node("{","Separator"));
-    $$->children.push_back(new Node("}","Separator"));
+    $$->children.push_back(new Node("{","Separator", yylineno));
+    $$->children.push_back(new Node("}","Separator", yylineno));
 }
 
 ClassBodyDeclarations:ClassBodyDeclaration  
@@ -521,14 +521,14 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             $$->children.push_back($1);
                             $$->children.push_back($2);
                             $$->children.push_back($3);
-                            $$->children.push_back(new Node(";","Separator"));
+                            $$->children.push_back(new Node(";","Separator", yylineno));
                         }
                         | Type VariableDeclaratorList s_semicolon     
                         {
                             $$=new Node("FieldDeclaration");
                             $$->children.push_back($1);
                             $$->children.push_back($2);
-                            $$->children.push_back(new Node(";","Separator"));
+                            $$->children.push_back(new Node(";","Separator", yylineno));
                         }
 
 VariableDeclaratorList:VariableDeclarator     
@@ -539,7 +539,7 @@ VariableDeclaratorList:VariableDeclarator
                         {
                             $$=new Node("VariableDeclaratorList");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node(",","Separator"));
+                            $$->children.push_back(new Node(",","Separator", yylineno));
                             $$->children.push_back($3);
                         }
 
@@ -551,20 +551,20 @@ VariableDeclarator: VariableDeclaratorId
                         {
                             $$=new Node("VariableDeclarator");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node("=","Operator"));
+                            $$->children.push_back(new Node("=","Operator", yylineno));
                             $$->children.push_back($3);
                         }
 
 VariableDeclaratorId: Identifier
                       {
-                        $$ = new Node($1,"Identifier");
+                        $$ = new Node($1,"Identifier",yylineno);
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
                         {
                             $$=new Node("VariableDeclaratorId");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node("[","Separator"));
-                            $$->children.push_back(new Node("]","Separator"));
+                            $$->children.push_back(new Node("[","Separator", yylineno));
+                            $$->children.push_back(new Node("]","Separator", yylineno));
                         }
 
 VariableInitializer:Expression     
@@ -611,47 +611,47 @@ MethodHeader:
 	| Modifiers k_void MethodDeclarator Throws  {   
             $$=new Node("MethodHeader"); 
             $$->children.push_back($1);
-            $$->children.push_back(new Node("void","Keyword"));
+            $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
         }
     | Modifiers k_void MethodDeclarator {   
             $$=new Node("MethodHeader"); 
             $$->children.push_back($1);
-            $$->children.push_back(new Node("void","Keyword"));
+            $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
         }
     |  k_void MethodDeclarator Throws {   
             $$=new Node("MethodHeader"); 
-            $$->children.push_back(new Node("void","Keyword"));
+            $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
             $$->children.push_back($3);
         }
     |  k_void MethodDeclarator {   
             $$=new Node("MethodHeader"); 
-            $$->children.push_back(new Node("void","Keyword"));
+            $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
             }
 
 MethodDeclarator: 
 	Identifier s_open_paren FormalParameterList s_close_paren {   
             $$=new Node("MethodDeclarator"); 
-            $$->children.push_back(new Node($1,"Identifier"));
-            $$->children.push_back(new Node("(","Separator"));
+            $$->children.push_back(new Node($1,"Identifier",yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
-            $$->children.push_back(new Node(")","Separator"));
+            $$->children.push_back(new Node(")","Separator", yylineno));
         }
     | Identifier s_open_paren s_close_paren {   
             $$=new Node("MethodDeclarator"); 
-            $$->children.push_back(new Node($1,"Identifier"));
-            $$->children.push_back(new Node("(","Separator"));
-            $$->children.push_back(new Node(")","Separator"));
+            $$->children.push_back(new Node($1,"Identifier",yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
+            $$->children.push_back(new Node(")","Separator", yylineno));
         }
 	| MethodDeclarator s_open_square_bracket s_close_square_bracket {   
             $$=new Node("MethodDeclarator"); 
             $$->children.push_back($1);
-            $$->children.push_back(new Node("[","Separator"));
-            $$->children.push_back(new Node("]","Separator"));
+            $$->children.push_back(new Node("[","Separator", yylineno));
+            $$->children.push_back(new Node("]","Separator", yylineno));
             }
 
 FormalParameterList: FormalParameter    
@@ -662,7 +662,7 @@ FormalParameterList: FormalParameter
                         {
                             $$=new Node("FormalParameterList");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node(",","Separator"));
+                            $$->children.push_back(new Node(",","Separator", yylineno));
                             $$->children.push_back($3);
                         }
 
@@ -675,7 +675,7 @@ FormalParameter: Type VariableDeclaratorId
                 | k_final Type VariableDeclaratorId     
                         {
                             $$=new Node("FormalParameter");
-                            $$->children.push_back(new Node("final","Keyword"));
+                            $$->children.push_back(new Node("final","Keyword", yylineno));
                             $$->children.push_back($2);
                             $$->children.push_back($3);
                         }
@@ -683,7 +683,7 @@ FormalParameter: Type VariableDeclaratorId
 Throws: k_throws ClassTypeList  
                         {
                             $$=new Node("Throws");
-                            $$->children.push_back(new Node("throws","Keyword"));
+                            $$->children.push_back(new Node("throws","Keyword", yylineno));
                             $$->children.push_back($2);
                         }
 
@@ -695,7 +695,7 @@ ClassTypeList:ClassType
                         {
                             $$=new Node("ClassTypeList");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node(",","Separator"));
+                            $$->children.push_back(new Node(",","Separator", yylineno));
                             $$->children.push_back($3);
                         }
 
@@ -706,13 +706,13 @@ MethodBody: Block
         
 	| s_semicolon
     {
-        $$ = new Node(";","Separator");
+        $$ = new Node(";","Separator", yylineno);
     }
 
 StaticInitializer: k_static Block 
                         {
                             $$=new Node("StaticInitializer");
-                            $$->children.push_back(new Node("static","Keyword"));
+                            $$->children.push_back(new Node("static","Keyword", yylineno));
                             $$->children.push_back($2);
                         }
 	;
@@ -751,180 +751,180 @@ ConstructorDeclarator:
             {  
             $$=new Node("ConstructorDeclarator"); 
             $$->children.push_back($1);
-            $$->children.push_back(new Node("(","Separator"));
+            $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
-            $$->children.push_back(new Node(")","Separator"));
+            $$->children.push_back(new Node(")","Separator", yylineno));
             }
 	|SimpleName s_open_paren s_close_paren {  
             $$=new Node("ConstructorDeclarator"); 
             $$->children.push_back($1);
-            $$->children.push_back(new Node("(","Separator"));
-            $$->children.push_back(new Node(")","Separator"));
+            $$->children.push_back(new Node("(","Separator", yylineno));
+            $$->children.push_back(new Node(")","Separator", yylineno));
             }
 	;
 
 ConstructorBody:
 	s_open_curly_bracket s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
-            $$->children.push_back(new Node("{","Separator"));
-            $$->children.push_back(new Node("}","Separator"));
+            $$->children.push_back(new Node("{","Separator", yylineno));
+            $$->children.push_back(new Node("}","Separator", yylineno));
             }
 	| s_open_curly_bracket BlockStatements s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
             $$->isBlock = true;
-            $$->children.push_back(new Node("{","Separator"));
+            $$->children.push_back(new Node("{","Separator", yylineno));
             $$->children.push_back($2);
-            $$->children.push_back(new Node("}","Separator"));
+            $$->children.push_back(new Node("}","Separator", yylineno));
             }
 	| s_open_curly_bracket ExplicitConstructorInvocation s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
-            $$->children.push_back(new Node("{","Separator"));
+            $$->children.push_back(new Node("{","Separator", yylineno));
             $$->children.push_back($2);
-            $$->children.push_back(new Node("}","Separator"));
+            $$->children.push_back(new Node("}","Separator", yylineno));
             }
 	| s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
             $$->isBlock = true;
-            $$->children.push_back(new Node("{","Separator"));
+            $$->children.push_back(new Node("{","Separator", yylineno));
             $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->children.push_back(new Node("}","Separator"));
+            $$->children.push_back(new Node("}","Separator", yylineno));
             }
 	;
 
 ExplicitConstructorInvocation:
 	k_this s_open_paren ArgumentList s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
-            $$->children.push_back(new Node("this","Keyword"));
-            $$->children.push_back(new Node("(","Separator"));
+            $$->children.push_back(new Node("this","Keyword", yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
-            $$->children.push_back(new Node(")","Separator"));
-            $$->children.push_back(new Node(";","Separator"));
+            $$->children.push_back(new Node(")","Separator", yylineno));
+            $$->children.push_back(new Node(";","Separator", yylineno));
             }
 	| k_this s_open_paren s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
-            $$->children.push_back(new Node("this","Keyword"));
-            $$->children.push_back(new Node("(","Separator"));
-            $$->children.push_back(new Node(")","Separator"));
-            $$->children.push_back(new Node(";","Separator"));
+            $$->children.push_back(new Node("this","Keyword", yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
+            $$->children.push_back(new Node(")","Separator", yylineno));
+            $$->children.push_back(new Node(";","Separator", yylineno));
             }
 	| k_super s_open_paren ArgumentList s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
-            $$->children.push_back(new Node("super","Keyword"));
-            $$->children.push_back(new Node("(","Separator"));
+            $$->children.push_back(new Node("super","Keyword", yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
-            $$->children.push_back(new Node(")","Separator"));
-            $$->children.push_back(new Node(";","Separator"));}
+            $$->children.push_back(new Node(")","Separator", yylineno));
+            $$->children.push_back(new Node(";","Separator", yylineno));}
 	| k_super s_open_paren s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
-            $$->children.push_back(new Node("super","Keyword"));
-            $$->children.push_back(new Node("(","Separator"));
-            $$->children.push_back(new Node(")","Separator"));
-            $$->children.push_back(new Node(";","Separator"));
+            $$->children.push_back(new Node("super","Keyword", yylineno));
+            $$->children.push_back(new Node("(","Separator", yylineno));
+            $$->children.push_back(new Node(")","Separator", yylineno));
+            $$->children.push_back(new Node(";","Separator", yylineno));
             }
 	;
 
 EnumDeclaration : Modifiers k_enum Identifier ClassImplements EnumBody {  
                     $$=new Node("EnumDeclaration"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("enum","Keyword"));
-                    $$->children.push_back(new Node($3,"Identifier"));
+                    $$->children.push_back(new Node("enum","Keyword", yylineno));
+                    $$->children.push_back(new Node($3,"Identifier",yylineno));
                     $$->children.push_back($4);
                     $$->children.push_back($5);
                     }
                  |Modifiers k_enum Identifier EnumBody {  
                     $$=new Node("EnumDeclaration"); 
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node("enum","Keyword"));
-                    $$->children.push_back(new Node($3,"Identifier"));
+                    $$->children.push_back(new Node("enum","Keyword", yylineno));
+                    $$->children.push_back(new Node($3,"Identifier",yylineno));
                     $$->children.push_back($4);
                     }
                  |k_enum Identifier ClassImplements EnumBody {  
                     $$=new Node("EnumDeclaration"); 
-                    $$->children.push_back(new Node("enum","Keyword"));
-                    $$->children.push_back(new Node($2,"Identifier"));
+                    $$->children.push_back(new Node("enum","Keyword", yylineno));
+                    $$->children.push_back(new Node($2,"Identifier",yylineno));
                     $$->children.push_back($3);
                     $$->children.push_back($4);
                     }
                  |k_enum Identifier EnumBody {  
                     $$=new Node("EnumDeclaration"); 
-                    $$->children.push_back(new Node("enum","Keyword"));
-                    $$->children.push_back(new Node($2,"Identifier"));
+                    $$->children.push_back(new Node("enum","Keyword", yylineno));
+                    $$->children.push_back(new Node($2,"Identifier",yylineno));
                     $$->children.push_back($3);
                     }
 
 ClassImplements : k_implements InterfaceTypeList {  
                     $$=new Node("ClassImplements"); 
-                    $$->children.push_back(new Node("implements","Keyword"));
+                    $$->children.push_back(new Node("implements","Keyword", yylineno));
                     $$->children.push_back($2);
                     }
 
 EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody"); 
                     $$->isBlock = true;
-                    $$->children.push_back(new Node("{","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
-                    $$->children.push_back(new Node(",","Separator"));
+                    $$->children.push_back(new Node(",","Separator", yylineno));
                     $$->children.push_back($4);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket  {  
                     $$=new Node("EnumBody"); 
                     $$->isBlock = true;
-                    $$->children.push_back(new Node("{","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back($3);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumConstantList s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node(",","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
+                    $$->children.push_back(new Node(",","Separator", yylineno));
                     $$->children.push_back($3);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket s_comma s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node(",","Separator"));
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
+                    $$->children.push_back(new Node(",","Separator", yylineno));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket s_close_curly_bracket {  
                     $$=new Node("EnumBody");
                     $$->isBlock=true; 
-                    $$->children.push_back(new Node("{","Separator"));
-                    $$->children.push_back(new Node("}","Separator"));
+                    $$->children.push_back(new Node("{","Separator", yylineno));
+                    $$->children.push_back(new Node("}","Separator", yylineno));
                     }
 
 EnumBodyDeclarations : s_semicolon  {  
-                    $$=new Node(";","Separator");
+                    $$=new Node(";","Separator", yylineno);
                     }
                     | s_semicolon ClassBodyDeclarations {  
                     $$=new Node("EnumBodyDeclarations"); 
-                    $$->children.push_back(new Node(";","Separator"));
+                    $$->children.push_back(new Node(";","Separator", yylineno));
                     $$->children.push_back($2);
                     }
 
@@ -933,45 +933,45 @@ EnumConstantList : EnumConstant {$$=$1;}
                     {
                     $$=new Node("EnumConstantList");
                     $$->children.push_back($1);
-                    $$->children.push_back(new Node(",","Separator"));
+                    $$->children.push_back(new Node(",","Separator", yylineno));
                     $$->children.push_back($3);
                     }
 
 EnumConstant : Identifier s_open_paren ArgumentList s_close_paren ClassBody {  
                     $$=new Node("EnumConstant"); 
-                    $$->children.push_back(new Node($1,"Identifier"));
-                    $$->children.push_back(new Node("(","Separator"));
+                    $$->children.push_back(new Node($1,"Identifier",yylineno));
+                    $$->children.push_back(new Node("(","Separator", yylineno));
                     $$->children.push_back($3);
-                    $$->children.push_back(new Node(")","Separator"));
+                    $$->children.push_back(new Node(")","Separator", yylineno));
                     $$->children.push_back($5);
                     }
                   |Identifier s_open_paren s_close_paren ClassBody {  
                     $$=new Node("EnumConstant"); 
-                    $$->children.push_back(new Node($1,"Identifier"));
-                    $$->children.push_back(new Node("(","Separator"));
-                    $$->children.push_back(new Node(")","Separator"));
+                    $$->children.push_back(new Node($1,"Identifier",yylineno));
+                    $$->children.push_back(new Node("(","Separator", yylineno));
+                    $$->children.push_back(new Node(")","Separator", yylineno));
                     $$->children.push_back($4);
                     }
                   |Identifier s_open_paren ArgumentList s_close_paren {  
                     $$=new Node("EnumConstant"); 
-                    $$->children.push_back(new Node($1,"Identifier"));
-                    $$->children.push_back(new Node("(","Separator"));
+                    $$->children.push_back(new Node($1,"Identifier",yylineno));
+                    $$->children.push_back(new Node("(","Separator", yylineno));
                     $$->children.push_back($3);
-                    $$->children.push_back(new Node(")","Separator"));
+                    $$->children.push_back(new Node(")","Separator", yylineno));
                     }
                   |Identifier s_open_paren s_close_paren {  
                     $$=new Node("EnumConstant"); 
-                    $$->children.push_back(new Node($1,"Identifier"));
-                    $$->children.push_back(new Node("(","Separator"));
-                    $$->children.push_back(new Node(")","Separator"));
+                    $$->children.push_back(new Node($1,"Identifier",yylineno));
+                    $$->children.push_back(new Node("(","Separator", yylineno));
+                    $$->children.push_back(new Node(")","Separator", yylineno));
                     }
                   |Identifier ClassBody {  
                     $$=new Node("EnumConstant"); 
-                    $$->children.push_back(new Node($1,"Identifier"));
+                    $$->children.push_back(new Node($1,"Identifier",yylineno));
                     $$->children.push_back($2);
                     }
                   |Identifier {  
-                    $$=new Node($1,"Identifier");
+                    $$=new Node($1,"Identifier",yylineno);
                     }
 // ---------------------------- Production 9 -----------------------
 
@@ -979,29 +979,29 @@ InterfaceDeclaration:
 	Modifiers k_interface Identifier ExtendsInterfaces InterfaceBody
     { $$=new Node("InterfaceDeclaration"); 
       $$->children.push_back($1);
-      $$->children.push_back(new Node("interface","Keyword"));
-      $$->children.push_back(new Node($3,"Identifier"));
+      $$->children.push_back(new Node("interface","Keyword", yylineno));
+      $$->children.push_back(new Node($3,"Identifier",yylineno));
       $$->children.push_back($4);
       $$->children.push_back($5);}
 	| Modifiers k_interface Identifier InterfaceBody
     { $$=new Node("InterfaceDeclaration"); 
       $$->children.push_back($1);
-      $$->children.push_back(new Node("interface","Keyword"));
-      $$->children.push_back(new Node($3,"Identifier"));
+      $$->children.push_back(new Node("interface","Keyword", yylineno));
+      $$->children.push_back(new Node($3,"Identifier",yylineno));
       $$->children.push_back($4);}
 	| k_interface Identifier ExtendsInterfaces InterfaceBody
     {
         $$=new Node("InterfaceDeclaration"); 
-        $$->children.push_back(new Node("interface","Keyword"));
-        $$->children.push_back(new Node($2,"Identifier"));
+        $$->children.push_back(new Node("interface","Keyword", yylineno));
+        $$->children.push_back(new Node($2,"Identifier",yylineno));
         $$->children.push_back($3);
         $$->children.push_back($4);
     }
 	| k_interface Identifier InterfaceBody
     {
         $$=new Node("InterfaceDeclaration"); 
-        $$->children.push_back(new Node("interface","Keyword"));
-        $$->children.push_back(new Node($2,"Identifier"));
+        $$->children.push_back(new Node("interface","Keyword", yylineno));
+        $$->children.push_back(new Node($2,"Identifier",yylineno));
         $$->children.push_back($3);
     }
 	;
@@ -1010,14 +1010,14 @@ ExtendsInterfaces:
 	k_extends InterfaceType
     {
         $$=new Node("ExtendsInterfaces");
-        $$->children.push_back(new Node("extends","Keyword"));
+        $$->children.push_back(new Node("extends","Keyword", yylineno));
         $$->children.push_back($2);
     }
 	| ExtendsInterfaces s_comma InterfaceType
     {
         $$=new Node("ExtendsInterfaces");
         $$->children.push_back($1);
-        $$->children.push_back(new Node("comma","Separator"));
+        $$->children.push_back(new Node("comma","Separator", yylineno));
         $$->children.push_back($3);
     }
 	;
@@ -1027,15 +1027,15 @@ InterfaceBody:
     {
         $$=new Node("InterfaceBody");
         $$->isBlock=true;
-        $$->children.push_back(new Node("{","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	|s_open_curly_bracket s_close_curly_bracket
     {
         $$=new Node("InterfaceBody");
-        $$->children.push_back(new Node("{","Separator"));
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	;
 
@@ -1068,7 +1068,7 @@ AbstractMethodDeclaration: MethodHeader s_semicolon
 {
     $$=new Node("AbstractMethodDeclaration");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(";","Separator"));
+    $$->children.push_back(new Node(";","Separator", yylineno));
 }
 	;
 
@@ -1079,33 +1079,33 @@ ArrayInitializer:
 	/*s_open_curly_bracket VariableInitializerList s_comma s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
-        $$->children.push_back(new Node("{","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node(",","Separator"));
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node(",","Separator", yylineno));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	|*/ s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->isBlock=true;
-        $$->children.push_back(new Node("{","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
-        $$->children.push_back(new Node("{","Separator"));
-        $$->children.push_back(new Node(",","Separator"));
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
+        $$->children.push_back(new Node(",","Separator", yylineno));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	*/| s_open_curly_bracket  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->isBlock=true;
-        $$->children.push_back(new Node("{","Separator"));
-        $$->children.push_back(new Node("{","Separator"));
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
+        $$->children.push_back(new Node("{","Separator", yylineno));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
 	;
 
@@ -1118,7 +1118,7 @@ VariableInitializerList: VariableInitializer
     {
         $$=new Node("VariableInitializerList");
         $$->children.push_back($1);
-        $$->children.push_back(new Node(",","Separator"));
+        $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back($3);
     }
 	;
@@ -1129,16 +1129,16 @@ VariableInitializerList: VariableInitializer
 Block : s_open_curly_bracket s_close_curly_bracket 
     {
         $$=new Node("Block");
-        $$->children.push_back(new Node("{","Separator"));
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
     | s_open_curly_bracket BlockStatements s_close_curly_bracket
     {
         $$=new Node("Block");
         $$->isBlock=true;
-        $$->children.push_back(new Node("{","Separator"));
+        $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node("}","Separator"));
+        $$->children.push_back(new Node("}","Separator", yylineno));
     }
     ;
 
@@ -1170,7 +1170,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
     {
         $$ = new Node("LocalVariableDeclarationStatement");
         $$->children.push_back($1);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
     }
     ;
 
@@ -1178,7 +1178,7 @@ LocalVariableDeclaration :
     k_final LocalVariableType VariableDeclaratorList
     {
         $$=new Node("LocalVariableDeclaration");
-        $$->children.push_back(new Node("final","Keyword"));
+        $$->children.push_back(new Node("final","Keyword", yylineno));
         $$->children.push_back($2);
         $$->children.push_back($3);
     }
@@ -1251,7 +1251,7 @@ StatementWithoutTrailingSubstatement :
 
 EmptyStatement:
 	s_semicolon
-    {$$ = new Node(";", "Separator");}
+    {$$ = new Node(";", "Separator", yylineno);}
 	;
 
 LabeledStatement:
@@ -1259,8 +1259,8 @@ LabeledStatement:
 	Identifier o_colon Statement
     {
         $$ = new Node("LabeledStatement");
-        $$->children.push_back(new Node($1, "Identifier"));
-        $$->children.push_back(new Node(":", "Operator"));
+        $$->children.push_back(new Node($1, "Identifier",yylineno));
+        $$->children.push_back(new Node(":", "Operator", yylineno));
         $$->children.push_back($3);
     }
 	;
@@ -1270,8 +1270,8 @@ LabeledStatementNoShortIf:
 	Identifier o_colon StatementNoShortIf
     {
         $$ = new Node("LabeledStatementNoShortIf");
-        $$->children.push_back(new Node($1, "Identifier"));
-        $$->children.push_back(new Node(":", "Operator"));
+        $$->children.push_back(new Node($1, "Identifier",yylineno));
+        $$->children.push_back(new Node(":", "Operator", yylineno));
         $$->children.push_back($3);
     }
 
@@ -1281,7 +1281,7 @@ ExpressionStatement:
     {
         $$ = new Node("ExpressionStatement");
         $$->children.push_back($1);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
     }
 	;
 
@@ -1307,10 +1307,10 @@ IfThenStatement :
     k_if s_open_paren Expression s_close_paren Statement 
     {
         $$ = new Node("IfThenStatement");
-        $$->children.push_back(new Node("if", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("if", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
     }
     ;
@@ -1320,12 +1320,12 @@ IfThenElseStatement :
     k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else Statement 
     {
         $$ = new Node("IfThenElseStatement");
-        $$->children.push_back(new Node("if", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("if", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node("else", "Keyword"));
+        $$->children.push_back(new Node("else", "Keyword", yylineno));
         $$->children.push_back($7);
     }
     ;
@@ -1334,12 +1334,12 @@ IfThenElseStatementNoShortIf :
     k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
     {
         $$ = new Node("IfThenElseStatementNoShortIf");
-        $$->children.push_back(new Node("if", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("if", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node("else", "Keyword"));
+        $$->children.push_back(new Node("else", "Keyword", yylineno));
         $$->children.push_back($7);
     }
     ;
@@ -1349,10 +1349,10 @@ WhileStatement :
     k_while s_open_paren Expression s_close_paren Statement 
     {
         $$ = new Node("WhileStatement");
-        $$->children.push_back(new Node("while", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("while", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
     }
     ;
@@ -1361,10 +1361,10 @@ WhileStatementNoShortIf :
     k_while s_open_paren Expression s_close_paren StatementNoShortIf 
     {
         $$ = new Node("WhileStatementNoShortIf");
-        $$->children.push_back(new Node("while", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("while", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
     }
     ;
@@ -1377,93 +1377,93 @@ BasicForStatement:
 	k_for s_open_paren s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($6);
     }
     | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($6);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($6);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($7);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
     }
     ;
@@ -1473,93 +1473,93 @@ BasicForStatementNoShortIf:
 	k_for s_open_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
      {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($6);
      }
     | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($6);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
     }
     | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($6);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(";", "Separator"));
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
     }
     | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->children.push_back(new Node("for", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($5);
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back($7);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
     }
     ;
@@ -1567,12 +1567,12 @@ BasicForStatementNoShortIf:
 EnhancedForStatementNoShortIf: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
 {
     $$ = new Node("EnhancedForStatementNoShortIf");
-    $$->children.push_back(new Node("for", "Keyword"));
-    $$->children.push_back(new Node("(", "Separator"));
+    $$->children.push_back(new Node("for", "Keyword", yylineno));
+    $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($3);
-    $$->children.push_back(new Node(":", "Separator"));
+    $$->children.push_back(new Node(":", "Separator", yylineno));
     $$->children.push_back($5);
-    $$->children.push_back(new Node(")", "Separator"));
+    $$->children.push_back(new Node(")", "Separator", yylineno));
     $$->children.push_back($7);
 }
 
@@ -1597,12 +1597,12 @@ ForUpdate :
 EnhancedForStatement: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
 {
     $$ = new Node("EnhancedForStatement");
-    $$->children.push_back(new Node("for", "Keyword"));
-    $$->children.push_back(new Node("(", "Separator"));
+    $$->children.push_back(new Node("for", "Keyword", yylineno));
+    $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($3);
-    $$->children.push_back(new Node(":", "Separator"));
+    $$->children.push_back(new Node(":", "Separator", yylineno));
     $$->children.push_back($5);
-    $$->children.push_back(new Node(")", "Separator"));
+    $$->children.push_back(new Node(")", "Separator", yylineno));
     $$->children.push_back($7);
 }
 
@@ -1611,61 +1611,61 @@ StatementExpressionList:StatementExpression {$$ = $1;}
                        {
                             $$ = new Node("StatementExpressionList");
                             $$->children.push_back($1);
-                            $$->children.push_back(new Node(",", "Separator"));
+                            $$->children.push_back(new Node(",", "Separator", yylineno));
                             $$->children.push_back($3);
                        }
 
 BreakStatement: k_break s_semicolon 
 { 
     $$ = new Node("BreakStatement");
-    $$->children.push_back(new Node("break", "Keyword"));
-    $$->children.push_back(new Node(";", "Separator"));}
+    $$->children.push_back(new Node("break", "Keyword", yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));}
  | k_break Identifier s_semicolon
  {
     $$ = new Node("BreakStatement");
-    $$->children.push_back(new Node("break", "Keyword"));
-    $$->children.push_back(new Node($3, "Identifier"));
-    $$->children.push_back(new Node(";", "Separator"));}
+    $$->children.push_back(new Node("break", "Keyword", yylineno));
+    $$->children.push_back(new Node($3, "Identifier",yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));}
 
 ContinueStatement: k_continue s_semicolon
     {
         $$ = new Node("ContinueStatement");
-        $$->children.push_back(new Node("continue", "Keyword"));
-        $$->children.push_back(new Node(";", "Separator"));
+        $$->children.push_back(new Node("continue", "Keyword", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
     }
  | k_continue Identifier s_semicolon 
  {
     $$ = new Node("ContinueStatement");
-    $$->children.push_back(new Node("continue", "Keyword"));
-    $$->children.push_back(new Node($2, "Identifier"));
-    $$->children.push_back(new Node(";", "Separator"));
+    $$->children.push_back(new Node("continue", "Keyword", yylineno));
+    $$->children.push_back(new Node($2, "Identifier",yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));
  }
 
 ReturnStatement: k_return s_semicolon 
 {
     $$ = new Node("ReturnStatement");
-    $$->children.push_back(new Node("return", "Keyword"));
-    $$->children.push_back(new Node(";", "Separator"));
+    $$->children.push_back(new Node("return", "Keyword", yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));
 }
 | k_return Expression s_semicolon 
 {
     $$ = new Node("ReturnStatement");
-    $$->children.push_back(new Node("return", "Keyword"));
+    $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back($2);
-    $$->children.push_back(new Node(";", "Separator"));
+    $$->children.push_back(new Node(";", "Separator", yylineno));
 }
 
 ThrowStatement: k_throw s_semicolon
 {
     $$ = new Node("ThrowStatement");
-    $$->children.push_back(new Node("throw", "Keyword"));
-    $$->children.push_back(new Node(";", "Separator"));}
+    $$->children.push_back(new Node("throw", "Keyword", yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));}
  | k_throw Expression s_semicolon 
  {
     $$ = new Node("ThrowStatement");
-    $$->children.push_back(new Node("throw", "Keyword"));
+    $$->children.push_back(new Node("throw", "Keyword", yylineno));
     $$->children.push_back($2);
-    $$->children.push_back(new Node(";", "Separator"));
+    $$->children.push_back(new Node(";", "Separator", yylineno));
  }
 
 SynchronizedStatement:
@@ -1673,31 +1673,31 @@ SynchronizedStatement:
 	k_synchronized s_open_paren Expression s_close_paren Block
     {
         $$ = new Node("SynchronizedStatement");
-        $$->children.push_back(new Node("synchronized", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("synchronized", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
     }
 
 TryStatement: k_try Block Catches
     {
     $$ = new Node("TryStatement");
-    $$->children.push_back(new Node("try", "Keyword"));
+    $$->children.push_back(new Node("try", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
     }
 	        | k_try Block Finally
             {
                 $$ = new Node("TryStatement");
-                $$->children.push_back(new Node("try", "Keyword"));
+                $$->children.push_back(new Node("try", "Keyword", yylineno));
                 $$->children.push_back($2);
                 $$->children.push_back($3);
             }
             | k_try Block Catches Finally
             {
                 $$ = new Node("TryStatement");
-                $$->children.push_back(new Node("try", "Keyword"));
+                $$->children.push_back(new Node("try", "Keyword", yylineno));
                 $$->children.push_back($2);
                 $$->children.push_back($3);
                 $$->children.push_back($4);}
@@ -1717,17 +1717,17 @@ Catches: CatchClause
 CatchClause: k_catch s_open_paren FormalParameter s_close_paren Block
     {
         $$ = new Node("CatchClause");
-        $$->children.push_back(new Node("catch", "Keyword"));
-        $$->children.push_back(new Node("(", "Separator"));
+        $$->children.push_back(new Node("catch", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
-        $$->children.push_back(new Node(")", "Separator"));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
     }
 
 Finally: k_finally Block
     {
         $$ = new Node("Finally");
-        $$->children.push_back(new Node("finally", "Keyword"));
+        $$->children.push_back(new Node("finally", "Keyword", yylineno));
         $$->children.push_back($2);
     }
 
@@ -1740,24 +1740,24 @@ Primary:
     ;
 
 PrimaryNoNewArray:
-    int_Literal {$$ = new Node($1,"Literal" , INT);}
-    | bin_Literal {$$ = new Node($1,"Literal" , BIN);} 
-    | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT);} 
-    | oct_Literal {$$ = new Node($1,"Literal", OCT);} 
-    | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT);} 
-    | string_Literal {$$ = new Node($1,"Literal", STRING);} 
-    | hex_Literal {$$ = new Node($1,"Literal", HEX);}
-    | k_this {$$ = new Node("this","Keyword");}
-    | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING);}
-    | char_Literal {$$ = new Node($1,"Literal", CHAR);}
+    int_Literal {$$ = new Node($1,"Literal", INT,yylineno);}
+    | bin_Literal {$$ = new Node($1,"Literal" , BIN, yylineno);} 
+    | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT ,yylineno);} 
+    | oct_Literal {$$ = new Node($1,"Literal", OCT, yylineno);} 
+    | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT, yylineno);} 
+    | string_Literal {$$ = new Node($1,"Literal", STRING, yylineno);} 
+    | hex_Literal {$$ = new Node($1,"Literal", HEX, yylineno);}
+    | k_this {$$ = new Node("this","Keyword", yylineno);}
+    | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING, yylineno);}
+    | char_Literal {$$ = new Node($1,"Literal", CHAR, yylineno);}
     | true_Literal {$$ = new Node("true","Keyword", BOOL);}
     | false_Literal {$$ = new Node("false","Keyword", BOOL);}
     | null_Literal {$$ = new Node("null","Keyword", _NULL);}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
-        $$->children.push_back(new Node("(","Separator"));
+        $$->children.push_back(new Node("(","Separator", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node(")","Separator"));
+        $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | ClassInstanceCreationExpression {$$ = $1;}
     | FieldAccess {$$ = $1;}
@@ -1768,17 +1768,17 @@ PrimaryNoNewArray:
 ClassInstanceCreationExpression:
     k_new ClassType s_open_paren s_close_paren
      { $$ = new Node("ClassInstanceCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
-       $$->children.push_back(new Node("(","Separator"));
-       $$->children.push_back(new Node(")","Separator"));}
+       $$->children.push_back(new Node("(","Separator", yylineno));
+       $$->children.push_back(new Node(")","Separator", yylineno));}
     | k_new ClassType s_open_paren ArgumentList s_close_paren
         { $$ = new Node("ClassInstanceCreationExpression");
-        $$->children.push_back(new Node("new","Keyword"));
+        $$->children.push_back(new Node("new","Keyword", yylineno));
         $$->children.push_back($2);
-        $$->children.push_back(new Node("(","Separator"));
+        $$->children.push_back(new Node("(","Separator", yylineno));
         $$->children.push_back($4);
-        $$->children.push_back(new Node(")","Separator"));}
+        $$->children.push_back(new Node(")","Separator", yylineno));}
     ;
 
 ArgumentList:
@@ -1787,42 +1787,42 @@ ArgumentList:
     | ArgumentList s_comma Expression
     {$$ = new Node("ArgumentList");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(",","Separator"));
+    $$->children.push_back(new Node(",","Separator", yylineno));
     $$->children.push_back($3);}
     ;
 
 ArrayCreationExpression:
     k_new PrimitiveType DimExprs 
      { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);}
     | k_new PrimitiveType Dims ArrayInitializer
         { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
        $$->children.push_back($4);}
     | k_new PrimitiveType DimExprs Dims
         { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
        $$->children.push_back($4);}
     | k_new Name DimExprs 
         { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);}
     | k_new Name DimExprs Dims
         { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
        $$->children.push_back($4);}
     | k_new Name Dims ArrayInitializer
         { $$ = new Node("ArrayCreationExpression");
-       $$->children.push_back(new Node("new","Keyword"));
+       $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
        $$->children.push_back($4);}
@@ -1841,83 +1841,83 @@ DimExprs:
 DimExpr:
     s_open_square_bracket Expression s_close_square_bracket
      {$$ = new Node("DimExpr");
-     $$->children.push_back(new Node("[","Separator"));
+     $$->children.push_back(new Node("[","Separator", yylineno));
      $$->children.push_back($2);
-     $$->children.push_back(new Node("]","Separator"));}
+     $$->children.push_back(new Node("]","Separator", yylineno));}
     ;
 
 
 Dims:
     s_open_square_bracket s_close_square_bracket
     {$$ = new Node("Dims");
-    $$->children.push_back(new Node("[","Separator"));
-    $$->children.push_back(new Node("]","Separator"));}
+    $$->children.push_back(new Node("[","Separator", yylineno));
+    $$->children.push_back(new Node("]","Separator", yylineno));}
     | Dims s_open_square_bracket s_close_square_bracket
     {$$ = new Node("Dims");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("[","Separator"));}
+    $$->children.push_back(new Node("[","Separator", yylineno));}
     ;
 
 FieldAccess:
     Primary s_dot Identifier
     {$$ = new Node("FieldAccess");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));}
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));}
     | k_super s_dot Identifier
     {$$ = new Node("FieldAccess");
-    $$->children.push_back(new Node("super","Keyword"));
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));}
+    $$->children.push_back(new Node("super","Keyword", yylineno));
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));}
     ;
 
 MethodInvocation:
     Name s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("(","Separator"));
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node("(","Separator", yylineno));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | Name s_open_paren ArgumentList s_close_paren
      {$$ = new Node("MethodInvocation");
      $$->children.push_back($1);
-     $$->children.push_back(new Node("(","Separator"));
+     $$->children.push_back(new Node("(","Separator", yylineno));
      $$->children.push_back($3);
-     $$->children.push_back(new Node(")","Separator"));
+     $$->children.push_back(new Node(")","Separator", yylineno));
      }
     | Primary s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));
-    $$->children.push_back(new Node("(","Separator"));
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));
+    $$->children.push_back(new Node("(","Separator", yylineno));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($5);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | k_super s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->children.push_back(new Node("super","Keyword"));
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));
-    $$->children.push_back(new Node("(","Separator"));
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node("super","Keyword", yylineno));
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));
+    $$->children.push_back(new Node("(","Separator", yylineno));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | k_super s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->children.push_back(new Node("super","Keyword"));
-    $$->children.push_back(new Node(".","Separator"));
-    $$->children.push_back(new Node($3,"Identifier"));
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node("super","Keyword", yylineno));
+    $$->children.push_back(new Node(".","Separator", yylineno));
+    $$->children.push_back(new Node($3,"Identifier",yylineno));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($5);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     }
     ;
 
@@ -1925,16 +1925,16 @@ ArrayAccess:
     Name s_open_square_bracket Expression s_close_square_bracket
     {$$ = new Node("ArrayAccess");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("[","Separator"));
+    $$->children.push_back(new Node("[","Separator", yylineno));
     $$->children.push_back($3);
-    $$->children.push_back(new Node("]","Separator"));
+    $$->children.push_back(new Node("]","Separator", yylineno));
     }
     | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
     {$$ = new Node("ArrayAccess");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("[","Separator"));
+    $$->children.push_back(new Node("[","Separator", yylineno));
     $$->children.push_back($3);
-    $$->children.push_back(new Node("]","Separator"));
+    $$->children.push_back(new Node("]","Separator", yylineno));
     }
     ;
 
@@ -1953,7 +1953,7 @@ PostIncrementExpression:
     PostFixExpression o_increment
     {$$ = new Node("PostIncrementExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("++","Separator"));}
+    $$->children.push_back(new Node("++","Separator", yylineno));}
     ;
 
 PostDecrementExpression:
@@ -1969,11 +1969,11 @@ UnaryExpression:
     {$$ = $1;}
     | o_add UnaryExpression
     {$$ = new Node("UnaryExpression");
-    $$->children.push_back(new Node("+","Separator"));
+    $$->children.push_back(new Node("+","Separator", yylineno));
     $$->children.push_back($2);}
     | o_subtract UnaryExpression
     {$$ = new Node("UnaryExpression");
-    $$->children.push_back(new Node("-","Separator"));
+    $$->children.push_back(new Node("-","Separator", yylineno));
     $$->children.push_back($2);}
     | UnaryExpressionNotPlusMinus
     {$$ = $1;}
@@ -1982,14 +1982,14 @@ UnaryExpression:
 PreIncrementExpression:
     o_increment UnaryExpression
     {$$ = new Node("PreIncrementExpression");
-    $$->children.push_back(new Node("++","Separator"));
+    $$->children.push_back(new Node("++","Separator", yylineno));
     $$->children.push_back($2);}
     ;
 
 PreDecrementExpression:
     o_decrement UnaryExpression
     {$$ = new Node("PreDecrementExpression");
-    $$->children.push_back(new Node("--","Separator"));
+    $$->children.push_back(new Node("--","Separator", yylineno));
     $$->children.push_back($2);}
     ;
 
@@ -1998,11 +1998,11 @@ UnaryExpressionNotPlusMinus:
    {$$ = $1;}
     | o_bitwise_complement UnaryExpression
     {$$ = new Node("UnaryExpressionNotPlusMinus");
-    $$->children.push_back(new Node("~","Separator"));
+    $$->children.push_back(new Node("~","Separator", yylineno));
     $$->children.push_back($2);}
     | o_logical_not UnaryExpression
     {$$ = new Node("UnaryExpressionNotPlusMinus");
-    $$->children.push_back(new Node("!","Separator"));
+    $$->children.push_back(new Node("!","Separator", yylineno));
     $$->children.push_back($2);}
     | CastExpression
     {$$ = $1;}
@@ -2011,35 +2011,35 @@ UnaryExpressionNotPlusMinus:
 CastExpression:
     s_open_paren PrimitiveType s_close_paren UnaryExpression
     {$$ = new Node("CastExpression");
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     $$->children.push_back($4);
     }
     | s_open_paren PrimitiveType Dims s_close_paren UnaryExpression
     {
     $$ = new Node("CastExpression");
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     $$->children.push_back($5);
     }
     | s_open_paren Expression s_close_paren UnaryExpressionNotPlusMinus
     {
     $$ = new Node("CastExpression");
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     $$->children.push_back($4);
     }
     | s_open_paren Name  Dims s_close_paren UnaryExpressionNotPlusMinus
     {
     $$ = new Node("CastExpression");
-    $$->children.push_back(new Node("(","Separator"));
+    $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
-    $$->children.push_back(new Node(")","Separator"));
+    $$->children.push_back(new Node(")","Separator", yylineno));
     $$->children.push_back($5);
     }
     ;
@@ -2053,21 +2053,21 @@ MultiplicativeExpression:
     {
     $$ = new Node("MultiplicativeExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("*","Separator"));
+    $$->children.push_back(new Node("*","Separator", yylineno));
     $$->children.push_back($3);
     }
     | MultiplicativeExpression o_divide UnaryExpression
     {
     $$ = new Node("MultiplicativeExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("/","Separator"));
+    $$->children.push_back(new Node("/","Separator", yylineno));
     $$->children.push_back($3);
     }
     | MultiplicativeExpression o_modulo UnaryExpression
     {
     $$ = new Node("MultiplicativeExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("%","Separator"));
+    $$->children.push_back(new Node("%","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2081,14 +2081,14 @@ AdditiveExpression:
     {
     $$ = new Node("AdditiveExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("+","Separator"));
+    $$->children.push_back(new Node("+","Separator", yylineno));
     $$->children.push_back($3);
     }
     | AdditiveExpression o_subtract MultiplicativeExpression
     {
     $$ = new Node("AdditiveExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("-","Separator"));
+    $$->children.push_back(new Node("-","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2102,21 +2102,21 @@ ShiftExpression:
     {
     $$ = new Node("ShiftExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("<<","Separator"));
+    $$->children.push_back(new Node("<<","Separator", yylineno));
     $$->children.push_back($3);
     }
     | ShiftExpression o_right_shift AdditiveExpression
     {
     $$ = new Node("ShiftExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(">>","Separator"));
+    $$->children.push_back(new Node(">>","Separator", yylineno));
     $$->children.push_back($3);
     }
     | ShiftExpression o_unsigned_right_shift AdditiveExpression
     {
     $$ = new Node("ShiftExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(">>>","Separator"));
+    $$->children.push_back(new Node(">>>","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2130,35 +2130,35 @@ RelationalExpression:
     {
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("<","Separator"));
+    $$->children.push_back(new Node("<","Separator", yylineno));
     $$->children.push_back($3);
     }
     | RelationalExpression o_greater_than ShiftExpression
     {
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(">","Separator"));
+    $$->children.push_back(new Node(">","Separator", yylineno));
     $$->children.push_back($3);
     }
     | RelationalExpression o_less_than_or_equal ShiftExpression
     {
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("<=","Separator"));
+    $$->children.push_back(new Node("<=","Separator", yylineno));
     $$->children.push_back($3);
     }
     | RelationalExpression o_greater_than_or_equal ShiftExpression
     {
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node(">=","Separator"));
+    $$->children.push_back(new Node(">=","Separator", yylineno));
     $$->children.push_back($3);
     }
     | RelationalExpression k_instanceof ReferenceType
     {
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("instanceof","Separator"));
+    $$->children.push_back(new Node("instanceof","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2172,14 +2172,14 @@ EqualityExpression:
     {
     $$ = new Node("EqualityExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("==","Separator"));
+    $$->children.push_back(new Node("==","Separator", yylineno));
     $$->children.push_back($3);
     }
     | EqualityExpression o_not_equals RelationalExpression
     {
     $$ = new Node("EqualityExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("!=","Separator"));
+    $$->children.push_back(new Node("!=","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2193,7 +2193,7 @@ AndExpression:
     {
     $$ = new Node("AndExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("&","Separator"));
+    $$->children.push_back(new Node("&","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2207,7 +2207,7 @@ ExclusiveOrExpression:
     {
     $$ = new Node("ExclusiveOrExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("^","Separator"));
+    $$->children.push_back(new Node("^","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2221,7 +2221,7 @@ InclusiveOrExpression:
     {
     $$ = new Node("InclusiveOrExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("|","Separator"));
+    $$->children.push_back(new Node("|","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2235,7 +2235,7 @@ ConditionalAndExpression:
     {
     $$ = new Node("ConditionalAndExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("&&","Separator"));
+    $$->children.push_back(new Node("&&","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2249,7 +2249,7 @@ ConditionalOrExpression:
     {
     $$ = new Node("ConditionalOrExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("||","Separator"));
+    $$->children.push_back(new Node("||","Separator", yylineno));
     $$->children.push_back($3);
     }
     ;
@@ -2263,9 +2263,9 @@ ConditionalExpression:
     {
     $$ = new Node("ConditionalExpression");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("?","Separator"));
+    $$->children.push_back(new Node("?","Separator", yylineno));
     $$->children.push_back($3);
-    $$->children.push_back(new Node(":","Separator"));
+    $$->children.push_back(new Node(":","Separator", yylineno));
     $$->children.push_back($5);
     }
     ;
@@ -2309,51 +2309,51 @@ LeftHandSide:
 AssignmentOperator:
     o_assign
     {
-    $$ = new Node("=","Separator");
+    $$ = new Node("=","Separator", yylineno);
     }
     | o_add_assign
     {
-    $$ = new Node("+=","Separator");
+    $$ = new Node("+=","Separator", yylineno);
     }
     | o_subtract_assign
     {
-    $$ = new Node("-=","Separator");
+    $$ = new Node("-=","Separator", yylineno);
     }
     | o_multiply_assign
     {
-    $$ = new Node("*=","Separator");
+    $$ = new Node("*=","Separator", yylineno);
     }
     | o_divide_assign
     {
-    $$ = new Node("/=","Separator");
+    $$ = new Node("/=","Separator", yylineno);
     }
     | o_modulo_assign
     {
-    $$ = new Node("%=","Separator");
+    $$ = new Node("%=","Separator", yylineno);
     }
     | o_left_shift_assign
     {
-    $$ = new Node("<<=","Separator");
+    $$ = new Node("<<=","Separator", yylineno);
     }
     | o_right_shift_assign
     {
-    $$ = new Node(">>=","Separator");
+    $$ = new Node(">>=","Separator", yylineno);
     }
     | o_unsigned_right_shift_assign
     {
-    $$ = new Node(">>>=","Separator");
+    $$ = new Node(">>>=","Separator", yylineno);
     }
     | o_bitwise_and_assign
     {
-    $$ = new Node("&=","Separator");
+    $$ = new Node("&=","Separator", yylineno);
     }
     | o_bitwise_or_assign
     {
-    $$ = new Node("|=","Separator");
+    $$ = new Node("|=","Separator", yylineno);
     }
     | o_bitwise_xor_assign
     {
-    $$ = new Node("^=","Separator");
+    $$ = new Node("^=","Separator", yylineno);
     }
     ;
 
@@ -2399,11 +2399,13 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
             return false;
     }
     if(node->token == "Identifier"){
-        if(symTables[currentSymTableId].lookup(node->id)){
-            return false;
+        int t1 = symTables[currentSymTableId].lookup(node->id);
+        if(t1){
+            cout<<"Redeclaration of symbol "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
+            exit(0);
         }
         else{
-            symTables[currentSymTableId].insertSymEntry(node->id,t);
+            symTables[currentSymTableId].insertSymEntry(node->id,t,node->lineno);
             return true;
         }
     }
@@ -2417,13 +2419,12 @@ void LocalVariableDeclaration(Node* node){
     TYPE t = UNKNOWN;
     Node*temp = node;
     while(temp->children.size()){
-        if(temp->id == "final")
+        if(temp->children[0]->id == "final")
             temp = temp->children[1];
         else    
             temp = temp->children[0];
     }
     t = temp->literal_type;
-
 
     check_semantic_LocalVariableDeclaration(node->children[node->children.size()-1], t);
 }
@@ -2435,26 +2436,23 @@ void symTab_csv(symtab* a){
     fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
     for(auto i = a->entries.begin(); i != a->entries.end(); i++){
         for(auto j = i->second.begin(); j != i->second.end(); j++)
-            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<1<<endl;
+            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->lineno<<endl;
     }
     fout.close();
-
 }
 
 void traverse_semantics(Node*node, int &counter){
 
     if(node->id == "LocalVariableDeclaration"){
         LocalVariableDeclaration(node);
-
         return;
     }
-
 
     node->count = counter++;
     symtab *a = NULL;
     if(node->isBlock){
         a = new symtab(node->count, currentSymTableId);
-        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID"<<node->id<<" "<<node->isBlock<<endl;
+        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID "<<node->id<<" "<<node->isBlock<<endl;
         currentSymTableId = node->count;
         symTables[currentSymTableId] = *a;
     }
