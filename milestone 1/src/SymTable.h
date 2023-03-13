@@ -65,8 +65,8 @@ public:
         return 0;
     }
 
-    vector<struct symEntry>* getSymEntry(const char*lexeme){
-        string lex(lexeme);
+    vector<struct symEntry>* getSymEntry(string lex){
+
         if(this->entries.find(lex)!=this->entries.end()){
             return &this->entries[lex];
         }
