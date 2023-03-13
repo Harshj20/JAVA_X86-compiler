@@ -22,15 +22,18 @@ enum TYPE{
     TYPEDEF,
     UNKNOWN,
     VAR,
-    _NULL, 
+    _NULL,
+    BYTE,
+    SHORT,
     LONG,
-    DOUBLE
+    DOUBLE,
 };
-
 struct symEntry{
     TYPE type;
-    symEntry(TYPE type){
+    int lineno;
+    symEntry(TYPE type, int lineno){
         this->type = type;
+        this->lineno = lineno;
     }
 };
 
@@ -43,6 +46,7 @@ public:
     symtab(){
         this->ID = -1;
         this->parentID = -1;
+
     }
 
     symtab(int id, int parentID) {
@@ -50,15 +54,15 @@ public:
         this->parentID = parentID; 
     }
 
-    void insertSymEntry(string lex, TYPE t){
-        this->entries[lex].push_back(*(new symEntry(t))); 
+    void insertSymEntry(string lex, TYPE t, int line){
+        this->entries[lex].push_back(*(new symEntry(t,line))); 
     }
 
-    bool lookup(string lex){
+    int lookup(string lex){
         if(this->entries.find(lex)!=this->entries.end()){
-            return true;
+            return this->entries[lex][0].lineno;
         }
-        return false;
+        return 0;
     }
 
     vector<struct symEntry>* getSymEntry(const char*lexeme){
