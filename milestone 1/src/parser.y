@@ -2389,9 +2389,11 @@ void print_dot(const char* filename) {
 bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
 
     if(node->id == "VariableDeclaratorList"){
+        cout<<"Entering VariableDeclaratorList"<<endl;
         return check_semantic_LocalVariableDeclaration(node->children[0], t) && check_semantic_LocalVariableDeclaration(node->children[2], t);
     }
     if(node->id == "VariableDeclarator" || node->id == "Assignment"){
+        cout<<"Entering VariableDeclarator or Assignment"<<endl;
         if(check_semantic_LocalVariableDeclaration(node->children[2], t)){
             return check_semantic_LocalVariableDeclaration(node->children[0], t);
         }
@@ -2399,6 +2401,7 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
             return false;
     }
     if(node->token == "Identifier"){
+        cout<<"Entering Identifier"<<endl;
         int t1 = symTables[currentSymTableId].lookup(node->id);
         if(t1){
             cout<<"Redeclaration of symbol "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
@@ -2409,13 +2412,15 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
             return true;
         }
     }
-    if(node->token == "Literal")
+    if(node->token == "Literal"){
+        cout<<"Entering Literal"<<endl;
         return node->literal_type == t;
+    }
     return true;
 }
 
 void LocalVariableDeclaration(Node* node){
-    
+    cout<<"entering LocalVariableDeclaration"<<endl;
     TYPE t = UNKNOWN;
     Node*temp = node;
     while(temp->children.size()){
@@ -2441,10 +2446,29 @@ void symTab_csv(symtab* a){
     fout.close();
 }
 
+void FieldDeclaration(Node* node){
+    cout<<"Entering FieldDeclaration"<<endl;
+    TYPE t = UNKNOWN;
+    Node*temp = node;
+    while(temp->children.size()){
+        if(temp->children.size() == 4)
+            temp = temp->children[1];
+        else    
+            temp = temp->children[0];
+    }
+    t = temp->literal_type;
+    cout<<enum_types[t]<<endl;
+    check_semantic_LocalVariableDeclaration(node->children[node->children.size()-2], t);
+}
+
 void traverse_semantics(Node*node, int &counter){
 
     if(node->id == "LocalVariableDeclaration"){
         LocalVariableDeclaration(node);
+        return;
+    }
+    if(node->id == "FieldDeclaration"){
+        FieldDeclaration(node);
         return;
     }
 

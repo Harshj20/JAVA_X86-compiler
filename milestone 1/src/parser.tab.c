@@ -2646,7 +2646,7 @@ yyreduce:
 #line 58 "parser.y"
     {   
         root=new Node("Program");
-        root->children.push_back(new Node("EOF","EOF"));
+        root->children.push_back(new Node("EOF","EOF",-1));
     }
 #line 2652 "parser.tab.c"
     break;
@@ -2657,7 +2657,7 @@ yyreduce:
         root=new Node("Program");
         root->isBlock=true; 
         root->children.push_back((yyvsp[0].node));
-        root->children.push_back(new Node("EOF","EOF"));
+        root->children.push_back(new Node("EOF","EOF",-1));
     }
 #line 2663 "parser.tab.c"
     break;
@@ -2689,7 +2689,7 @@ yyreduce:
   case 7:
 #line 87 "parser.y"
              {
-                (yyval.node) = new Node("boolean","Keyword");
+                (yyval.node) = new Node("boolean","Keyword",yylineno);
              }
 #line 2695 "parser.tab.c"
     break;
@@ -2713,7 +2713,7 @@ yyreduce:
   case 10:
 #line 101 "parser.y"
               {
-                (yyval.node) = new Node("byte","Keyword", INT);
+                (yyval.node) = new Node("byte","Keyword", INT, yylineno);
               }
 #line 2719 "parser.tab.c"
     break;
@@ -2721,7 +2721,7 @@ yyreduce:
   case 11:
 #line 105 "parser.y"
              {
-                (yyval.node) = new Node("short","Keyword", INT);
+                (yyval.node) = new Node("short","Keyword", INT, yylineno);
              }
 #line 2727 "parser.tab.c"
     break;
@@ -2729,7 +2729,7 @@ yyreduce:
   case 12:
 #line 109 "parser.y"
              {
-                (yyval.node) = new Node("int","Keyword", INT);
+                (yyval.node) = new Node("int","Keyword", INT, yylineno);
              }
 #line 2735 "parser.tab.c"
     break;
@@ -2737,7 +2737,7 @@ yyreduce:
   case 13:
 #line 113 "parser.y"
              {
-                (yyval.node) = new Node("long","Keyword", LONG);
+                (yyval.node) = new Node("long","Keyword", LONG, yylineno);
              }
 #line 2743 "parser.tab.c"
     break;
@@ -2753,7 +2753,7 @@ yyreduce:
   case 15:
 #line 122 "parser.y"
                    {
-                        (yyval.node) = new Node("float","Keyword", FLOAT);
+                        (yyval.node) = new Node("float","Keyword", FLOAT, yylineno);
                    }
 #line 2759 "parser.tab.c"
     break;
@@ -2761,7 +2761,7 @@ yyreduce:
   case 16:
 #line 126 "parser.y"
                    {
-                        (yyval.node) = new Node("double","Keyword", DOUBLE);
+                        (yyval.node) = new Node("double","Keyword", DOUBLE, yylineno);
                    }
 #line 2767 "parser.tab.c"
     break;
@@ -2811,8 +2811,8 @@ yyreduce:
                 {
                     (yyval.node)=new Node("ArrayType"); 
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node("[","Separator"));
-                    (yyval.node)->children.push_back(new Node("]","Separator"));
+                    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
                 }
 #line 2818 "parser.tab.c"
     break;
@@ -2822,8 +2822,8 @@ yyreduce:
                 {
                     (yyval.node)=new Node("ArrayType"); 
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node("[","Separator"));
-                    (yyval.node)->children.push_back(new Node("]","Separator"));
+                    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
                 }
 #line 2829 "parser.tab.c"
     break;
@@ -2833,8 +2833,8 @@ yyreduce:
                 {
                     (yyval.node)=new Node("ArrayType"); 
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node("[","Separator"));
-                    (yyval.node)->children.push_back(new Node("]","Separator"));
+                    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
                 }
 #line 2840 "parser.tab.c"
     break;
@@ -2858,7 +2858,7 @@ yyreduce:
   case 27:
 #line 186 "parser.y"
             {
-                (yyval.node) = new Node((yyvsp[0].str),"Identifier");
+                (yyval.node) = new Node((yyvsp[0].str),"Identifier",yylineno);
             }
 #line 2864 "parser.tab.c"
     break;
@@ -2868,8 +2868,8 @@ yyreduce:
                 {
                     (yyval.node)=new Node("QualifiedName"); 
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node(".","Separator"));
-                    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier",yylineno));
                 }
 #line 2875 "parser.tab.c"
     break;
@@ -2979,9 +2979,9 @@ yyreduce:
 #line 262 "parser.y"
                     {
                         (yyval.node)=new Node("PackageDeclaration"); 
-                        (yyval.node)->children.push_back(new Node("package","Keyword"));
+                        (yyval.node)->children.push_back(new Node("package","Keyword", yylineno));
                         (yyval.node)->children.push_back((yyvsp[-1].node));
-                        (yyval.node)->children.push_back(new Node(";","Separator"));
+                        (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                     }
 #line 2987 "parser.tab.c"
     break;
@@ -3006,9 +3006,9 @@ yyreduce:
 #line 279 "parser.y"
                              {
                                 (yyval.node)=new Node("SingleImportTypeDeclaration"); 
-                                (yyval.node)->children.push_back(new Node("import","Keyword"));
+                                (yyval.node)->children.push_back(new Node("import","Keyword", yylineno));
                                 (yyval.node)->children.push_back((yyvsp[-1].node));
-                                (yyval.node)->children.push_back(new Node(";","Separator"));
+                                (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                              }
 #line 3014 "parser.tab.c"
     break;
@@ -3017,11 +3017,11 @@ yyreduce:
 #line 288 "parser.y"
                                {
                                 (yyval.node)=new Node("PackageDeclaration"); 
-                                (yyval.node)->children.push_back(new Node("import","Keyword"));
+                                (yyval.node)->children.push_back(new Node("import","Keyword", yylineno));
                                 (yyval.node)->children.push_back((yyvsp[-3].node));
-                                (yyval.node)->children.push_back(new Node(".","Separator"));
-                                (yyval.node)->children.push_back(new Node("*","Operator"));
-                                (yyval.node)->children.push_back(new Node(";","Separator"));
+                                (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+                                (yyval.node)->children.push_back(new Node("*","Operator", yylineno));
+                                (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                                }
 #line 3027 "parser.tab.c"
     break;
@@ -3045,7 +3045,7 @@ yyreduce:
   case 47:
 #line 306 "parser.y"
                 {
-                (yyval.node) = new Node(";","Separator");
+                (yyval.node) = new Node(";","Separator", yylineno);
                 }
 #line 3051 "parser.tab.c"
     break;
@@ -3071,7 +3071,7 @@ yyreduce:
   case 50:
 #line 323 "parser.y"
           {
-            (yyval.node) = new Node("public","Keyword");
+            (yyval.node) = new Node("public","Keyword", yylineno);
           }
 #line 3077 "parser.tab.c"
     break;
@@ -3079,7 +3079,7 @@ yyreduce:
   case 51:
 #line 327 "parser.y"
           {
-            (yyval.node) = new Node("protected","Keyword");
+            (yyval.node) = new Node("protected","Keyword", yylineno);
           }
 #line 3085 "parser.tab.c"
     break;
@@ -3087,7 +3087,7 @@ yyreduce:
   case 52:
 #line 331 "parser.y"
           {
-            (yyval.node) = new Node("private","Keyword");
+            (yyval.node) = new Node("private","Keyword", yylineno);
           }
 #line 3093 "parser.tab.c"
     break;
@@ -3095,7 +3095,7 @@ yyreduce:
   case 53:
 #line 335 "parser.y"
           {
-            (yyval.node) = new Node("static","Keyword");
+            (yyval.node) = new Node("static","Keyword", yylineno);
           }
 #line 3101 "parser.tab.c"
     break;
@@ -3103,7 +3103,7 @@ yyreduce:
   case 54:
 #line 339 "parser.y"
           {
-            (yyval.node) = new Node("abstract","Keyword");
+            (yyval.node) = new Node("abstract","Keyword", yylineno);
           }
 #line 3109 "parser.tab.c"
     break;
@@ -3111,7 +3111,7 @@ yyreduce:
   case 55:
 #line 343 "parser.y"
           {
-            (yyval.node) = new Node("final","Keyword");
+            (yyval.node) = new Node("final","Keyword", yylineno);
           }
 #line 3117 "parser.tab.c"
     break;
@@ -3119,7 +3119,7 @@ yyreduce:
   case 56:
 #line 347 "parser.y"
           {
-            (yyval.node) = new Node("native","Keyword");
+            (yyval.node) = new Node("native","Keyword", yylineno);
           }
 #line 3125 "parser.tab.c"
     break;
@@ -3127,7 +3127,7 @@ yyreduce:
   case 57:
 #line 351 "parser.y"
           {
-            (yyval.node) = new Node("synchronized","Keyword");
+            (yyval.node) = new Node("synchronized","Keyword", yylineno);
           }
 #line 3133 "parser.tab.c"
     break;
@@ -3135,7 +3135,7 @@ yyreduce:
   case 58:
 #line 355 "parser.y"
           {
-            (yyval.node) = new Node("transient","Keyword");
+            (yyval.node) = new Node("transient","Keyword", yylineno);
           }
 #line 3141 "parser.tab.c"
     break;
@@ -3143,7 +3143,7 @@ yyreduce:
   case 59:
 #line 359 "parser.y"
           {
-            (yyval.node) = new Node("volatile","Keyword");
+            (yyval.node) = new Node("volatile","Keyword", yylineno);
           }
 #line 3149 "parser.tab.c"
     break;
@@ -3169,8 +3169,8 @@ yyreduce:
     {   
         (yyval.node)=new Node("NormalClassDeclaration"); 
         (yyval.node)->children.push_back((yyvsp[-5].node));
-        (yyval.node)->children.push_back(new Node("class","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
@@ -3183,8 +3183,8 @@ yyreduce:
       {   
         (yyval.node)=new Node("NormalClassDeclaration"); 
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node("class","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
       }
@@ -3196,8 +3196,8 @@ yyreduce:
       {   
         (yyval.node)=new Node("NormalClassDeclaration"); 
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node("class","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
       }
@@ -3209,8 +3209,8 @@ yyreduce:
       {   
         (yyval.node)=new Node("NormalClassDeclaration"); 
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node("class","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
       }
 #line 3217 "parser.tab.c"
@@ -3220,8 +3220,8 @@ yyreduce:
 #line 410 "parser.y"
       {   
         (yyval.node)=new Node("NormalClassDeclaration"); 
-        (yyval.node)->children.push_back(new Node("class","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
@@ -3233,8 +3233,8 @@ yyreduce:
 #line 419 "parser.y"
         {   
             (yyval.node)=new Node("NormalClassDeclaration"); 
-            (yyval.node)->children.push_back(new Node("class","Keyword"));
-            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+            (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
@@ -3245,8 +3245,8 @@ yyreduce:
 #line 427 "parser.y"
         {   
             (yyval.node)=new Node("NormalClassDeclaration"); 
-            (yyval.node)->children.push_back(new Node("class","Keyword"));
-            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+            (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
@@ -3257,8 +3257,8 @@ yyreduce:
 #line 435 "parser.y"
        {
             (yyval.node)=new Node("NormalClassDeclaration"); 
-            (yyval.node)->children.push_back(new Node("class","Keyword"));
-            (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+            (yyval.node)->children.push_back(new Node("class","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
             (yyval.node)->children.push_back((yyvsp[0].node));
        }
 #line 3265 "parser.tab.c"
@@ -3268,7 +3268,7 @@ yyreduce:
 #line 445 "parser.y"
         {
             (yyval.node)=new Node("Super");
-            (yyval.node)->children.push_back(new Node("extends","Keyword"));
+            (yyval.node)->children.push_back(new Node("extends","Keyword", yylineno));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
 #line 3275 "parser.tab.c"
@@ -3278,7 +3278,7 @@ yyreduce:
 #line 452 "parser.y"
             {
                 (yyval.node)=new Node("Interfaces");
-                (yyval.node)->children.push_back(new Node("implements","Keyword"));
+                (yyval.node)->children.push_back(new Node("implements","Keyword", yylineno));
                 (yyval.node)->children.push_back((yyvsp[0].node));
             }
 #line 3285 "parser.tab.c"
@@ -3297,7 +3297,7 @@ yyreduce:
                     {
                         (yyval.node)=new Node("InterfaceTypeList");
                         (yyval.node)->children.push_back((yyvsp[-2].node));
-                        (yyval.node)->children.push_back(new Node(",","Separator"));
+                        (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                         (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 3304 "parser.tab.c"
@@ -3308,9 +3308,9 @@ yyreduce:
 {
     (yyval.node)=new Node("ClassBody");
     (yyval.node)->isBlock=true;
-    (yyval.node)->children.push_back(new Node("{","Separator"));
+    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node("}","Separator"));
+    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
 }
 #line 3316 "parser.tab.c"
     break;
@@ -3319,8 +3319,8 @@ yyreduce:
 #line 479 "parser.y"
 {
     (yyval.node)=new Node("ClassBody");
-    (yyval.node)->children.push_back(new Node("{","Separator"));
-    (yyval.node)->children.push_back(new Node("}","Separator"));
+    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
 }
 #line 3326 "parser.tab.c"
     break;
@@ -3390,7 +3390,7 @@ yyreduce:
                             (yyval.node)->children.push_back((yyvsp[-3].node));
                             (yyval.node)->children.push_back((yyvsp[-2].node));
                             (yyval.node)->children.push_back((yyvsp[-1].node));
-                            (yyval.node)->children.push_back(new Node(";","Separator"));
+                            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                         }
 #line 3396 "parser.tab.c"
     break;
@@ -3401,7 +3401,7 @@ yyreduce:
                             (yyval.node)=new Node("FieldDeclaration");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
                             (yyval.node)->children.push_back((yyvsp[-1].node));
-                            (yyval.node)->children.push_back(new Node(";","Separator"));
+                            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                         }
 #line 3407 "parser.tab.c"
     break;
@@ -3419,7 +3419,7 @@ yyreduce:
                         {
                             (yyval.node)=new Node("VariableDeclaratorList");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node(",","Separator"));
+                            (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3426 "parser.tab.c"
@@ -3438,7 +3438,7 @@ yyreduce:
                         {
                             (yyval.node)=new Node("VariableDeclarator");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node("=","Operator"));
+                            (yyval.node)->children.push_back(new Node("=","Operator", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3445 "parser.tab.c"
@@ -3447,7 +3447,7 @@ yyreduce:
   case 89:
 #line 559 "parser.y"
                       {
-                        (yyval.node) = new Node((yyvsp[0].str),"Identifier");
+                        (yyval.node) = new Node((yyvsp[0].str),"Identifier",yylineno);
                       }
 #line 3453 "parser.tab.c"
     break;
@@ -3457,8 +3457,8 @@ yyreduce:
                         {
                             (yyval.node)=new Node("VariableDeclaratorId");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node("[","Separator"));
-                            (yyval.node)->children.push_back(new Node("]","Separator"));
+                            (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+                            (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
                         }
 #line 3464 "parser.tab.c"
     break;
@@ -3538,7 +3538,7 @@ yyreduce:
                                                     {   
             (yyval.node)=new Node("MethodHeader"); 
             (yyval.node)->children.push_back((yyvsp[-3].node));
-            (yyval.node)->children.push_back(new Node("void","Keyword"));
+            (yyval.node)->children.push_back(new Node("void","Keyword", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
@@ -3550,7 +3550,7 @@ yyreduce:
                                         {   
             (yyval.node)=new Node("MethodHeader"); 
             (yyval.node)->children.push_back((yyvsp[-2].node));
-            (yyval.node)->children.push_back(new Node("void","Keyword"));
+            (yyval.node)->children.push_back(new Node("void","Keyword", yylineno));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
 #line 3557 "parser.tab.c"
@@ -3560,7 +3560,7 @@ yyreduce:
 #line 624 "parser.y"
                                       {   
             (yyval.node)=new Node("MethodHeader"); 
-            (yyval.node)->children.push_back(new Node("void","Keyword"));
+            (yyval.node)->children.push_back(new Node("void","Keyword", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
             (yyval.node)->children.push_back((yyvsp[0].node));
         }
@@ -3571,7 +3571,7 @@ yyreduce:
 #line 630 "parser.y"
                                {   
             (yyval.node)=new Node("MethodHeader"); 
-            (yyval.node)->children.push_back(new Node("void","Keyword"));
+            (yyval.node)->children.push_back(new Node("void","Keyword", yylineno));
             (yyval.node)->children.push_back((yyvsp[0].node));
             }
 #line 3578 "parser.tab.c"
@@ -3581,10 +3581,10 @@ yyreduce:
 #line 637 "parser.y"
                                                                   {   
             (yyval.node)=new Node("MethodDeclarator"); 
-            (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
+            (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
         }
 #line 3590 "parser.tab.c"
     break;
@@ -3593,9 +3593,9 @@ yyreduce:
 #line 644 "parser.y"
                                             {   
             (yyval.node)=new Node("MethodDeclarator"); 
-            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
+            (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
         }
 #line 3601 "parser.tab.c"
     break;
@@ -3605,8 +3605,8 @@ yyreduce:
                                                                         {   
             (yyval.node)=new Node("MethodDeclarator"); 
             (yyval.node)->children.push_back((yyvsp[-2].node));
-            (yyval.node)->children.push_back(new Node("[","Separator"));
-            (yyval.node)->children.push_back(new Node("]","Separator"));
+            (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
             }
 #line 3612 "parser.tab.c"
     break;
@@ -3624,7 +3624,7 @@ yyreduce:
                         {
                             (yyval.node)=new Node("FormalParameterList");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node(",","Separator"));
+                            (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3631 "parser.tab.c"
@@ -3644,7 +3644,7 @@ yyreduce:
 #line 676 "parser.y"
                         {
                             (yyval.node)=new Node("FormalParameter");
-                            (yyval.node)->children.push_back(new Node("final","Keyword"));
+                            (yyval.node)->children.push_back(new Node("final","Keyword", yylineno));
                             (yyval.node)->children.push_back((yyvsp[-1].node));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
@@ -3655,7 +3655,7 @@ yyreduce:
 #line 684 "parser.y"
                         {
                             (yyval.node)=new Node("Throws");
-                            (yyval.node)->children.push_back(new Node("throws","Keyword"));
+                            (yyval.node)->children.push_back(new Node("throws","Keyword", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3662 "parser.tab.c"
@@ -3674,7 +3674,7 @@ yyreduce:
                         {
                             (yyval.node)=new Node("ClassTypeList");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node(",","Separator"));
+                            (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3681 "parser.tab.c"
@@ -3691,7 +3691,7 @@ yyreduce:
   case 113:
 #line 708 "parser.y"
     {
-        (yyval.node) = new Node(";","Separator");
+        (yyval.node) = new Node(";","Separator", yylineno);
     }
 #line 3697 "parser.tab.c"
     break;
@@ -3700,7 +3700,7 @@ yyreduce:
 #line 713 "parser.y"
                         {
                             (yyval.node)=new Node("StaticInitializer");
-                            (yyval.node)->children.push_back(new Node("static","Keyword"));
+                            (yyval.node)->children.push_back(new Node("static","Keyword", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                         }
 #line 3707 "parser.tab.c"
@@ -3755,9 +3755,9 @@ yyreduce:
             {  
             (yyval.node)=new Node("ConstructorDeclarator"); 
             (yyval.node)->children.push_back((yyvsp[-3].node));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
             }
 #line 3763 "parser.tab.c"
     break;
@@ -3767,8 +3767,8 @@ yyreduce:
                                                {  
             (yyval.node)=new Node("ConstructorDeclarator"); 
             (yyval.node)->children.push_back((yyvsp[-2].node));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
             }
 #line 3774 "parser.tab.c"
     break;
@@ -3777,8 +3777,8 @@ yyreduce:
 #line 767 "parser.y"
                                                    {  
             (yyval.node)=new Node("ConstructorBody"); 
-            (yyval.node)->children.push_back(new Node("{","Separator"));
-            (yyval.node)->children.push_back(new Node("}","Separator"));
+            (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
             }
 #line 3784 "parser.tab.c"
     break;
@@ -3788,9 +3788,9 @@ yyreduce:
                                                                      {  
             (yyval.node)=new Node("ConstructorBody"); 
             (yyval.node)->isBlock = true;
-            (yyval.node)->children.push_back(new Node("{","Separator"));
+            (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
-            (yyval.node)->children.push_back(new Node("}","Separator"));
+            (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
             }
 #line 3796 "parser.tab.c"
     break;
@@ -3799,9 +3799,9 @@ yyreduce:
 #line 779 "parser.y"
                                                                                    {  
             (yyval.node)=new Node("ConstructorBody"); 
-            (yyval.node)->children.push_back(new Node("{","Separator"));
+            (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-1].node));
-            (yyval.node)->children.push_back(new Node("}","Separator"));
+            (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
             }
 #line 3807 "parser.tab.c"
     break;
@@ -3811,10 +3811,10 @@ yyreduce:
                                                                                                    {  
             (yyval.node)=new Node("ConstructorBody"); 
             (yyval.node)->isBlock = true;
-            (yyval.node)->children.push_back(new Node("{","Separator"));
+            (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-2].node));
             (yyval.node)->children.push_back((yyvsp[-1].node));
-            (yyval.node)->children.push_back(new Node("}","Separator"));
+            (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
             }
 #line 3820 "parser.tab.c"
     break;
@@ -3823,11 +3823,11 @@ yyreduce:
 #line 796 "parser.y"
                                                                    {  
             (yyval.node)=new Node("ExplicitConstructorInvocation"); 
-            (yyval.node)->children.push_back(new Node("this","Keyword"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
+            (yyval.node)->children.push_back(new Node("this","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-2].node));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
-            (yyval.node)->children.push_back(new Node(";","Separator"));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
             }
 #line 3833 "parser.tab.c"
     break;
@@ -3836,10 +3836,10 @@ yyreduce:
 #line 804 "parser.y"
                                                         {  
             (yyval.node)=new Node("ExplicitConstructorInvocation"); 
-            (yyval.node)->children.push_back(new Node("this","Keyword"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
-            (yyval.node)->children.push_back(new Node(";","Separator"));
+            (yyval.node)->children.push_back(new Node("this","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
             }
 #line 3845 "parser.tab.c"
     break;
@@ -3848,11 +3848,11 @@ yyreduce:
 #line 811 "parser.y"
                                                                       {  
             (yyval.node)=new Node("ExplicitConstructorInvocation"); 
-            (yyval.node)->children.push_back(new Node("super","Keyword"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
+            (yyval.node)->children.push_back(new Node("super","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
             (yyval.node)->children.push_back((yyvsp[-2].node));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
-            (yyval.node)->children.push_back(new Node(";","Separator"));}
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));}
 #line 3857 "parser.tab.c"
     break;
 
@@ -3860,10 +3860,10 @@ yyreduce:
 #line 818 "parser.y"
                                                          {  
             (yyval.node)=new Node("ExplicitConstructorInvocation"); 
-            (yyval.node)->children.push_back(new Node("super","Keyword"));
-            (yyval.node)->children.push_back(new Node("(","Separator"));
-            (yyval.node)->children.push_back(new Node(")","Separator"));
-            (yyval.node)->children.push_back(new Node(";","Separator"));
+            (yyval.node)->children.push_back(new Node("super","Keyword", yylineno));
+            (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
+            (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
             }
 #line 3869 "parser.tab.c"
     break;
@@ -3873,8 +3873,8 @@ yyreduce:
                                                                        {  
                     (yyval.node)=new Node("EnumDeclaration"); 
                     (yyval.node)->children.push_back((yyvsp[-4].node));
-                    (yyval.node)->children.push_back(new Node("enum","Keyword"));
-                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node("enum","Keyword", yylineno));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
@@ -3886,8 +3886,8 @@ yyreduce:
                                                        {  
                     (yyval.node)=new Node("EnumDeclaration"); 
                     (yyval.node)->children.push_back((yyvsp[-3].node));
-                    (yyval.node)->children.push_back(new Node("enum","Keyword"));
-                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node("enum","Keyword", yylineno));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 3894 "parser.tab.c"
@@ -3897,8 +3897,8 @@ yyreduce:
 #line 842 "parser.y"
                                                              {  
                     (yyval.node)=new Node("EnumDeclaration"); 
-                    (yyval.node)->children.push_back(new Node("enum","Keyword"));
-                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node("enum","Keyword", yylineno));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
@@ -3909,8 +3909,8 @@ yyreduce:
 #line 849 "parser.y"
                                              {  
                     (yyval.node)=new Node("EnumDeclaration"); 
-                    (yyval.node)->children.push_back(new Node("enum","Keyword"));
-                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node("enum","Keyword", yylineno));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 3917 "parser.tab.c"
@@ -3920,7 +3920,7 @@ yyreduce:
 #line 856 "parser.y"
                                                  {  
                     (yyval.node)=new Node("ClassImplements"); 
-                    (yyval.node)->children.push_back(new Node("implements","Keyword"));
+                    (yyval.node)->children.push_back(new Node("implements","Keyword", yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 3927 "parser.tab.c"
@@ -3931,11 +3931,11 @@ yyreduce:
                                                                                                     {  
                     (yyval.node)=new Node("EnumBody"); 
                     (yyval.node)->isBlock = true;
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-3].node));
-                    (yyval.node)->children.push_back(new Node(",","Separator"));
+                    (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 3941 "parser.tab.c"
     break;
@@ -3945,9 +3945,9 @@ yyreduce:
                                                                                 {  
                     (yyval.node)=new Node("EnumBody"); 
                     (yyval.node)->isBlock = true;
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 3953 "parser.tab.c"
     break;
@@ -3957,10 +3957,10 @@ yyreduce:
                                                                                             {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-2].node));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 3966 "parser.tab.c"
     break;
@@ -3970,9 +3970,9 @@ yyreduce:
                                                                        {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 3978 "parser.tab.c"
     break;
@@ -3982,10 +3982,10 @@ yyreduce:
                                                                                    {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
-                    (yyval.node)->children.push_back(new Node(",","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 3991 "parser.tab.c"
     break;
@@ -3995,9 +3995,9 @@ yyreduce:
                                                               {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
-                    (yyval.node)->children.push_back(new Node(",","Separator"));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 4003 "parser.tab.c"
     break;
@@ -4007,9 +4007,9 @@ yyreduce:
                                                                            {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 4015 "parser.tab.c"
     break;
@@ -4019,8 +4019,8 @@ yyreduce:
                                                       {  
                     (yyval.node)=new Node("EnumBody");
                     (yyval.node)->isBlock=true; 
-                    (yyval.node)->children.push_back(new Node("{","Separator"));
-                    (yyval.node)->children.push_back(new Node("}","Separator"));
+                    (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
                     }
 #line 4026 "parser.tab.c"
     break;
@@ -4028,7 +4028,7 @@ yyreduce:
   case 142:
 #line 922 "parser.y"
                                     {  
-                    (yyval.node)=new Node(";","Separator");
+                    (yyval.node)=new Node(";","Separator", yylineno);
                     }
 #line 4034 "parser.tab.c"
     break;
@@ -4037,7 +4037,7 @@ yyreduce:
 #line 925 "parser.y"
                                                         {  
                     (yyval.node)=new Node("EnumBodyDeclarations"); 
-                    (yyval.node)->children.push_back(new Node(";","Separator"));
+                    (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 4044 "parser.tab.c"
@@ -4054,7 +4054,7 @@ yyreduce:
                     {
                     (yyval.node)=new Node("EnumConstantList");
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node(",","Separator"));
+                    (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 4061 "parser.tab.c"
@@ -4064,10 +4064,10 @@ yyreduce:
 #line 940 "parser.y"
                                                                             {  
                     (yyval.node)=new Node("EnumConstant"); 
-                    (yyval.node)->children.push_back(new Node((yyvsp[-4].str),"Identifier"));
-                    (yyval.node)->children.push_back(new Node("(","Separator"));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-4].str),"Identifier",yylineno));
+                    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-2].node));
-                    (yyval.node)->children.push_back(new Node(")","Separator"));
+                    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 4074 "parser.tab.c"
@@ -4077,9 +4077,9 @@ yyreduce:
 #line 948 "parser.y"
                                                                    {  
                     (yyval.node)=new Node("EnumConstant"); 
-                    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
-                    (yyval.node)->children.push_back(new Node("(","Separator"));
-                    (yyval.node)->children.push_back(new Node(")","Separator"));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
+                    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 4086 "parser.tab.c"
@@ -4089,10 +4089,10 @@ yyreduce:
 #line 955 "parser.y"
                                                                       {  
                     (yyval.node)=new Node("EnumConstant"); 
-                    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
-                    (yyval.node)->children.push_back(new Node("(","Separator"));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
+                    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
                     (yyval.node)->children.push_back((yyvsp[-1].node));
-                    (yyval.node)->children.push_back(new Node(")","Separator"));
+                    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
                     }
 #line 4098 "parser.tab.c"
     break;
@@ -4101,9 +4101,9 @@ yyreduce:
 #line 962 "parser.y"
                                                          {  
                     (yyval.node)=new Node("EnumConstant"); 
-                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
-                    (yyval.node)->children.push_back(new Node("(","Separator"));
-                    (yyval.node)->children.push_back(new Node(")","Separator"));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
+                    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+                    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
                     }
 #line 4109 "parser.tab.c"
     break;
@@ -4112,7 +4112,7 @@ yyreduce:
 #line 968 "parser.y"
                                         {  
                     (yyval.node)=new Node("EnumConstant"); 
-                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+                    (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
                     (yyval.node)->children.push_back((yyvsp[0].node));
                     }
 #line 4119 "parser.tab.c"
@@ -4121,7 +4121,7 @@ yyreduce:
   case 151:
 #line 973 "parser.y"
                               {  
-                    (yyval.node)=new Node((yyvsp[0].str),"Identifier");
+                    (yyval.node)=new Node((yyvsp[0].str),"Identifier",yylineno);
                     }
 #line 4127 "parser.tab.c"
     break;
@@ -4130,8 +4130,8 @@ yyreduce:
 #line 980 "parser.y"
     { (yyval.node)=new Node("InterfaceDeclaration"); 
       (yyval.node)->children.push_back((yyvsp[-4].node));
-      (yyval.node)->children.push_back(new Node("interface","Keyword"));
-      (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+      (yyval.node)->children.push_back(new Node("interface","Keyword", yylineno));
+      (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
       (yyval.node)->children.push_back((yyvsp[-1].node));
       (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 4138 "parser.tab.c"
@@ -4141,8 +4141,8 @@ yyreduce:
 #line 987 "parser.y"
     { (yyval.node)=new Node("InterfaceDeclaration"); 
       (yyval.node)->children.push_back((yyvsp[-3].node));
-      (yyval.node)->children.push_back(new Node("interface","Keyword"));
-      (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+      (yyval.node)->children.push_back(new Node("interface","Keyword", yylineno));
+      (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
       (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 4148 "parser.tab.c"
     break;
@@ -4151,8 +4151,8 @@ yyreduce:
 #line 993 "parser.y"
     {
         (yyval.node)=new Node("InterfaceDeclaration"); 
-        (yyval.node)->children.push_back(new Node("interface","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("interface","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
@@ -4163,8 +4163,8 @@ yyreduce:
 #line 1001 "parser.y"
     {
         (yyval.node)=new Node("InterfaceDeclaration"); 
-        (yyval.node)->children.push_back(new Node("interface","Keyword"));
-        (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier"));
+        (yyval.node)->children.push_back(new Node("interface","Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node((yyvsp[-1].str),"Identifier",yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4171 "parser.tab.c"
@@ -4174,7 +4174,7 @@ yyreduce:
 #line 1011 "parser.y"
     {
         (yyval.node)=new Node("ExtendsInterfaces");
-        (yyval.node)->children.push_back(new Node("extends","Keyword"));
+        (yyval.node)->children.push_back(new Node("extends","Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4181 "parser.tab.c"
@@ -4185,7 +4185,7 @@ yyreduce:
     {
         (yyval.node)=new Node("ExtendsInterfaces");
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node("comma","Separator"));
+        (yyval.node)->children.push_back(new Node("comma","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4192 "parser.tab.c"
@@ -4196,9 +4196,9 @@ yyreduce:
     {
         (yyval.node)=new Node("InterfaceBody");
         (yyval.node)->isBlock=true;
-        (yyval.node)->children.push_back(new Node("{","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4204 "parser.tab.c"
     break;
@@ -4207,8 +4207,8 @@ yyreduce:
 #line 1035 "parser.y"
     {
         (yyval.node)=new Node("InterfaceBody");
-        (yyval.node)->children.push_back(new Node("{","Separator"));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4214 "parser.tab.c"
     break;
@@ -4257,7 +4257,7 @@ yyreduce:
 {
     (yyval.node)=new Node("AbstractMethodDeclaration");
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node(";","Separator"));
+    (yyval.node)->children.push_back(new Node(";","Separator", yylineno));
 }
 #line 4263 "parser.tab.c"
     break;
@@ -4267,9 +4267,9 @@ yyreduce:
     {
         (yyval.node)=new Node("ArrayInitializer");
         (yyval.node)->isBlock=true;
-        (yyval.node)->children.push_back(new Node("{","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4275 "parser.tab.c"
     break;
@@ -4279,9 +4279,9 @@ yyreduce:
     {
         (yyval.node)=new Node("ArrayInitializer");
         (yyval.node)->isBlock=true;
-        (yyval.node)->children.push_back(new Node("{","Separator"));
-        (yyval.node)->children.push_back(new Node("{","Separator"));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4287 "parser.tab.c"
     break;
@@ -4300,7 +4300,7 @@ yyreduce:
     {
         (yyval.node)=new Node("VariableInitializerList");
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(",","Separator"));
+        (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4307 "parser.tab.c"
@@ -4310,8 +4310,8 @@ yyreduce:
 #line 1130 "parser.y"
     {
         (yyval.node)=new Node("Block");
-        (yyval.node)->children.push_back(new Node("{","Separator"));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4317 "parser.tab.c"
     break;
@@ -4321,9 +4321,9 @@ yyreduce:
     {
         (yyval.node)=new Node("Block");
         (yyval.node)->isBlock=true;
-        (yyval.node)->children.push_back(new Node("{","Separator"));
+        (yyval.node)->children.push_back(new Node("{","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node("}","Separator"));
+        (yyval.node)->children.push_back(new Node("}","Separator", yylineno));
     }
 #line 4329 "parser.tab.c"
     break;
@@ -4367,7 +4367,7 @@ yyreduce:
     {
         (yyval.node) = new Node("LocalVariableDeclarationStatement");
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
     }
 #line 4373 "parser.tab.c"
     break;
@@ -4376,7 +4376,7 @@ yyreduce:
 #line 1179 "parser.y"
     {
         (yyval.node)=new Node("LocalVariableDeclaration");
-        (yyval.node)->children.push_back(new Node("final","Keyword"));
+        (yyval.node)->children.push_back(new Node("final","Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
@@ -4531,7 +4531,7 @@ yyreduce:
 
   case 201:
 #line 1254 "parser.y"
-    {(yyval.node) = new Node(";", "Separator");}
+    {(yyval.node) = new Node(";", "Separator", yylineno);}
 #line 4536 "parser.tab.c"
     break;
 
@@ -4539,8 +4539,8 @@ yyreduce:
 #line 1260 "parser.y"
     {
         (yyval.node) = new Node("LabeledStatement");
-        (yyval.node)->children.push_back(new Node((yyvsp[-2].str), "Identifier"));
-        (yyval.node)->children.push_back(new Node(":", "Operator"));
+        (yyval.node)->children.push_back(new Node((yyvsp[-2].str), "Identifier",yylineno));
+        (yyval.node)->children.push_back(new Node(":", "Operator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4547 "parser.tab.c"
@@ -4550,8 +4550,8 @@ yyreduce:
 #line 1271 "parser.y"
     {
         (yyval.node) = new Node("LabeledStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node((yyvsp[-2].str), "Identifier"));
-        (yyval.node)->children.push_back(new Node(":", "Operator"));
+        (yyval.node)->children.push_back(new Node((yyvsp[-2].str), "Identifier",yylineno));
+        (yyval.node)->children.push_back(new Node(":", "Operator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4558 "parser.tab.c"
@@ -4562,7 +4562,7 @@ yyreduce:
     {
         (yyval.node) = new Node("ExpressionStatement");
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
     }
 #line 4568 "parser.tab.c"
     break;
@@ -4613,10 +4613,10 @@ yyreduce:
 #line 1308 "parser.y"
     {
         (yyval.node) = new Node("IfThenStatement");
-        (yyval.node)->children.push_back(new Node("if", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("if", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4623 "parser.tab.c"
@@ -4626,12 +4626,12 @@ yyreduce:
 #line 1321 "parser.y"
     {
         (yyval.node) = new Node("IfThenElseStatement");
-        (yyval.node)->children.push_back(new Node("if", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("if", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node("else", "Keyword"));
+        (yyval.node)->children.push_back(new Node("else", "Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4638 "parser.tab.c"
@@ -4641,12 +4641,12 @@ yyreduce:
 #line 1335 "parser.y"
     {
         (yyval.node) = new Node("IfThenElseStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("if", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("if", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node("else", "Keyword"));
+        (yyval.node)->children.push_back(new Node("else", "Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4653 "parser.tab.c"
@@ -4656,10 +4656,10 @@ yyreduce:
 #line 1350 "parser.y"
     {
         (yyval.node) = new Node("WhileStatement");
-        (yyval.node)->children.push_back(new Node("while", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("while", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4666 "parser.tab.c"
@@ -4669,10 +4669,10 @@ yyreduce:
 #line 1362 "parser.y"
     {
         (yyval.node) = new Node("WhileStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("while", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("while", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4679 "parser.tab.c"
@@ -4706,11 +4706,11 @@ yyreduce:
 #line 1378 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4717 "parser.tab.c"
@@ -4720,12 +4720,12 @@ yyreduce:
 #line 1388 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4732 "parser.tab.c"
@@ -4735,12 +4735,12 @@ yyreduce:
 #line 1399 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4747 "parser.tab.c"
@@ -4750,13 +4750,13 @@ yyreduce:
 #line 1410 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4763 "parser.tab.c"
@@ -4766,12 +4766,12 @@ yyreduce:
 #line 1422 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4778 "parser.tab.c"
@@ -4781,13 +4781,13 @@ yyreduce:
 #line 1433 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-5].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4794 "parser.tab.c"
@@ -4797,13 +4797,13 @@ yyreduce:
 #line 1445 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-5].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4810 "parser.tab.c"
@@ -4813,14 +4813,14 @@ yyreduce:
 #line 1457 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatement");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-6].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4827 "parser.tab.c"
@@ -4830,11 +4830,11 @@ yyreduce:
 #line 1474 "parser.y"
      {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
      }
 #line 4841 "parser.tab.c"
@@ -4844,12 +4844,12 @@ yyreduce:
 #line 1484 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4856 "parser.tab.c"
@@ -4859,12 +4859,12 @@ yyreduce:
 #line 1495 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4871 "parser.tab.c"
@@ -4874,13 +4874,13 @@ yyreduce:
 #line 1506 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4887 "parser.tab.c"
@@ -4890,12 +4890,12 @@ yyreduce:
 #line 1518 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4902 "parser.tab.c"
@@ -4905,13 +4905,13 @@ yyreduce:
 #line 1529 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-5].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4918 "parser.tab.c"
@@ -4921,13 +4921,13 @@ yyreduce:
 #line 1541 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-5].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4934 "parser.tab.c"
@@ -4937,14 +4937,14 @@ yyreduce:
 #line 1553 "parser.y"
     {
         (yyval.node) = new Node("BasicForStatementNoShortIf");
-        (yyval.node)->children.push_back(new Node("for", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-6].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-4].node));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 4951 "parser.tab.c"
@@ -4954,12 +4954,12 @@ yyreduce:
 #line 1568 "parser.y"
 {
     (yyval.node) = new Node("EnhancedForStatementNoShortIf");
-    (yyval.node)->children.push_back(new Node("for", "Keyword"));
-    (yyval.node)->children.push_back(new Node("(", "Separator"));
+    (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-4].node));
-    (yyval.node)->children.push_back(new Node(":", "Separator"));
+    (yyval.node)->children.push_back(new Node(":", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")", "Separator"));
+    (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
 }
 #line 4966 "parser.tab.c"
@@ -4993,12 +4993,12 @@ yyreduce:
 #line 1598 "parser.y"
 {
     (yyval.node) = new Node("EnhancedForStatement");
-    (yyval.node)->children.push_back(new Node("for", "Keyword"));
-    (yyval.node)->children.push_back(new Node("(", "Separator"));
+    (yyval.node)->children.push_back(new Node("for", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-4].node));
-    (yyval.node)->children.push_back(new Node(":", "Separator"));
+    (yyval.node)->children.push_back(new Node(":", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")", "Separator"));
+    (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
 }
 #line 5005 "parser.tab.c"
@@ -5015,7 +5015,7 @@ yyreduce:
                        {
                             (yyval.node) = new Node("StatementExpressionList");
                             (yyval.node)->children.push_back((yyvsp[-2].node));
-                            (yyval.node)->children.push_back(new Node(",", "Separator"));
+                            (yyval.node)->children.push_back(new Node(",", "Separator", yylineno));
                             (yyval.node)->children.push_back((yyvsp[0].node));
                        }
 #line 5022 "parser.tab.c"
@@ -5025,8 +5025,8 @@ yyreduce:
 #line 1619 "parser.y"
 { 
     (yyval.node) = new Node("BreakStatement");
-    (yyval.node)->children.push_back(new Node("break", "Keyword"));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));}
+    (yyval.node)->children.push_back(new Node("break", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));}
 #line 5031 "parser.tab.c"
     break;
 
@@ -5034,9 +5034,9 @@ yyreduce:
 #line 1624 "parser.y"
  {
     (yyval.node) = new Node("BreakStatement");
-    (yyval.node)->children.push_back(new Node("break", "Keyword"));
-    (yyval.node)->children.push_back(new Node((yyvsp[0].str), "Identifier"));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));}
+    (yyval.node)->children.push_back(new Node("break", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[0].str), "Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));}
 #line 5041 "parser.tab.c"
     break;
 
@@ -5044,8 +5044,8 @@ yyreduce:
 #line 1631 "parser.y"
     {
         (yyval.node) = new Node("ContinueStatement");
-        (yyval.node)->children.push_back(new Node("continue", "Keyword"));
-        (yyval.node)->children.push_back(new Node(";", "Separator"));
+        (yyval.node)->children.push_back(new Node("continue", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
     }
 #line 5051 "parser.tab.c"
     break;
@@ -5054,9 +5054,9 @@ yyreduce:
 #line 1637 "parser.y"
  {
     (yyval.node) = new Node("ContinueStatement");
-    (yyval.node)->children.push_back(new Node("continue", "Keyword"));
-    (yyval.node)->children.push_back(new Node((yyvsp[-1].str), "Identifier"));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));
+    (yyval.node)->children.push_back(new Node("continue", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[-1].str), "Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
  }
 #line 5062 "parser.tab.c"
     break;
@@ -5065,8 +5065,8 @@ yyreduce:
 #line 1645 "parser.y"
 {
     (yyval.node) = new Node("ReturnStatement");
-    (yyval.node)->children.push_back(new Node("return", "Keyword"));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));
+    (yyval.node)->children.push_back(new Node("return", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
 }
 #line 5072 "parser.tab.c"
     break;
@@ -5075,9 +5075,9 @@ yyreduce:
 #line 1651 "parser.y"
 {
     (yyval.node) = new Node("ReturnStatement");
-    (yyval.node)->children.push_back(new Node("return", "Keyword"));
+    (yyval.node)->children.push_back(new Node("return", "Keyword", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
 }
 #line 5083 "parser.tab.c"
     break;
@@ -5086,8 +5086,8 @@ yyreduce:
 #line 1659 "parser.y"
 {
     (yyval.node) = new Node("ThrowStatement");
-    (yyval.node)->children.push_back(new Node("throw", "Keyword"));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));}
+    (yyval.node)->children.push_back(new Node("throw", "Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));}
 #line 5092 "parser.tab.c"
     break;
 
@@ -5095,9 +5095,9 @@ yyreduce:
 #line 1664 "parser.y"
  {
     (yyval.node) = new Node("ThrowStatement");
-    (yyval.node)->children.push_back(new Node("throw", "Keyword"));
+    (yyval.node)->children.push_back(new Node("throw", "Keyword", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node(";", "Separator"));
+    (yyval.node)->children.push_back(new Node(";", "Separator", yylineno));
  }
 #line 5103 "parser.tab.c"
     break;
@@ -5106,10 +5106,10 @@ yyreduce:
 #line 1674 "parser.y"
     {
         (yyval.node) = new Node("SynchronizedStatement");
-        (yyval.node)->children.push_back(new Node("synchronized", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("synchronized", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5116 "parser.tab.c"
@@ -5119,7 +5119,7 @@ yyreduce:
 #line 1684 "parser.y"
     {
     (yyval.node) = new Node("TryStatement");
-    (yyval.node)->children.push_back(new Node("try", "Keyword"));
+    (yyval.node)->children.push_back(new Node("try", "Keyword", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
@@ -5130,7 +5130,7 @@ yyreduce:
 #line 1691 "parser.y"
             {
                 (yyval.node) = new Node("TryStatement");
-                (yyval.node)->children.push_back(new Node("try", "Keyword"));
+                (yyval.node)->children.push_back(new Node("try", "Keyword", yylineno));
                 (yyval.node)->children.push_back((yyvsp[-1].node));
                 (yyval.node)->children.push_back((yyvsp[0].node));
             }
@@ -5141,7 +5141,7 @@ yyreduce:
 #line 1698 "parser.y"
             {
                 (yyval.node) = new Node("TryStatement");
-                (yyval.node)->children.push_back(new Node("try", "Keyword"));
+                (yyval.node)->children.push_back(new Node("try", "Keyword", yylineno));
                 (yyval.node)->children.push_back((yyvsp[-2].node));
                 (yyval.node)->children.push_back((yyvsp[-1].node));
                 (yyval.node)->children.push_back((yyvsp[0].node));}
@@ -5171,10 +5171,10 @@ yyreduce:
 #line 1718 "parser.y"
     {
         (yyval.node) = new Node("CatchClause");
-        (yyval.node)->children.push_back(new Node("catch", "Keyword"));
-        (yyval.node)->children.push_back(new Node("(", "Separator"));
+        (yyval.node)->children.push_back(new Node("catch", "Keyword", yylineno));
+        (yyval.node)->children.push_back(new Node("(", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-2].node));
-        (yyval.node)->children.push_back(new Node(")", "Separator"));
+        (yyval.node)->children.push_back(new Node(")", "Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5181 "parser.tab.c"
@@ -5184,7 +5184,7 @@ yyreduce:
 #line 1728 "parser.y"
     {
         (yyval.node) = new Node("Finally");
-        (yyval.node)->children.push_back(new Node("finally", "Keyword"));
+        (yyval.node)->children.push_back(new Node("finally", "Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5191 "parser.tab.c"
@@ -5204,61 +5204,61 @@ yyreduce:
 
   case 262:
 #line 1743 "parser.y"
-                {(yyval.node) = new Node((yyvsp[0].str),"Literal" , INT);}
+                {(yyval.node) = new Node((yyvsp[0].str),"Literal", INT,yylineno);}
 #line 5209 "parser.tab.c"
     break;
 
   case 263:
 #line 1744 "parser.y"
-                  {(yyval.node) = new Node((yyvsp[0].str),"Literal" , BIN);}
+                  {(yyval.node) = new Node((yyvsp[0].str),"Literal" , BIN, yylineno);}
 #line 5215 "parser.tab.c"
     break;
 
   case 264:
 #line 1745 "parser.y"
-                       {(yyval.node) = new Node((yyvsp[0].str),"Literal", FLOAT);}
+                       {(yyval.node) = new Node((yyvsp[0].str),"Literal", FLOAT ,yylineno);}
 #line 5221 "parser.tab.c"
     break;
 
   case 265:
 #line 1746 "parser.y"
-                  {(yyval.node) = new Node((yyvsp[0].str),"Literal", OCT);}
+                  {(yyval.node) = new Node((yyvsp[0].str),"Literal", OCT, yylineno);}
 #line 5227 "parser.tab.c"
     break;
 
   case 266:
 #line 1747 "parser.y"
-                      {(yyval.node) = new Node((yyvsp[0].str),"Literal", HEX_FLOAT);}
+                      {(yyval.node) = new Node((yyvsp[0].str),"Literal", HEX_FLOAT, yylineno);}
 #line 5233 "parser.tab.c"
     break;
 
   case 267:
 #line 1748 "parser.y"
-                     {(yyval.node) = new Node((yyvsp[0].str),"Literal", STRING);}
+                     {(yyval.node) = new Node((yyvsp[0].str),"Literal", STRING, yylineno);}
 #line 5239 "parser.tab.c"
     break;
 
   case 268:
 #line 1749 "parser.y"
-                  {(yyval.node) = new Node((yyvsp[0].str),"Literal", HEX);}
+                  {(yyval.node) = new Node((yyvsp[0].str),"Literal", HEX, yylineno);}
 #line 5245 "parser.tab.c"
     break;
 
   case 269:
 #line 1750 "parser.y"
-             {(yyval.node) = new Node("this","Keyword");}
+             {(yyval.node) = new Node("this","Keyword", yylineno);}
 #line 5251 "parser.tab.c"
     break;
 
   case 270:
 #line 1751 "parser.y"
-                         {(yyval.node) = new Node("TextBlock","Literal",STRING);}
+                         {(yyval.node) = new Node("TextBlock","Literal",STRING, yylineno);}
 #line 5257 "parser.tab.c"
     break;
 
   case 271:
 #line 1752 "parser.y"
-                   {(yyval.node) = new Node((yyvsp[0].str),"Literal", CHAR);}
+                   {(yyval.node) = new Node((yyvsp[0].str),"Literal", CHAR, yylineno);}
 #line 5263 "parser.tab.c"
     break;
 
@@ -5284,9 +5284,9 @@ yyreduce:
 #line 1756 "parser.y"
                                             {
         (yyval.node) = new Node("PrimaryNoNewArray");
-        (yyval.node)->children.push_back(new Node("(","Separator"));
+        (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node(")","Separator"));
+        (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5292 "parser.tab.c"
     break;
@@ -5318,21 +5318,21 @@ yyreduce:
   case 280:
 #line 1770 "parser.y"
      { (yyval.node) = new Node("ClassInstanceCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-2].node));
-       (yyval.node)->children.push_back(new Node("(","Separator"));
-       (yyval.node)->children.push_back(new Node(")","Separator"));}
+       (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+       (yyval.node)->children.push_back(new Node(")","Separator", yylineno));}
 #line 5326 "parser.tab.c"
     break;
 
   case 281:
 #line 1776 "parser.y"
         { (yyval.node) = new Node("ClassInstanceCreationExpression");
-        (yyval.node)->children.push_back(new Node("new","Keyword"));
+        (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
         (yyval.node)->children.push_back((yyvsp[-3].node));
-        (yyval.node)->children.push_back(new Node("(","Separator"));
+        (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
         (yyval.node)->children.push_back((yyvsp[-1].node));
-        (yyval.node)->children.push_back(new Node(")","Separator"));}
+        (yyval.node)->children.push_back(new Node(")","Separator", yylineno));}
 #line 5337 "parser.tab.c"
     break;
 
@@ -5346,7 +5346,7 @@ yyreduce:
 #line 1788 "parser.y"
     {(yyval.node) = new Node("ArgumentList");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(",","Separator"));
+    (yyval.node)->children.push_back(new Node(",","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5352 "parser.tab.c"
     break;
@@ -5354,7 +5354,7 @@ yyreduce:
   case 284:
 #line 1796 "parser.y"
      { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5361 "parser.tab.c"
@@ -5363,7 +5363,7 @@ yyreduce:
   case 285:
 #line 1801 "parser.y"
         { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-2].node));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
@@ -5373,7 +5373,7 @@ yyreduce:
   case 286:
 #line 1807 "parser.y"
         { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-2].node));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
@@ -5383,7 +5383,7 @@ yyreduce:
   case 287:
 #line 1813 "parser.y"
         { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5390 "parser.tab.c"
@@ -5392,7 +5392,7 @@ yyreduce:
   case 288:
 #line 1818 "parser.y"
         { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-2].node));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
@@ -5402,7 +5402,7 @@ yyreduce:
   case 289:
 #line 1824 "parser.y"
         { (yyval.node) = new Node("ArrayCreationExpression");
-       (yyval.node)->children.push_back(new Node("new","Keyword"));
+       (yyval.node)->children.push_back(new Node("new","Keyword", yylineno));
        (yyval.node)->children.push_back((yyvsp[-2].node));
        (yyval.node)->children.push_back((yyvsp[-1].node));
        (yyval.node)->children.push_back((yyvsp[0].node));}
@@ -5426,17 +5426,17 @@ yyreduce:
   case 292:
 #line 1843 "parser.y"
      {(yyval.node) = new Node("DimExpr");
-     (yyval.node)->children.push_back(new Node("[","Separator"));
+     (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
      (yyval.node)->children.push_back((yyvsp[-1].node));
-     (yyval.node)->children.push_back(new Node("]","Separator"));}
+     (yyval.node)->children.push_back(new Node("]","Separator", yylineno));}
 #line 5433 "parser.tab.c"
     break;
 
   case 293:
 #line 1852 "parser.y"
     {(yyval.node) = new Node("Dims");
-    (yyval.node)->children.push_back(new Node("[","Separator"));
-    (yyval.node)->children.push_back(new Node("]","Separator"));}
+    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));}
 #line 5441 "parser.tab.c"
     break;
 
@@ -5444,7 +5444,7 @@ yyreduce:
 #line 1856 "parser.y"
     {(yyval.node) = new Node("Dims");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("[","Separator"));}
+    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));}
 #line 5449 "parser.tab.c"
     break;
 
@@ -5452,17 +5452,17 @@ yyreduce:
 #line 1863 "parser.y"
     {(yyval.node) = new Node("FieldAccess");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier"));}
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier",yylineno));}
 #line 5458 "parser.tab.c"
     break;
 
   case 296:
 #line 1868 "parser.y"
     {(yyval.node) = new Node("FieldAccess");
-    (yyval.node)->children.push_back(new Node("super","Keyword"));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier"));}
+    (yyval.node)->children.push_back(new Node("super","Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[0].str),"Identifier",yylineno));}
 #line 5467 "parser.tab.c"
     break;
 
@@ -5470,8 +5470,8 @@ yyreduce:
 #line 1876 "parser.y"
     {(yyval.node) = new Node("MethodInvocation");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("(","Separator"));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5477 "parser.tab.c"
     break;
@@ -5480,9 +5480,9 @@ yyreduce:
 #line 1882 "parser.y"
      {(yyval.node) = new Node("MethodInvocation");
      (yyval.node)->children.push_back((yyvsp[-3].node));
-     (yyval.node)->children.push_back(new Node("(","Separator"));
+     (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
      (yyval.node)->children.push_back((yyvsp[-1].node));
-     (yyval.node)->children.push_back(new Node(")","Separator"));
+     (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
      }
 #line 5488 "parser.tab.c"
     break;
@@ -5491,10 +5491,10 @@ yyreduce:
 #line 1889 "parser.y"
     {(yyval.node) = new Node("MethodInvocation");
     (yyval.node)->children.push_back((yyvsp[-4].node));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
-    (yyval.node)->children.push_back(new Node("(","Separator"));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5500 "parser.tab.c"
     break;
@@ -5503,11 +5503,11 @@ yyreduce:
 #line 1897 "parser.y"
     {(yyval.node) = new Node("MethodInvocation");
     (yyval.node)->children.push_back((yyvsp[-5].node));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5513 "parser.tab.c"
     break;
@@ -5515,11 +5515,11 @@ yyreduce:
   case 301:
 #line 1906 "parser.y"
     {(yyval.node) = new Node("MethodInvocation");
-    (yyval.node)->children.push_back(new Node("super","Keyword"));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier"));
-    (yyval.node)->children.push_back(new Node("(","Separator"));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node("super","Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[-2].str),"Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5525 "parser.tab.c"
     break;
@@ -5527,12 +5527,12 @@ yyreduce:
   case 302:
 #line 1914 "parser.y"
     {(yyval.node) = new Node("MethodInvocation");
-    (yyval.node)->children.push_back(new Node("super","Keyword"));
-    (yyval.node)->children.push_back(new Node(".","Separator"));
-    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier"));
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node("super","Keyword", yylineno));
+    (yyval.node)->children.push_back(new Node(".","Separator", yylineno));
+    (yyval.node)->children.push_back(new Node((yyvsp[-3].str),"Identifier",yylineno));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     }
 #line 5538 "parser.tab.c"
     break;
@@ -5541,9 +5541,9 @@ yyreduce:
 #line 1926 "parser.y"
     {(yyval.node) = new Node("ArrayAccess");
     (yyval.node)->children.push_back((yyvsp[-3].node));
-    (yyval.node)->children.push_back(new Node("[","Separator"));
+    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node("]","Separator"));
+    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
     }
 #line 5549 "parser.tab.c"
     break;
@@ -5552,9 +5552,9 @@ yyreduce:
 #line 1933 "parser.y"
     {(yyval.node) = new Node("ArrayAccess");
     (yyval.node)->children.push_back((yyvsp[-3].node));
-    (yyval.node)->children.push_back(new Node("[","Separator"));
+    (yyval.node)->children.push_back(new Node("[","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node("]","Separator"));
+    (yyval.node)->children.push_back(new Node("]","Separator", yylineno));
     }
 #line 5560 "parser.tab.c"
     break;
@@ -5587,7 +5587,7 @@ yyreduce:
 #line 1954 "parser.y"
     {(yyval.node) = new Node("PostIncrementExpression");
     (yyval.node)->children.push_back((yyvsp[-1].node));
-    (yyval.node)->children.push_back(new Node("++","Separator"));}
+    (yyval.node)->children.push_back(new Node("++","Separator", yylineno));}
 #line 5592 "parser.tab.c"
     break;
 
@@ -5613,7 +5613,7 @@ yyreduce:
   case 313:
 #line 1971 "parser.y"
     {(yyval.node) = new Node("UnaryExpression");
-    (yyval.node)->children.push_back(new Node("+","Separator"));
+    (yyval.node)->children.push_back(new Node("+","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5619 "parser.tab.c"
     break;
@@ -5621,7 +5621,7 @@ yyreduce:
   case 314:
 #line 1975 "parser.y"
     {(yyval.node) = new Node("UnaryExpression");
-    (yyval.node)->children.push_back(new Node("-","Separator"));
+    (yyval.node)->children.push_back(new Node("-","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5627 "parser.tab.c"
     break;
@@ -5635,7 +5635,7 @@ yyreduce:
   case 316:
 #line 1984 "parser.y"
     {(yyval.node) = new Node("PreIncrementExpression");
-    (yyval.node)->children.push_back(new Node("++","Separator"));
+    (yyval.node)->children.push_back(new Node("++","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5641 "parser.tab.c"
     break;
@@ -5643,7 +5643,7 @@ yyreduce:
   case 317:
 #line 1991 "parser.y"
     {(yyval.node) = new Node("PreDecrementExpression");
-    (yyval.node)->children.push_back(new Node("--","Separator"));
+    (yyval.node)->children.push_back(new Node("--","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5649 "parser.tab.c"
     break;
@@ -5657,7 +5657,7 @@ yyreduce:
   case 319:
 #line 2000 "parser.y"
     {(yyval.node) = new Node("UnaryExpressionNotPlusMinus");
-    (yyval.node)->children.push_back(new Node("~","Separator"));
+    (yyval.node)->children.push_back(new Node("~","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5663 "parser.tab.c"
     break;
@@ -5665,7 +5665,7 @@ yyreduce:
   case 320:
 #line 2004 "parser.y"
     {(yyval.node) = new Node("UnaryExpressionNotPlusMinus");
-    (yyval.node)->children.push_back(new Node("!","Separator"));
+    (yyval.node)->children.push_back(new Node("!","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));}
 #line 5671 "parser.tab.c"
     break;
@@ -5679,9 +5679,9 @@ yyreduce:
   case 322:
 #line 2013 "parser.y"
     {(yyval.node) = new Node("CastExpression");
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5688 "parser.tab.c"
@@ -5691,10 +5691,10 @@ yyreduce:
 #line 2020 "parser.y"
     {
     (yyval.node) = new Node("CastExpression");
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-3].node));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5701 "parser.tab.c"
@@ -5704,9 +5704,9 @@ yyreduce:
 #line 2029 "parser.y"
     {
     (yyval.node) = new Node("CastExpression");
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5713 "parser.tab.c"
@@ -5716,10 +5716,10 @@ yyreduce:
 #line 2037 "parser.y"
     {
     (yyval.node) = new Node("CastExpression");
-    (yyval.node)->children.push_back(new Node("(","Separator"));
+    (yyval.node)->children.push_back(new Node("(","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-3].node));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(")","Separator"));
+    (yyval.node)->children.push_back(new Node(")","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5726 "parser.tab.c"
@@ -5738,7 +5738,7 @@ yyreduce:
     {
     (yyval.node) = new Node("MultiplicativeExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("*","Separator"));
+    (yyval.node)->children.push_back(new Node("*","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5745 "parser.tab.c"
@@ -5749,7 +5749,7 @@ yyreduce:
     {
     (yyval.node) = new Node("MultiplicativeExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("/","Separator"));
+    (yyval.node)->children.push_back(new Node("/","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5756 "parser.tab.c"
@@ -5760,7 +5760,7 @@ yyreduce:
     {
     (yyval.node) = new Node("MultiplicativeExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("%","Separator"));
+    (yyval.node)->children.push_back(new Node("%","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5767 "parser.tab.c"
@@ -5779,7 +5779,7 @@ yyreduce:
     {
     (yyval.node) = new Node("AdditiveExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("+","Separator"));
+    (yyval.node)->children.push_back(new Node("+","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5786 "parser.tab.c"
@@ -5790,7 +5790,7 @@ yyreduce:
     {
     (yyval.node) = new Node("AdditiveExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("-","Separator"));
+    (yyval.node)->children.push_back(new Node("-","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5797 "parser.tab.c"
@@ -5809,7 +5809,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ShiftExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("<<","Separator"));
+    (yyval.node)->children.push_back(new Node("<<","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5816 "parser.tab.c"
@@ -5820,7 +5820,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ShiftExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(">>","Separator"));
+    (yyval.node)->children.push_back(new Node(">>","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5827 "parser.tab.c"
@@ -5831,7 +5831,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ShiftExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(">>>","Separator"));
+    (yyval.node)->children.push_back(new Node(">>>","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5838 "parser.tab.c"
@@ -5850,7 +5850,7 @@ yyreduce:
     {
     (yyval.node) = new Node("RelationalExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("<","Separator"));
+    (yyval.node)->children.push_back(new Node("<","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5857 "parser.tab.c"
@@ -5861,7 +5861,7 @@ yyreduce:
     {
     (yyval.node) = new Node("RelationalExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(">","Separator"));
+    (yyval.node)->children.push_back(new Node(">","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5868 "parser.tab.c"
@@ -5872,7 +5872,7 @@ yyreduce:
     {
     (yyval.node) = new Node("RelationalExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("<=","Separator"));
+    (yyval.node)->children.push_back(new Node("<=","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5879 "parser.tab.c"
@@ -5883,7 +5883,7 @@ yyreduce:
     {
     (yyval.node) = new Node("RelationalExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(">=","Separator"));
+    (yyval.node)->children.push_back(new Node(">=","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5890 "parser.tab.c"
@@ -5894,7 +5894,7 @@ yyreduce:
     {
     (yyval.node) = new Node("RelationalExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("instanceof","Separator"));
+    (yyval.node)->children.push_back(new Node("instanceof","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5901 "parser.tab.c"
@@ -5913,7 +5913,7 @@ yyreduce:
     {
     (yyval.node) = new Node("EqualityExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("==","Separator"));
+    (yyval.node)->children.push_back(new Node("==","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5920 "parser.tab.c"
@@ -5924,7 +5924,7 @@ yyreduce:
     {
     (yyval.node) = new Node("EqualityExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("!=","Separator"));
+    (yyval.node)->children.push_back(new Node("!=","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5931 "parser.tab.c"
@@ -5943,7 +5943,7 @@ yyreduce:
     {
     (yyval.node) = new Node("AndExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("&","Separator"));
+    (yyval.node)->children.push_back(new Node("&","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5950 "parser.tab.c"
@@ -5962,7 +5962,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ExclusiveOrExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("^","Separator"));
+    (yyval.node)->children.push_back(new Node("^","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5969 "parser.tab.c"
@@ -5981,7 +5981,7 @@ yyreduce:
     {
     (yyval.node) = new Node("InclusiveOrExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("|","Separator"));
+    (yyval.node)->children.push_back(new Node("|","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 5988 "parser.tab.c"
@@ -6000,7 +6000,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ConditionalAndExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("&&","Separator"));
+    (yyval.node)->children.push_back(new Node("&&","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 6007 "parser.tab.c"
@@ -6019,7 +6019,7 @@ yyreduce:
     {
     (yyval.node) = new Node("ConditionalOrExpression");
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node("||","Separator"));
+    (yyval.node)->children.push_back(new Node("||","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 6026 "parser.tab.c"
@@ -6038,9 +6038,9 @@ yyreduce:
     {
     (yyval.node) = new Node("ConditionalExpression");
     (yyval.node)->children.push_back((yyvsp[-4].node));
-    (yyval.node)->children.push_back(new Node("?","Separator"));
+    (yyval.node)->children.push_back(new Node("?","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[-2].node));
-    (yyval.node)->children.push_back(new Node(":","Separator"));
+    (yyval.node)->children.push_back(new Node(":","Separator", yylineno));
     (yyval.node)->children.push_back((yyvsp[0].node));
     }
 #line 6047 "parser.tab.c"
@@ -6100,7 +6100,7 @@ yyreduce:
   case 364:
 #line 2311 "parser.y"
     {
-    (yyval.node) = new Node("=","Separator");
+    (yyval.node) = new Node("=","Separator", yylineno);
     }
 #line 6106 "parser.tab.c"
     break;
@@ -6108,7 +6108,7 @@ yyreduce:
   case 365:
 #line 2315 "parser.y"
     {
-    (yyval.node) = new Node("+=","Separator");
+    (yyval.node) = new Node("+=","Separator", yylineno);
     }
 #line 6114 "parser.tab.c"
     break;
@@ -6116,7 +6116,7 @@ yyreduce:
   case 366:
 #line 2319 "parser.y"
     {
-    (yyval.node) = new Node("-=","Separator");
+    (yyval.node) = new Node("-=","Separator", yylineno);
     }
 #line 6122 "parser.tab.c"
     break;
@@ -6124,7 +6124,7 @@ yyreduce:
   case 367:
 #line 2323 "parser.y"
     {
-    (yyval.node) = new Node("*=","Separator");
+    (yyval.node) = new Node("*=","Separator", yylineno);
     }
 #line 6130 "parser.tab.c"
     break;
@@ -6132,7 +6132,7 @@ yyreduce:
   case 368:
 #line 2327 "parser.y"
     {
-    (yyval.node) = new Node("/=","Separator");
+    (yyval.node) = new Node("/=","Separator", yylineno);
     }
 #line 6138 "parser.tab.c"
     break;
@@ -6140,7 +6140,7 @@ yyreduce:
   case 369:
 #line 2331 "parser.y"
     {
-    (yyval.node) = new Node("%=","Separator");
+    (yyval.node) = new Node("%=","Separator", yylineno);
     }
 #line 6146 "parser.tab.c"
     break;
@@ -6148,7 +6148,7 @@ yyreduce:
   case 370:
 #line 2335 "parser.y"
     {
-    (yyval.node) = new Node("<<=","Separator");
+    (yyval.node) = new Node("<<=","Separator", yylineno);
     }
 #line 6154 "parser.tab.c"
     break;
@@ -6156,7 +6156,7 @@ yyreduce:
   case 371:
 #line 2339 "parser.y"
     {
-    (yyval.node) = new Node(">>=","Separator");
+    (yyval.node) = new Node(">>=","Separator", yylineno);
     }
 #line 6162 "parser.tab.c"
     break;
@@ -6164,7 +6164,7 @@ yyreduce:
   case 372:
 #line 2343 "parser.y"
     {
-    (yyval.node) = new Node(">>>=","Separator");
+    (yyval.node) = new Node(">>>=","Separator", yylineno);
     }
 #line 6170 "parser.tab.c"
     break;
@@ -6172,7 +6172,7 @@ yyreduce:
   case 373:
 #line 2347 "parser.y"
     {
-    (yyval.node) = new Node("&=","Separator");
+    (yyval.node) = new Node("&=","Separator", yylineno);
     }
 #line 6178 "parser.tab.c"
     break;
@@ -6180,7 +6180,7 @@ yyreduce:
   case 374:
 #line 2351 "parser.y"
     {
-    (yyval.node) = new Node("|=","Separator");
+    (yyval.node) = new Node("|=","Separator", yylineno);
     }
 #line 6186 "parser.tab.c"
     break;
@@ -6188,7 +6188,7 @@ yyreduce:
   case 375:
 #line 2355 "parser.y"
     {
-    (yyval.node) = new Node("^=","Separator");
+    (yyval.node) = new Node("^=","Separator", yylineno);
     }
 #line 6194 "parser.tab.c"
     break;
@@ -6461,9 +6461,11 @@ void print_dot(const char* filename) {
 bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
 
     if(node->id == "VariableDeclaratorList"){
+        cout<<"Entering VariableDeclaratorList"<<endl;
         return check_semantic_LocalVariableDeclaration(node->children[0], t) && check_semantic_LocalVariableDeclaration(node->children[2], t);
     }
     if(node->id == "VariableDeclarator" || node->id == "Assignment"){
+        cout<<"Entering VariableDeclarator or Assignment"<<endl;
         if(check_semantic_LocalVariableDeclaration(node->children[2], t)){
             return check_semantic_LocalVariableDeclaration(node->children[0], t);
         }
@@ -6471,31 +6473,35 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
             return false;
     }
     if(node->token == "Identifier"){
-        if(symTables[currentSymTableId].lookup(node->id)){
-            return false;
+        cout<<"Entering Identifier"<<endl;
+        int t1 = symTables[currentSymTableId].lookup(node->id);
+        if(t1){
+            cout<<"Redeclaration of symbol "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
+            exit(0);
         }
         else{
-            symTables[currentSymTableId].insertSymEntry(node->id,t);
+            symTables[currentSymTableId].insertSymEntry(node->id,t,node->lineno);
             return true;
         }
     }
-    if(node->token == "Literal")
+    if(node->token == "Literal"){
+        cout<<"Entering Literal"<<endl;
         return node->literal_type == t;
+    }
     return true;
 }
 
 void LocalVariableDeclaration(Node* node){
-    
+    cout<<"entering LocalVariableDeclaration"<<endl;
     TYPE t = UNKNOWN;
     Node*temp = node;
     while(temp->children.size()){
-        if(temp->id == "final")
+        if(temp->children[0]->id == "final")
             temp = temp->children[1];
         else    
             temp = temp->children[0];
     }
     t = temp->literal_type;
-
 
     check_semantic_LocalVariableDeclaration(node->children[node->children.size()-1], t);
 }
@@ -6507,26 +6513,42 @@ void symTab_csv(symtab* a){
     fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
     for(auto i = a->entries.begin(); i != a->entries.end(); i++){
         for(auto j = i->second.begin(); j != i->second.end(); j++)
-            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<1<<endl;
+            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->lineno<<endl;
     }
     fout.close();
+}
 
+void FieldDeclaration(Node* node){
+    cout<<"Entering FieldDeclaration"<<endl;
+    TYPE t = UNKNOWN;
+    Node*temp = node;
+    while(temp->children.size()){
+        if(temp->children.size() == 4)
+            temp = temp->children[1];
+        else    
+            temp = temp->children[0];
+    }
+    t = temp->literal_type;
+    cout<<enum_types[t]<<endl;
+    check_semantic_LocalVariableDeclaration(node->children[node->children.size()-2], t);
 }
 
 void traverse_semantics(Node*node, int &counter){
 
     if(node->id == "LocalVariableDeclaration"){
         LocalVariableDeclaration(node);
-
         return;
     }
-
+    if(node->id == "FieldDeclaration"){
+        FieldDeclaration(node);
+        return;
+    }
 
     node->count = counter++;
     symtab *a = NULL;
     if(node->isBlock){
         a = new symtab(node->count, currentSymTableId);
-        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID"<<node->id<<" "<<node->isBlock<<endl;
+        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID "<<node->id<<" "<<node->isBlock<<endl;
         currentSymTableId = node->count;
         symTables[currentSymTableId] = *a;
     }

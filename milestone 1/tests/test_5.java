@@ -1,4 +1,6 @@
 public class GFG {
+
+    int a = 0;
     public static void main(final String[] args) {
         int n = 10, c, d, swap;
 

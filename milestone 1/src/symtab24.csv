@@ -1,5 +1,0 @@
-Lexeme,Tokens,Type,LineNo
-c,Identifier,INT,1
-d,Identifier,INT,1
-n,Identifier,INT,1
-swap,Identifier,INT,1
