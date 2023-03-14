@@ -4,14 +4,10 @@
 using namespace std;
 
 enum TYPE{
-    INT,
     BIN,
-    FLOAT,
     OCT,
-    HEX_FLOAT,
     STRING,
     HEX,
-    CHAR,
     BOOL,
     VOID,
     FUNCTION,
@@ -25,7 +21,11 @@ enum TYPE{
     _NULL,
     BYTE,
     SHORT,
+    CHAR,
+    INT,
     LONG,
+    HEX_FLOAT,
+    FLOAT,
     DOUBLE,
 };
 struct symEntry{

@@ -12,6 +12,8 @@ public:
     vector<Node*> children;
     TYPE literal_type = UNKNOWN;
     int lineno = -1;
+    bool isArray = false;
+    int size = 0;
 
     Node(const char* id) {
         string s(id);

@@ -31,8 +31,14 @@ int symtab::lookup(string lex){
 
 vector<struct symEntry>* symtab::getSymEntry(string lex){
 
-        if(this->entries.find(lex)!=this->entries.end()){
-            return &this->entries[lex];
+    int scopeID = this->ID;
+    while(scopeID){
+        if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
+            scopeID =  symTables[scopeID].parentID;
         }
-        return NULL;
+        else {
+            return &symTables[scopeID].entries[lex];
+        }
     }
+    return NULL;
+}
