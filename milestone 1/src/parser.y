@@ -6,7 +6,7 @@ using namespace std;
 extern int yylex();
 extern int yylineno;
 extern FILE *yyin;
-map<unsigned long long int, symtab> symTables; 
+extern map<unsigned long long int, symtab> symTables; 
 
 vector<string> enum_types = {"INT", "BIN", "FLOAT", "OCT", "HEX_FLOAT", "STRING", "HEX", "CHAR", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL",  "LONG", "DOUBLE"};
 
@@ -1349,6 +1349,7 @@ WhileStatement :
     k_while s_open_paren Expression s_close_paren Statement 
     {
         $$ = new Node("WhileStatement");
+        $$->isBlock = true;
         $$->children.push_back(new Node("while", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -2397,16 +2398,16 @@ bool check_semantic_VariableAssignment(Node*node, TYPE t){
         int t1 = symTables[currentSymTableId].lookup(node->children[0]->id);
         cout<<"T-------------------"<<t1<<endl;
         if(!t1){
-            cout<<"Redeclaration of symbol "<<node->children[0]->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
+            cout<<"Symbol not Declared"<<node->children[0]->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
             exit(0);
         }
         vector<struct symEntry>* a = symTables[currentSymTableId].getSymEntry(node->children[0]->id);
         if(!a){
-            cout<<"Redeclaration of symbol "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
+            cout<<"Symbol not found in Symbol Table "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
             exit(0);
         }
-        if((*a)[0].type != t && (*a)[0].type!=VAR){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<(*a)[0].type<<endl;
+        if((*a)[0].type != t && t !=VAR){
+            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<enum_types[t]<<" but found "<<enum_types[(*a)[0].type]<<endl;
             exit(0);
         }
         return check_semantic_VariableAssignment(node->children[2], (*a)[0].type);

@@ -9,7 +9,7 @@ BFLAGS = -d -t -v
 # Source files
 LEXER = lexer.l
 PARSER = parser.y
-
+SYMBOL_TABLE = SymTable.cpp
 # Object file
 OBJECT = myASTGenerator
 
@@ -17,7 +17,8 @@ OBJECT = myASTGenerator
 $(OBJECT): $(LEXER) $(PARSER)
 	$(FLEX) $(LEXER)
 	$(BISON) $(BFLAGS) $(PARSER)
-	$(CC) lex.yy.c parser.tab.c -o $(OBJECT)
+	$(CC) -c $(SYMBOL_TABLE)
+	$(CC) SymTable.o lex.yy.c parser.tab.c -o $(OBJECT)
 
 # Clean rule
 clean:

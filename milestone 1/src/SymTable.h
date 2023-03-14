@@ -43,35 +43,15 @@ public:
     int ID;
     map<string, vector<struct symEntry>> entries;
 
-    symtab(){
-        this->ID = -1;
-        this->parentID = -1;
+    symtab();
 
-    }
+    symtab(int id, int parentID);
 
-    symtab(int id, int parentID) {
-        this->ID = id;
-        this->parentID = parentID; 
-    }
+    void insertSymEntry(string lex, TYPE t, int line);
 
-    void insertSymEntry(string lex, TYPE t, int line){
-        this->entries[lex].push_back(*(new symEntry(t,line))); 
-    }
+    int lookup(string lex);
 
-    int lookup(string lex){
-        if(this->entries.find(lex)!=this->entries.end()){
-            return this->entries[lex][0].lineno;
-        }
-        return 0;
-    }
-
-    vector<struct symEntry>* getSymEntry(string lex){
-
-        if(this->entries.find(lex)!=this->entries.end()){
-            return &this->entries[lex];
-        }
-        return NULL;
-    }
+    vector<struct symEntry>* getSymEntry(string lex);
 
 };
 #endif
