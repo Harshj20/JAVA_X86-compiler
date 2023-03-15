@@ -21,7 +21,7 @@ TYPE t = VOID;
 int size = 0;
 vector<int>vs;
 bool isarr=false;
-int ArrayArgumentSize = 0;
+int ArrayArgumentDepth = 0;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -731,10 +731,11 @@ VariableDeclarator: VariableDeclaratorId
 	               |VariableDeclaratorId o_assign VariableInitializer     
                         {
                             if(!isDot){
-                                if(t != $3->type){
-                                    cout<<"Type Mismatch in Variable Declarator"<<endl;
-                                    exit(0);
-                                }
+                                // if(t != $3->type){
+                                //     cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
+                                //     cout<<"Type Mismatch in Variable Declarator"<<endl;
+                                //     exit(0);
+                                // }
                                 if(isarr){
                                     vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
                                     if(!s){
@@ -770,7 +771,6 @@ VariableDeclaratorId: Identifier
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                             }
                             //cout<<enum_types[t]<<endl;
-                            ArrayArgumentSize = size;
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -1352,15 +1352,21 @@ ArrayInitializer:
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back(new Node("}","Separator", yylineno));
     }
-	|*/ s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
+	|*/ array_s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->isBlock=true;
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
-        if(!isDot)
-        vs.insert(vs.begin(), $2->size);
+        if(!isDot){
+            if(vs[ArrayArgumentDepth-1] && vs[ArrayArgumentDepth-1] != $2->size){
+                yyerror("Error in number of arguments for array");
+                exit(0);
+            }
+            vs[ArrayArgumentDepth-1] = $2->size;
+            ArrayArgumentDepth--;
+        }
     }
 	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
@@ -1369,22 +1375,38 @@ ArrayInitializer:
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back(new Node("}","Separator", yylineno));
     }
-	*/| s_open_curly_bracket  s_close_curly_bracket
+	*/| array_s_open_curly_bracket  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         $$->isBlock=true;
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("}","Separator", yylineno));
-        if(!isDot)
-        vs.insert(vs.begin(), 0);
+        if(!isDot){
+            if(vs[ArrayArgumentDepth-1]){
+                yyerror("Error in number of arguments for array");
+                exit(0);
+            }
+            vs[ArrayArgumentDepth-1] = 0;
+            ArrayArgumentDepth--;
+        }
     }
 	;
-
+array_s_open_curly_bracket : s_open_curly_bracket{
+    if(!isDot){
+        ArrayArgumentDepth++;
+        if(ArrayArgumentDepth > size){
+            yyerror("Excess Dimensions used");
+            exit(0);
+        }
+        if(ArrayArgumentDepth > vs.size())
+            vs.push_back(0);
+    }
+}
 VariableInitializerList: VariableInitializer
 {
-    $$=new Node("VariableInitializerList");
-    $$->children.push_back($1);
+    $$ = $1;
+    $$->size = 1;
 }
 	| VariableInitializerList s_comma VariableInitializer
     {
@@ -1392,6 +1414,7 @@ VariableInitializerList: VariableInitializer
         $$->children.push_back($1);
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back($3);
+        $$->size = $1->size + 1;
     }
 	;
 
@@ -1444,7 +1467,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$->children.push_back(new Node(";", "Separator", yylineno));
         isarr=false;
         size=0;
-        ArrayArgumentSize = 0;
+        ArrayArgumentDepth = 0;
     }
     ;
 
