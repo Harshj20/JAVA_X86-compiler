@@ -12,12 +12,14 @@ vector<TYPE>vt;
 
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
 
-set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
+set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, /*CHAR,*/ LONG, DOUBLE};
 
 int currentSymTableId = -1;
 int symTablescount = 0;
 bool isDot = false;
 TYPE t = VOID;
+int size = 0;
+bool isarr=false;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -178,6 +180,10 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
+                    $$->isArray = true;
+                    $$->size++;
+                    isarr = true;
+                    ++size;
                 }
 	| Name s_open_square_bracket s_close_square_bracket
                 {
@@ -194,6 +200,10 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
+                    $$->isArray = true;
+                    $$->size++;
+                    isarr = true;
+                    ++size;
                 }
 	|ArrayType s_open_square_bracket s_close_square_bracket
                 {
@@ -203,6 +213,10 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
+                    $$->isArray = true;
+                    $$->size=$1->size+1;
+                    ++size;
+                    isarr = true;
                 }
 
 
@@ -736,7 +750,11 @@ VariableDeclaratorId: Identifier
                                 exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                            cout<<enum_types[t]<<endl;
+                            for(int i=0;i<size;i++){
+                                symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                            }
+                            //cout<<enum_types[t]<<endl;
+
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -1404,6 +1422,8 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$ = new Node("LocalVariableDeclarationStatement");
         $$->children.push_back($1);
         $$->children.push_back(new Node(";", "Separator", yylineno));
+        isarr=false;
+        size=0;
     }
     ;
 
