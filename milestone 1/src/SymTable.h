@@ -6,6 +6,7 @@ using namespace std;
 enum TYPE{
     BIN,
     OCT,
+    HEX_FLOAT,
     STRING,
     HEX,
     BOOL,
@@ -24,9 +25,8 @@ enum TYPE{
     CHAR,
     INT,
     LONG,
-    HEX_FLOAT,
     FLOAT,
-    DOUBLE,
+    DOUBLE
 };
 struct symEntry{
     TYPE type;
@@ -50,6 +50,8 @@ public:
     void insertSymEntry(string lex, TYPE t, int line);
 
     int lookup(string lex);
+
+    int grand_lookup(string lex);
 
     vector<struct symEntry>* getSymEntry(string lex);
 
