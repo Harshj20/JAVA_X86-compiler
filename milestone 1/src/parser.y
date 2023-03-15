@@ -10,14 +10,14 @@ extern map<unsigned long long int, symtab> symTables;
 
 vector<TYPE>vt;
 
-vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
+vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
 int currentSymTableId = -1;
 int symTablescount = 0;
 bool isDot = false;
-TYPE t = UNKNOWN;
+TYPE t = VOID;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -217,7 +217,7 @@ SimpleName: Identifier
             {   
                 string lex($1);
                 if(!isDot){
-                    int t1=symTables[currentSymTableId].lookup(lex);
+                    int t1=symTables[currentSymTableId].grand_lookup(lex);
                     if(!t1){
                         string s1 = "Undeclared variable " + lex;
                         yyerror(s1.c_str());
@@ -668,7 +668,7 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             //         exit(0);
                             //     }
                             // }
-                            t = UNKNOWN;
+                            t = VOID;
                         }
                         | Type VariableDeclaratorList s_semicolon     
                         {
@@ -682,7 +682,7 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             //         exit(0);
                             //     }
                             // }
-                            t = UNKNOWN;
+                            t = VOID;
                         }
 
 VariableDeclaratorList:VariableDeclarator     
@@ -783,27 +783,27 @@ MethodHeader:
             $$->children.push_back($2);
             $$->children.push_back($3);
             $$->children.push_back($4);
-            $$->type = $2->type;
+            t = $2->type;
         }
     | Modifiers Type MethodDeclarator {   
             $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->type = $2->type;
+            t = $2->type;
         }
     |  Type MethodDeclarator Throws {   
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->type = $1->type;
+            t = $1->type;
         }
     |  Type MethodDeclarator    {   
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
-            $$->type = $1->type;
+            t = $1->type;
         }
 	| Modifiers k_void MethodDeclarator Throws  {   
             $$=new Node($3->id.c_str(),"MethodHeader",yylineno);
@@ -811,27 +811,27 @@ MethodHeader:
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
-            $$->type=VOID;
+            t=VOID;
         }
     | Modifiers k_void MethodDeclarator {   
             $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
-            $$->type=VOID;
+            t=VOID;
         }
     |  k_void MethodDeclarator Throws {   
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->type=VOID;
+            t=VOID;
         }
     |  k_void MethodDeclarator {   
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
-            $$->type=VOID;
+            t=VOID;
         }
 S_open_paren : s_open_paren {
         if(!isDot){
@@ -899,7 +899,7 @@ FormalParameter: Type VariableDeclaratorId
                             $$->children.push_back($1);
                             $$->children.push_back($2);
                             vt.push_back(t);
-                            t=UNKNOWN;
+                            t=VOID;
                         }
                 | k_final Type VariableDeclaratorId     
                         {
@@ -908,7 +908,7 @@ FormalParameter: Type VariableDeclaratorId
                             $$->children.push_back($2);
                             $$->children.push_back($3);
                             vt.push_back(t);
-                            t=UNKNOWN;
+                            t=VOID;
                         }
 
 Throws: k_throws ClassTypeList  
@@ -1533,7 +1533,7 @@ StatementExpression:
 	;
 
 IfThenStatement : 
-    k_if s_open_paren Expression s_close_paren Statement 
+    k_if invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("IfThenStatement");
         $$->isBlock = true;
@@ -1542,12 +1542,15 @@ IfThenStatement :
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
+        if(!isDot){
+            currentSymTableId=symTables[currentSymTableId].parentID;  
+        }
     }
     ;
 
 
 IfThenElseStatement : 
-    k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else Statement 
+    k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else Statement 
     {
         $$ = new Node("IfThenElseStatement");
         $$->isBlock = true;
@@ -1562,7 +1565,7 @@ IfThenElseStatement :
     ;
 
 IfThenElseStatementNoShortIf : 
-    k_if s_open_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
+    k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
     {
         $$ = new Node("IfThenElseStatementNoShortIf");
         $$->isBlock = true;
@@ -1616,7 +1619,7 @@ ForStatement : BasicForStatement {$$=$1;}| EnhancedForStatement {$$=$1;}
 ForStatementNoShortIf : BasicForStatementNoShortIf {$$=$1;}| EnhancedForStatementNoShortIf {$$=$1;}
 
 BasicForStatement:
-	k_for s_open_paren s_semicolon s_semicolon s_close_paren Statement 
+	k_for invoke_paren s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1626,8 +1629,11 @@ BasicForStatement:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($6);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1638,8 +1644,11 @@ BasicForStatement:
         $$->children.push_back($5);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1650,8 +1659,11 @@ BasicForStatement:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1663,8 +1675,11 @@ BasicForStatement:
         $$->children.push_back($6);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
+    | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1675,8 +1690,11 @@ BasicForStatement:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
+    | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1688,8 +1706,11 @@ BasicForStatement:
         $$->children.push_back($6);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1701,8 +1722,11 @@ BasicForStatement:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         $$->isBlock = true;
@@ -1715,12 +1739,15 @@ BasicForStatement:
         $$->children.push_back($7);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
     ;
 
 
 BasicForStatementNoShortIf:
-	k_for s_open_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
+	k_for invoke_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
      {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1730,8 +1757,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($6);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
      }
-    | k_for s_open_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1742,8 +1772,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back($5);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
+    | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1754,8 +1787,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1767,8 +1803,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back($6);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1779,8 +1818,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1792,8 +1834,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back($6);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1805,8 +1850,11 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(";", "Separator", yylineno));
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
-    | k_for s_open_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
         $$->isBlock = true;
@@ -1819,10 +1867,13 @@ BasicForStatementNoShortIf:
         $$->children.push_back($7);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
+        if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
     }
     ;
 
-EnhancedForStatementNoShortIf: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
+EnhancedForStatementNoShortIf: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
 {
     $$ = new Node("EnhancedForStatementNoShortIf");
     $$->isBlock = true;
@@ -1833,6 +1884,9 @@ EnhancedForStatementNoShortIf: k_for s_open_paren LocalVariableDeclaration o_col
     $$->children.push_back($5);
     $$->children.push_back(new Node(")", "Separator", yylineno));
     $$->children.push_back($7);
+    if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        }
 }
 
 ForInit : 
@@ -1853,7 +1907,7 @@ ForUpdate :
     }
 	;
 
-EnhancedForStatement: k_for s_open_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
+EnhancedForStatement: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
 {
     $$ = new Node("EnhancedForStatement");
     $$->isBlock = true;
@@ -3001,7 +3055,7 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
 
 void LocalVariableDeclaration(Node* node){
     cout<<"entering LocalVariableDeclaration"<<endl;
-    TYPE t = UNKNOWN;
+    TYPE t = VOID;
     Node*temp = node;
     while(temp->children.size()){
         if(temp->children[0]->id == "final")
@@ -3028,7 +3082,7 @@ void symTab_csv(symtab* a){
 
 void FieldDeclaration(Node* node){
     cout<<"Entering FieldDeclaration"<<endl;
-    TYPE t = UNKNOWN;
+    TYPE t = VOID;
     Node*temp = node;
     while(temp->children.size()){
         if(temp->children.size() == 4)
