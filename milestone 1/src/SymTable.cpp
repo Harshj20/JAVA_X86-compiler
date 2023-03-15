@@ -4,7 +4,6 @@ map<unsigned long long int, symtab> symTables;
 symtab::symtab(){
         this->ID = -1;
         this->parentID = -1;
-
     }
 
 symtab::symtab(int id, int parentID) {
@@ -18,19 +17,18 @@ void symtab::insertSymEntry(string lex, TYPE t, int line){
 
 int symtab::lookup(string lex){
     int scopeID = this->ID;
-    while(scopeID){
+    while(symTables[scopeID].parentID>0){
         if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
             scopeID =  symTables[scopeID].parentID;
         }
         else {
-            return symTables[scopeID].entries[lex][0].lineno;
+            return scopeID;
         }
     }
     return 0;
 }
 
 vector<struct symEntry>* symtab::getSymEntry(string lex){
-
     int scopeID = this->ID;
     while(scopeID){
         if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
