@@ -8,7 +8,6 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 
-
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, /*CHAR,*/ LONG, DOUBLE};
@@ -489,7 +488,8 @@ NormalClassDeclaration:
                 yyerror("Class already declared");
                 exit(0);
             }
-            else{
+            else{                    isarr = true;
+
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
@@ -774,19 +774,24 @@ VariableDeclaratorId: Identifier
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
-                        {
-                            $$=new Node("VariableDeclaratorId");
-                            $$->children.push_back($1);
-                            $$->children.push_back(new Node("[","Separator", yylineno));
-                            $$->children.push_back(new Node("]","Separator", yylineno));
+                        {   
+
                             if(!isDot){
                                 string s($1->id);
+                                $$=new Node($1->id.c_str(),"VariableDeclaratorId",yylineno);
                                 if(!symTables[currentSymTableId].lookup(s)){
                                     cout<<"Variable "<<s<<" already declared in this scope"<<endl;
                                     exit(0);
                                 }
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                                ++size;
+                                isarr = true;
                             }
+                            else 
+                            $$=new Node("VariableDeclaratorId");
+                            $$->children.push_back($1);
+                            $$->children.push_back(new Node("[","Separator", yylineno));
+                            $$->children.push_back(new Node("]","Separator", yylineno));
                         }
 
 VariableInitializer:Expression     
@@ -1360,7 +1365,7 @@ ArrayInitializer:
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
         if(!isDot){
-            if(vs[ArrayArgumentDepth-1] && vs[ArrayArgumentDepth-1] != $2->size){
+            if(vs[ArrayArgumentDepth-1] && (vs[ArrayArgumentDepth-1] != $2->size)){
                 yyerror("Error in number of arguments for array");
                 exit(0);
             }
@@ -2200,7 +2205,7 @@ ArrayCreationExpression:
     k_new PrimitiveType DimExprs 
      { 
        $$ = new Node("ArrayCreationExpression");
-       $$->type= $2->type;
+       $$->type = $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
@@ -2283,7 +2288,8 @@ DimExpr:
                 exit(0);
             }
             if(isarr){
-                vs.push_back(vs.size());
+
+                vs.push_back(vs.size()+1);
             }
         }
      $$->children.push_back(new Node("[","Separator", yylineno));
@@ -2300,7 +2306,7 @@ Dims:
     $$->children.push_back(new Node("[","Separator", yylineno));
     $$->children.push_back(new Node("]","Separator", yylineno));
     if(isarr){
-        vs.push_back(vs.size());
+        vs.push_back(0);
     }
     }
     | Dims s_open_square_bracket s_close_square_bracket
@@ -2308,7 +2314,7 @@ Dims:
     $$->children.push_back($1);
     $$->children.push_back(new Node("[","Separator", yylineno));
     if(isarr){
-        vs.push_back(vs.size());
+        vs.push_back(0);
     }
     }
     ;
