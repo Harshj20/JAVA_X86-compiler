@@ -10,7 +10,7 @@ public:
     string token="";
     bool isBlock = false;
     vector<Node*> children;
-    TYPE literal_type = UNKNOWN;
+    TYPE type = UNKNOWN;
     int lineno = -1;
     bool isArray = false;
     int size = 0;
@@ -36,7 +36,7 @@ public:
         this->id=s;
         string t(token);
         this->token=t;
-        this->literal_type = type;
+        this->type = type;
         this->lineno = lineno;
     }
 };
