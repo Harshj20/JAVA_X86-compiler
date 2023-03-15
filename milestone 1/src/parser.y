@@ -103,8 +103,10 @@ PrimitiveType: NumericType
              | k_boolean
              {
                 $$ = new Node("boolean","Keyword",yylineno);
+                if(!isDot){
                 $$->type = BOOL;
                 t = BOOL;
+                }
              }
 
 NumericType:IntegralType
@@ -181,12 +183,14 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->isArray = true;
-                    if(!symTables[currentSymTableId].lookup($1->id)){
-                        string s1 = "Undeclared type " + $1->id;
-                        yyerror(s1.c_str());
-                        exit(0);
-                    }
+                    if(!isDot){
+                        if(!symTables[currentSymTableId].lookup($1->id)){
+                            string s1 = "Undeclared type " + $1->id;
+                            yyerror(s1.c_str());
+                            exit(0);
+                        }
                     $$->type = (*symTables[currentSymTableId].getSymEntry($1->id))[0].type;
+                    }
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
@@ -1580,7 +1584,7 @@ IfThenElseStatementNoShortIf :
     ;
 
 invoke_paren : s_open_paren {
-    cout<<"while"<<endl;
+    if(!isDot)
     initializeSymTable();
 }
 
@@ -3272,9 +3276,10 @@ int main(int argc, char**argv){
     else {
         yyin = stdin;
     }
-    initializeSymTable();
+    if(!isDot){
+        initializeSymTable();
+    }
     yyparse();
-
     if(root){
         if(isDot){
             if(output_index)

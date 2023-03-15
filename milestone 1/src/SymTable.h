@@ -31,6 +31,7 @@ enum TYPE{
 struct symEntry{
     TYPE type;
     int lineno;
+    int size = 0;
     symEntry(TYPE type, int lineno){
         this->type = type;
         this->lineno = lineno;
