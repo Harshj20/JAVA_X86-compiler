@@ -8,11 +8,14 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 
-vector<string> enum_types = {"INT", "BIN", "FLOAT", "OCT", "HEX_FLOAT", "STRING", "HEX", "CHAR", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL",  "LONG", "DOUBLE"};
+vector<TYPE>vt;
 
+vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
+
+set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
 int currentSymTableId = -1;
-int symtablescount = 0;
+int symTablescount = 0;
 bool isDot = false;
 TYPE t = UNKNOWN;
 
@@ -27,11 +30,11 @@ void yyerror(const char* s){
 }
 
 void initializeSymTable(){
-    symtab*a = new symtab(symtablescount, currentSymTableId);
-    cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and current ID "<<symtablescount<<endl;
-    currentSymTableId = symtablescount;
-    symtablescount++;
-    symTables[currentSymTableId] = *a
+    symtab*a = new symtab(symTablescount, currentSymTableId);
+    cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and current ID "<<symTablescount<<endl;
+    currentSymTableId = symTablescount;
+    symTablescount++;
+    symTables[currentSymTableId] = *a;
 }
 
 Node* root=NULL;
@@ -63,7 +66,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant 
 
 %%
 // ------------------ Start -----------------------
@@ -100,8 +103,8 @@ PrimitiveType: NumericType
              | k_boolean
              {
                 $$ = new Node("boolean","Keyword",yylineno);
-                $$->literal_type = BOOL;
-                t = BOOL
+                $$->type = BOOL;
+                t = BOOL;
              }
 
 NumericType:IntegralType
@@ -115,7 +118,7 @@ NumericType:IntegralType
 
 IntegralType: k_byte{
                 $$ = new Node("byte","Keyword", INT, yylineno);
-                t = INT
+                t = INT;
             }
             |k_short{
                 $$ = new Node("short","Keyword", INT, yylineno);
@@ -168,7 +171,7 @@ InterfaceType:ClassOrInterfaceType {
 ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
-                    $$->literal_type = $1->literal_type;
+                    $$->type = $1->type;
                     $$->isArray = true;
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
@@ -179,10 +182,11 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$=new Node("ArrayType"); 
                     $$->isArray = true;
                     if(!symTables[currentSymTableId].lookup($1->id)){
-                        yyerror("Undeclared type " + $1->id);
+                        string s1 = "Undeclared type " + $1->id;
+                        yyerror(s1.c_str());
                         exit(0);
                     }
-                    $$->literal_type = (*symTables[currentSymTableId].getSymEntry($1->id))[0].type;
+                    $$->type = (*symTables[currentSymTableId].getSymEntry($1->id))[0].type;
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
@@ -191,7 +195,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->isArray = true;
-                    $$->literal_type = $1->literal_type;
+                    $$->type = $1->type;
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
@@ -210,8 +214,20 @@ Name:SimpleName
       }
 
 SimpleName: Identifier 
-            {
-                $$ = new Node($1,"Identifier",yylineno);
+            {   
+                string lex($1);
+                if(!isDot){
+                    int t1=symTables[currentSymTableId].lookup(lex);
+                    if(!t1){
+                        string s1 = "Undeclared variable " + lex;
+                        yyerror(s1.c_str());
+                        exit(0);
+                    }
+                    $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
+                }
+                else {
+                    $$ = new Node($1,"Identifier",yylineno);
+                }
             }
 
 QualifiedName: Name s_dot Identifier 
@@ -224,7 +240,8 @@ QualifiedName: Name s_dot Identifier
                     }
                     else{
                         string s($3);
-                        $$=new Node($1->id +"."+ s, "QualifiedName");
+                        s = $1->id +"."+ s;
+                        $$=new Node(s.c_str(), "QualifiedName", yylineno);
                     }
 
                 }
@@ -415,12 +432,12 @@ NormalClassDeclaration:
         $$->children.push_back($6);
         if(!isDot){
             string s($3);
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
     }
@@ -429,12 +446,12 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
         $$->children.push_back($1);
@@ -448,12 +465,12 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
         $$->children.push_back($1);
@@ -467,12 +484,12 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
         $$->children.push_back($1);
@@ -485,12 +502,12 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         if(!isDot){
                 string s($2);
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -504,12 +521,12 @@ NormalClassDeclaration:
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
             string s($2);
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -522,12 +539,12 @@ NormalClassDeclaration:
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
             string s($2);
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -540,12 +557,12 @@ NormalClassDeclaration:
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
             string s($2);
-            if(symtables[currentSymTableId].entries.find(s) != symtables[currentSymTableId].entries.end()){
+            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
             }
             else{
-                symtables[currentSymTableId].insertSymEntry(s, CLASS, lineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -553,7 +570,7 @@ NormalClassDeclaration:
             $$->children.push_back($3);
        }
 
-S_open_curly_bracket: s_open_surly_bracket { 
+S_open_curly_bracket: s_open_curly_bracket { 
                     if(!isDot){
                         initializeSymTable();
                     }
@@ -599,7 +616,7 @@ ClassBody: S_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket
     $$=new Node("ClassBody");
     $$->children.push_back(new Node("{","Separator", yylineno));
     $$->children.push_back(new Node("}","Separator", yylineno));
-    currentSymTableId = symTables[currentSymTableId].parentID;
+    //currentSymTableId = symTables[currentSymTableId].parentID;
 }
 
 ClassBodyDeclarations:ClassBodyDeclaration  
@@ -665,7 +682,7 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             //         exit(0);
                             //     }
                             // }
-                            t = UNKNWON;
+                            t = UNKNOWN;
                         }
 
 VariableDeclaratorList:VariableDeclarator     
@@ -710,11 +727,12 @@ VariableDeclaratorId: Identifier
                         $$ = new Node($1,"Identifier",yylineno);
                         if(!isDot){
                             string s($1);
-                            if(!symTables[currentSymTableId].lookup(s)){
+                            if(symTables[currentSymTableId].lookup(s)){
                                 cout<<"Variable "<<s<<" already declared in this scope"<<endl;
                                 exit(0);
                             }
-                            symTables[currentSymTableId].insertSymEntry(s, t, lineno);
+                            symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                            cout<<enum_types[t]<<endl;
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -724,12 +742,12 @@ VariableDeclaratorId: Identifier
                             $$->children.push_back(new Node("[","Separator", yylineno));
                             $$->children.push_back(new Node("]","Separator", yylineno));
                             if(!isDot){
-                                string s($1);
+                                string s($1->id);
                                 if(!symTables[currentSymTableId].lookup(s)){
                                     cout<<"Variable "<<s<<" already declared in this scope"<<endl;
                                     exit(0);
                                 }
-                                symTables[currentSymTableId].insertSymEntry(s, t);
+                                symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                             }
                         }
 
@@ -748,90 +766,120 @@ MethodDeclaration: MethodHeader MethodBody
                             $$->isBlock = true;
                             $$->children.push_back($1);
                             $$->children.push_back($2);
+                            if(!isDot){
+                                currentSymTableId = symTables[currentSymTableId].parentID;
+                                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
+                                for(int i=0;i<vt.size();i++){
+                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno);
+                                }
+                                vt.clear();
+                            }
                         }
 
 MethodHeader:   
-	invoke_Modifiers Type MethodDeclarator Throws    {   
-            $$=new Node("MethodHeader"); 
+	Modifiers Type MethodDeclarator Throws    {   
+            $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             $$->children.push_back($4);
-
+            $$->type = $2->type;
         }
-    | invoke_Modifiers Type MethodDeclarator {   
-            $$=new Node("MethodHeader"); 
+    | Modifiers Type MethodDeclarator {   
+            $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
+            $$->type = $2->type;
         }
-    |  invoke_Type MethodDeclarator Throws {   
-            $$=new Node("MethodHeader"); 
+    |  Type MethodDeclarator Throws {   
+            $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
+            $$->type = $1->type;
         }
-    |  invoke_Type MethodDeclarator    {   
-            $$=new Node("MethodHeader"); 
+    |  Type MethodDeclarator    {   
+            $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
+            $$->type = $1->type;
         }
-	| invoke_Modifiers k_void MethodDeclarator Throws  {   
-            $$=new Node("MethodHeader"); 
+	| Modifiers k_void MethodDeclarator Throws  {   
+            $$=new Node($3->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back($1);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
+            $$->type=VOID;
         }
-    | invoke_Modifiers k_void MethodDeclarator {   
-            $$=new Node("MethodHeader"); 
+    | Modifiers k_void MethodDeclarator {   
+            $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
+            $$->type=VOID;
         }
-    |  invoke_k_void MethodDeclarator Throws {   
-            $$=new Node("MethodHeader"); 
+    |  k_void MethodDeclarator Throws {   
+            $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
             $$->children.push_back($3);
+            $$->type=VOID;
         }
-    |  invoke_k_void MethodDeclarator {   
-            $$=new Node("MethodHeader"); 
+    |  k_void MethodDeclarator {   
+            $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
-            }
-invoke_Type: Type   {
-    if(!isDot)
-    initializeSymTable();
-}
-invode_Modifiers : Modifiers {
-    if(!isDot)
-    initializeSymTable();
-}
-invoke_k_void: k_void {
-    if(!isDot)
-    initializeSymTable();
+            $$->type=VOID;
+        }
+S_open_paren : s_open_paren {
+        if(!isDot){
+            vt.push_back(t);
+            initializeSymTable();
+        }
 }
 MethodDeclarator: 
-	Identifier s_open_paren FormalParameterList s_close_paren {   
-            $$=new Node("MethodDeclarator"); 
+	Identifier S_open_paren FormalParameterList s_close_paren {   
+            $$=new Node($1,"MethodDeclarator",yylineno); 
             $$->children.push_back(new Node($1,"Identifier",yylineno));
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
             $$->children.push_back(new Node(")","Separator", yylineno));
+            if(!isDot){
+                //currentSymTableId = symTables[currentSymTableId].parentID;
+                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno);
+                for(int i=0;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno);
+                }
+            }
         }
-    | Identifier s_open_paren s_close_paren {   
-            $$=new Node("MethodDeclarator"); 
+    | Identifier S_open_paren s_close_paren {   
+            $$=new Node($1,"MethodDeclarator",yylineno); 
             $$->children.push_back(new Node($1,"Identifier",yylineno));
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
+            if(!isDot){
+                //currentSymTableId = symTables[currentSymTableId].parentID;
+                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
+                for(int i=0;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno);
+                }
+            }
         }
 	| MethodDeclarator s_open_square_bracket s_close_square_bracket {   
-            $$=new Node("MethodDeclarator"); 
+            $$=new Node($1->id.c_str(),"MethodDeclarator",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
+            if(!isDot){
+                //currentSymTableId = symTables[currentSymTableId].parentID;
+                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
+                for(int i=0;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno);
+                }
             }
+        }
 
 FormalParameterList: FormalParameter    
                         {
@@ -850,6 +898,8 @@ FormalParameter: Type VariableDeclaratorId
                             $$=new Node("FormalParameter");
                             $$->children.push_back($1);
                             $$->children.push_back($2);
+                            vt.push_back(t);
+                            t=UNKNOWN;
                         }
                 | k_final Type VariableDeclaratorId     
                         {
@@ -857,6 +907,8 @@ FormalParameter: Type VariableDeclaratorId
                             $$->children.push_back(new Node("final","Keyword", yylineno));
                             $$->children.push_back($2);
                             $$->children.push_back($3);
+                            vt.push_back(t);
+                            t=UNKNOWN;
                         }
 
 Throws: k_throws ClassTypeList  
@@ -925,7 +977,6 @@ ConstructorDeclaration:
 	;
 
 ConstructorDeclarator:
-
 	SimpleName s_open_paren FormalParameterList s_close_paren   
             {  
             $$=new Node("ConstructorDeclarator"); 
@@ -1525,9 +1576,13 @@ IfThenElseStatementNoShortIf :
     }
     ;
 
+invoke_paren : s_open_paren {
+    cout<<"while"<<endl;
+    initializeSymTable();
+}
 
 WhileStatement : 
-    k_while s_open_paren Expression s_close_paren Statement 
+    k_while invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("WhileStatement");
         $$->isBlock = true;
@@ -1536,11 +1591,13 @@ WhileStatement :
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
+        if(!isDot)
+        currentSymTableId = symTables[currentSymTableId].parentID;
     }
     ;
 
 WhileStatementNoShortIf : 
-    k_while s_open_paren Expression s_close_paren StatementNoShortIf 
+    k_while invoke_paren Expression s_close_paren StatementNoShortIf 
     {
         $$ = new Node("WhileStatementNoShortIf");
         $$->isBlock = true;
@@ -1549,6 +1606,8 @@ WhileStatementNoShortIf :
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
+        if(!isDot)
+        currentSymTableId = symTables[currentSymTableId].parentID;
     }
     ;
 
@@ -2105,13 +2164,13 @@ Dims:
 FieldAccess:
     Primary s_dot Identifier
     {$$ = new Node("FieldAccess");
-     $$->type= $3->type;
+        //$$->type= $3->type;
     $$->children.push_back($1);
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));}
     | k_super s_dot Identifier
     {$$ = new Node("FieldAccess");
-    $$->type= $3->type;
+    //$$->type= $3->type;
     $$->children.push_back(new Node("super","Keyword", yylineno));
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));}
@@ -2120,14 +2179,14 @@ FieldAccess:
 MethodInvocation:
     Name s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
-     $$->type= $1->type;
+     //$$->type= $1->type;
     $$->children.push_back($1);
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back(new Node(")","Separator", yylineno));
     }
     | Name s_open_paren ArgumentList s_close_paren
      {$$ = new Node("MethodInvocation");
-        $$->type= $1->type;
+       // $$->type= $1->type;
      $$->children.push_back($1);
      $$->children.push_back(new Node("(","Separator", yylineno));
      $$->children.push_back($3);
@@ -2135,7 +2194,7 @@ MethodInvocation:
      }
     | Primary s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->type= $3->type;
+    //$$->type= $3->type;
     $$->children.push_back($1);
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));
@@ -2144,7 +2203,7 @@ MethodInvocation:
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->type= $3->type;
+   // $$->type= $3->type;
     $$->children.push_back($1);
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));
@@ -2154,7 +2213,7 @@ MethodInvocation:
     }
     | k_super s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->type= $3->type;
+    //$$->type= $3->type;
     $$->children.push_back(new Node("super","Keyword", yylineno));
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));
@@ -2163,7 +2222,7 @@ MethodInvocation:
     }
     | k_super s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
-    $$->type= $3->type;
+    //$$->type= $3->type;
     $$->children.push_back(new Node("super","Keyword", yylineno));
     $$->children.push_back(new Node(".","Separator", yylineno));
     $$->children.push_back(new Node($3,"Identifier",yylineno));
@@ -2315,7 +2374,7 @@ UnaryExpressionNotPlusMinus:
     {$$ = new Node("UnaryExpressionNotPlusMinus");
         $$->type= $2->type;
         if(!isDot){
-        if ($2->type != BOOLEAN)
+        if ($2->type != BOOL)
         {
             yyerror("Logical not can only be applied to boolean");
             exit(0);
@@ -2479,8 +2538,9 @@ RelationalExpression:
     $$->children.push_back($1);
     if(!isDot){
     if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {
+    {   
         yyerror("Relational Operation cannot be applied to this type");
+        cout<<$1->type<<" "<<$3->type<<endl;
         exit(0);
     }
     }
@@ -2576,7 +2636,7 @@ EqualityExpression:
 AndExpression:  
     EqualityExpression
     {
-    $$ = $1;string
+    $$ = $1;
     }
     | AndExpression o_bitwise_and EqualityExpression
     {
@@ -2722,7 +2782,7 @@ Assignment:
     {
     $$ = new Node("Assignment");
     if(!isDot){
-    if(add_set.find($1->type)!=add_set.end() && add_set.find($3->type)!=add_set.end())
+    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
     {
         yyerror("Assignment Operation can only be applied to same type");
         exit(0);
@@ -2852,8 +2912,8 @@ bool check_semantic_expression(Node* node, TYPE t){
         return true;
     }
     if(node->token == "Literal"){
-        if(node->literal_type != t){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->literal_type<<endl;
+        if(node->type != t){
+            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->type<<endl;
             exit(0);
         }
         return true;
@@ -2894,8 +2954,8 @@ bool check_semantic_VariableAssignment(Node*node, TYPE t){
         return check_semantic_expression(node->children[2], (*a)[0].type);
     }
     if(node->token=="Literal"){
-        if(node->literal_type != t){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->literal_type<<endl;
+        if(node->type != t){
+            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->type<<endl;
             exit(0);
         }
         return true;
@@ -2934,7 +2994,7 @@ bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
     }
     if(node->token == "Literal"){
         cout<<"Entering Literal for type: "<<enum_types[t]<<endl;
-        return node->literal_type == t;
+        return node->type == t;
     }
     return true;
 }
@@ -2949,7 +3009,7 @@ void LocalVariableDeclaration(Node* node){
         else    
             temp = temp->children[0];
     }
-    t = temp->literal_type;
+    t = temp->type;
     cout<<"-------------------Local VariableDeclaration type passed = "<<enum_types[t]<<endl;
     check_semantic_LocalVariableDeclaration(node->children[node->children.size()-1], t);
 }
@@ -2976,7 +3036,7 @@ void FieldDeclaration(Node* node){
         else    
             temp = temp->children[0];
     }
-    t = temp->literal_type;
+    t = temp->type;
     cout<<enum_types[t]<<endl;
     check_semantic_LocalVariableDeclaration(node->children[node->children.size()-2], t);
 }
@@ -3080,8 +3140,8 @@ void traverse_semantics(Node*node, int &counter){
 }
 
 void check_semantics(){
-    int counter = 0;
-    traverse_semantics(root, counter);
+    //int counter = 0;
+    //traverse_semantics(root, counter);
     for(auto i = symTables.begin(); i != symTables.end(); i++){
         symTab_csv(&i->second);
     }
@@ -3158,7 +3218,7 @@ int main(int argc, char**argv){
     else {
         yyin = stdin;
     }
-
+    initializeSymTable();
     yyparse();
 
     if(root){
