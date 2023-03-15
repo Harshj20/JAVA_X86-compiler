@@ -1359,7 +1359,8 @@ ArrayInitializer:
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
-
+        if(!isDot)
+        vs.insert(vs.begin(), $2->size);
     }
 	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
@@ -1375,6 +1376,8 @@ ArrayInitializer:
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("}","Separator", yylineno));
+        if(!isDot)
+        vs.insert(vs.begin(), 0);
     }
 	;
 
