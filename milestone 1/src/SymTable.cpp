@@ -28,6 +28,20 @@ int symtab::lookup(string lex){
     return 0;
 }
 
+int symtab::grand_lookup(string lex){
+    int scopeID = this->ID;
+    while(symTables[scopeID].parentID>=0){
+        if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
+            scopeID =  symTables[scopeID].parentID;
+        }
+        else {
+            return scopeID;
+        }
+    }
+    return 0;
+}
+
+
 vector<struct symEntry>* symtab::getSymEntry(string lex){
     int scopeID = this->ID;
     while(scopeID){
