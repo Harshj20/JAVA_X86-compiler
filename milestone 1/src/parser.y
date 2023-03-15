@@ -8,7 +8,6 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 
-vector<TYPE>vt;
 
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
 
@@ -17,9 +16,12 @@ set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, /*CHAR,*/ LONG, DOUBLE
 int currentSymTableId = -1;
 int symTablescount = 0;
 bool isDot = false;
+vector<TYPE>vt;
 TYPE t = VOID;
 int size = 0;
+vector<int>vs;
 bool isarr=false;
+int ArrayArgumentSize = 0;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -728,16 +730,30 @@ VariableDeclarator: VariableDeclaratorId
                         }
 	               |VariableDeclaratorId o_assign VariableInitializer     
                         {
-                            $$=new Node("VariableDeclarator");
-                            $$->children.push_back($1);
-                            $$->children.push_back(new Node("=","Operator", yylineno));
-                            $$->children.push_back($3);
                             if(!isDot){
                                 if(t != $3->type){
                                     cout<<"Type Mismatch in Variable Declarator"<<endl;
                                     exit(0);
                                 }
+                                if(isarr){
+                                    vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
+                                    if(!s){
+                                        yyerror("Random");
+                                        exit(0);
+                                    }
+                                    for(int i = 0; i < vs.size(); i++){
+                                        (*s)[i+1].size = vs[i];
+                                    }
+                                    vs.clear();
+                                }
+                                $$=new Node($1->id.c_str(), "VariableDeclarator", yylineno);
                             }
+                            else{
+                                $$=new Node("VariableDeclarator");
+                            }
+                            $$->children.push_back($1);
+                            $$->children.push_back(new Node("=","Operator", yylineno));
+                            $$->children.push_back($3);
                         }
 
 VariableDeclaratorId: Identifier
@@ -754,7 +770,7 @@ VariableDeclaratorId: Identifier
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                             }
                             //cout<<enum_types[t]<<endl;
-
+                            ArrayArgumentSize = size;
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -1343,6 +1359,7 @@ ArrayInitializer:
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
+
     }
 	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
@@ -1424,6 +1441,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$->children.push_back(new Node(";", "Separator", yylineno));
         isarr=false;
         size=0;
+        ArrayArgumentSize = 0;
     }
     ;
 
@@ -2160,21 +2178,41 @@ ArrayCreationExpression:
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
+       if(!isDot){
+        if(t != $2->type){
+                yyerror("Type mismatch in arrayCreationExpression rhs");
+                exit(0);
+        }
+       }
      }
     | k_new PrimitiveType Dims ArrayInitializer
-        { $$ = new Node("ArrayCreationExpression");
+    { $$ = new Node("ArrayCreationExpression");
          $$->type= $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
-       $$->children.push_back($4);}
+       $$->children.push_back($4);
+       if(!isDot){
+            if(t != $2->type){
+                    yyerror("Type mismatch in arrayCreationExpression rhs");
+                    exit(0);
+            }
+       }
+    }
     | k_new PrimitiveType DimExprs Dims
         { $$ = new Node("ArrayCreationExpression");
          $$->type= $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
-       $$->children.push_back($4);}
+       $$->children.push_back($4);
+       if(!isDot){
+        if(t != $2->type){
+                yyerror("Type mismatch in arrayCreationExpression rhs");
+                exit(0);
+        }
+       }
+    }
     | k_new Name DimExprs 
         { $$ = new Node("ArrayCreationExpression");
           $$->type= $2->type;
@@ -2218,6 +2256,9 @@ DimExpr:
                 yyerror("Array index must be of type int");
                 exit(0);
             }
+            if(isarr){
+                vs.push_back(vs.size());
+            }
         }
      $$->children.push_back(new Node("[","Separator", yylineno));
      $$->children.push_back($2);
@@ -2232,11 +2273,18 @@ Dims:
         $$ = new Node("Dims");
     $$->children.push_back(new Node("[","Separator", yylineno));
     $$->children.push_back(new Node("]","Separator", yylineno));
+    if(isarr){
+        vs.push_back(vs.size());
+    }
     }
     | Dims s_open_square_bracket s_close_square_bracket
     {$$ = new Node("Dims");
     $$->children.push_back($1);
-    $$->children.push_back(new Node("[","Separator", yylineno));}
+    $$->children.push_back(new Node("[","Separator", yylineno));
+    if(isarr){
+        vs.push_back(vs.size());
+    }
+    }
     ;
 
 FieldAccess:
@@ -3096,10 +3144,10 @@ void symTab_csv(symtab* a){
     ofstream fout;
     string s= "symtab"+to_string(a->ID)+".csv";
     fout.open(s);
-    fout<<"Lexeme,Tokens,Type,LineNo"<<endl;
+    fout<<"Lexeme,Tokens,Type,ArrayDimSize,LineNo"<<endl;
     for(auto i = a->entries.begin(); i != a->entries.end(); i++){
         for(auto j = i->second.begin(); j != i->second.end(); j++)
-            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->lineno<<endl;
+            fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->size<<","<<j->lineno<<endl;
     }
     fout.close();
 }
