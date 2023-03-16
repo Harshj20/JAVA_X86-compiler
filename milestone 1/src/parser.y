@@ -668,6 +668,16 @@ ClassBodyDeclaration:ClassMemberDeclaration
                     |ConstructorDeclaration     
                         {
                             $$=$1;
+                            if(!isDot){
+                                currentSymTableId = symTables[currentSymTableId].parentID;
+                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
+                                for(int i=1;i<vt.size();i++){
+                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
+                                }
+                                vt.clear();
+                                vfs.clear();
+                                fsize = 0;
+                            }
                         }
 
 ClassMemberDeclaration:FieldDeclaration     
@@ -836,7 +846,10 @@ MethodDeclaration: MethodHeader MethodBody
 
 MethodHeader:   
 	Modifiers Type MethodDeclarator Throws    {   
-            $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
+                $$=new Node($3->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -844,26 +857,38 @@ MethodHeader:
             t = $2->type;
         }
     | Modifiers Type MethodDeclarator {   
-            $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
+                $$=new Node($3->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             t = $2->type;
         }
     |  Type MethodDeclarator Throws {   
-            $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
+                $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             t = $1->type;
         }
     |  Type MethodDeclarator    {   
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back($2);
             t = $1->type;
         }
 	| Modifiers k_void MethodDeclarator Throws  {   
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
             $$=new Node($3->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back($1);
             $$->children.push_back(new Node("void","Keyword", yylineno));
@@ -872,13 +897,19 @@ MethodHeader:
             t=VOID;
         }
     | Modifiers k_void MethodDeclarator {   
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
             $$=new Node($3->id.c_str(),"MethodHeader",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($3);
             t=VOID;
         }
-    |  k_void MethodDeclarator Throws {   
+    |  k_void MethodDeclarator Throws {  
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else 
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
@@ -886,6 +917,9 @@ MethodHeader:
             t=VOID;
         }
     |  k_void MethodDeclarator {   
+            if(isDot)
+                $$=new Node("MethodHeader"); 
+            else
             $$=new Node($2->id.c_str(),"MethodHeader",yylineno);
             $$->children.push_back(new Node("void","Keyword", yylineno));
             $$->children.push_back($2);
@@ -901,7 +935,10 @@ S_open_paren : s_open_paren {
 }
 MethodDeclarator: 
 	Identifier S_open_paren FormalParameterList s_close_paren {   
-            $$=new Node($1,"MethodDeclarator",yylineno); 
+            if(isDot)
+                $$=new Node("MethodDeclarator"); 
+            else
+                $$=new Node($1,"MethodDeclarator",yylineno); 
             $$->children.push_back(new Node($1,"Identifier",yylineno));
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
@@ -915,8 +952,11 @@ MethodDeclarator:
                 }
             }
         }
-    | Identifier S_open_paren s_close_paren {   
-            $$=new Node($1,"MethodDeclarator",yylineno); 
+    | Identifier S_open_paren s_close_paren {  
+            if(isDot)
+                $$=new Node("MethodDeclarator"); 
+            else 
+                $$=new Node($1,"MethodDeclarator",yylineno); 
             $$->children.push_back(new Node($1,"Identifier",yylineno));
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
@@ -928,8 +968,11 @@ MethodDeclarator:
                 }
             }
         }
-	| MethodDeclarator s_open_square_bracket s_close_square_bracket {   
-            $$=new Node($1->id.c_str(),"MethodDeclarator",yylineno); 
+	| MethodDeclarator s_open_square_bracket s_close_square_bracket {  
+            if(isDot)
+                $$=new Node("MethodDeclarator"); 
+            else 
+                $$=new Node($1->id.c_str(),"MethodDeclarator",yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
@@ -1023,45 +1066,79 @@ StaticInitializer: k_static Block
 ConstructorDeclaration:
 
 	Modifiers ConstructorDeclarator Throws ConstructorBody {  
-            $$=new Node("ConstructorDeclaration"); 
+            if(isDot)
+                $$=new Node("ConstructorDeclaration"); 
+            else
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             $$->children.push_back($4);
             }
 	| Modifiers ConstructorDeclarator ConstructorBody {  
-            $$=new Node("ConstructorDeclaration"); 
+            if(isDot)
+                $$=new Node("ConstructorDeclaration"); 
+            else
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             }
 	| ConstructorDeclarator Throws ConstructorBody {  
-            $$=new Node("ConstructorDeclaration"); 
+            if(isDot)
+                $$=new Node("ConstructorDeclaration"); 
+            else
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
             }
 	| ConstructorDeclarator ConstructorBody {  
-            $$=new Node("ConstructorDeclaration"); 
+            if(isDot)
+                $$=new Node("ConstructorDeclaration"); 
+            else
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             }
 	;
 
 ConstructorDeclarator:
-	SimpleName s_open_paren FormalParameterList s_close_paren   
+	SimpleName S_open_paren FormalParameterList s_close_paren   
             {  
+            if(isDot)
             $$=new Node("ConstructorDeclarator"); 
+            else
+            $$=new Node($1->id.c_str(),"ConstructorDeclarator", yylineno);
             $$->children.push_back($1);
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back($3);
             $$->children.push_back(new Node(")","Separator", yylineno));
+            if(!isDot){
+                //currentSymTableId = symTables[currentSymTableId].parentID;
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize,true);
+                for(int i=1;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
+                    //cout<<"abs"<<vfs[i-1]<<endl;
+                }
             }
-	|SimpleName s_open_paren s_close_paren {  
+            }
+	|SimpleName S_open_paren s_close_paren {  
+            if(isDot)
             $$=new Node("ConstructorDeclarator"); 
+            else
+            $$=new Node($1->id.c_str(), "ConstructorDeclarator", yylineno); 
             $$->children.push_back($1);
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
+            if(!isDot){
+                //currentSymTableId = symTables[currentSymTableId].parentID;
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize,true);
+                for(int i=1;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
+                    //cout<<"abs"<<vfs[i-1]<<endl;
+                }
+            }
             }
 	;
 
@@ -1371,6 +1448,16 @@ AbstractMethodDeclaration: MethodHeader s_semicolon
     $$=new Node("AbstractMethodDeclaration");
     $$->children.push_back($1);
     $$->children.push_back(new Node(";","Separator", yylineno));
+    if(!isDot){
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
+        for(int i=1;i<vt.size();i++){
+            symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
+        }
+        vt.clear();
+        vfs.clear();
+        fsize = 0;
+    }
 }
 	;
 
