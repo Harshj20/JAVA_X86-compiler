@@ -36,6 +36,11 @@ struct symEntry{
         this->type = type;
         this->lineno = lineno;
     }
+    symEntry(TYPE type, int lineno, int size){
+        this->type = type;
+        this->lineno = lineno;
+        this->size = size;
+    }
 };
 
 class symtab {
@@ -49,6 +54,7 @@ public:
     symtab(int id, int parentID);
 
     void insertSymEntry(string lex, TYPE t, int line);
+    void insertSymEntry(string lex, TYPE t, int line, int size);
 
     int lookup(string lex);
 

@@ -14,6 +14,9 @@ symtab::symtab(int id, int parentID) {
 void symtab::insertSymEntry(string lex, TYPE t, int line){
         this->entries[lex].push_back(*(new symEntry(t,line))); 
     }
+void symtab::insertSymEntry(string lex, TYPE t, int line, int size){
+        this->entries[lex].push_back(*(new symEntry(t,line, size))); 
+    }
 
 int symtab::lookup(string lex){
     int scopeID = this->ID;

@@ -7,6 +7,8 @@ extern int yylex();
 extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
+map<string, unsigned long long int> class_to_symboltable;
+map<string, unsigned long long int> method_to_symboltable;
 
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
 
@@ -18,7 +20,9 @@ bool isDot = false;
 vector<TYPE>vt;
 TYPE t = VOID;
 int size = 0;
+int fsize = 0;
 vector<int>vs;
+vector<int>vfs;
 bool isarr=false;
 int ArrayArgumentDepth = 0;
 
@@ -185,6 +189,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->size++;
                     isarr = true;
                     ++size;
+                    ++fsize;
                 }
 	| Name s_open_square_bracket s_close_square_bracket
                 {
@@ -205,6 +210,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->size++;
                     isarr = true;
                     ++size;
+                    ++fsize;
                 }
 	|ArrayType s_open_square_bracket s_close_square_bracket
                 {
@@ -218,6 +224,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->size=$1->size+1;
                     ++size;
                     isarr = true;
+                    ++fsize;
                 }
 
 
@@ -817,11 +824,13 @@ MethodDeclaration: MethodHeader MethodBody
                             $$->children.push_back($2);
                             if(!isDot){
                                 currentSymTableId = symTables[currentSymTableId].parentID;
-                                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
-                                for(int i=0;i<vt.size();i++){
-                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno);
+                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno,fsize);
+                                for(int i=1;i<vt.size();i++){
+                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
                                 }
                                 vt.clear();
+                                vfs.clear();
+                                fsize = 0;
                             }
                         }
 
@@ -886,6 +895,8 @@ S_open_paren : s_open_paren {
         if(!isDot){
             vt.push_back(t);
             initializeSymTable();
+            size=0;
+            isarr = 0;
         }
 }
 MethodDeclarator: 
@@ -897,9 +908,10 @@ MethodDeclarator:
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
-                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno);
-                for(int i=0;i<vt.size();i++){
-                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
+                for(int i=1;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
+                    //cout<<"abs"<<vfs[i-1]<<endl;
                 }
             }
         }
@@ -910,9 +922,9 @@ MethodDeclarator:
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
-                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
-                for(int i=0;i<vt.size();i++){
-                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
+                for(int i=1;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                 }
             }
         }
@@ -923,9 +935,9 @@ MethodDeclarator:
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
-                //symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno);
-                for(int i=0;i<vt.size();i++){
-                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno);
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
+                for(int i=1;i<vt.size();i++){
+                    symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                 }
             }
         }
@@ -933,8 +945,6 @@ MethodDeclarator:
 FormalParameterList: FormalParameter    
                         {
                             $$=$1;
-                            size = 0;
-                            isarr = false;
                         }
 	                |FormalParameterList s_comma FormalParameter   
                         {
@@ -949,8 +959,14 @@ FormalParameter: Type VariableDeclaratorId
                             $$=new Node("FormalParameter");
                             $$->children.push_back($1);
                             $$->children.push_back($2);
+                            //cout<<"size is "<<size<<endl;
                             vt.push_back(t);
                             t=VOID;
+                            vfs.push_back(size);
+                           // cout<<size<<endl;
+                            fsize -= size;
+                            size = 0;
+                            isarr = false;
                         }
                 | k_final Type VariableDeclaratorId     
                         {
@@ -959,6 +975,11 @@ FormalParameter: Type VariableDeclaratorId
                             $$->children.push_back($2);
                             $$->children.push_back($3);
                             vt.push_back(t);
+                            vfs.push_back(size);
+                            cout<<size<<endl;
+                            fsize -= size;
+                            size = 0;
+                            isarr = false;
                             t=VOID;
                         }
 

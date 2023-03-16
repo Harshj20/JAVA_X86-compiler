@@ -1,4 +1,0 @@
-Lexeme,Tokens,Type,ArrayDimSize,LineNo
-a,Identifier,INT,0,3
-main,Identifier,VOID,0,23
-main,Identifier,CHAR,0,23
