@@ -32,6 +32,7 @@ struct symEntry{
     TYPE type;
     int lineno;
     int size = 0;
+    bool isfunction = false;
     symEntry(TYPE type, int lineno){
         this->type = type;
         this->lineno = lineno;
@@ -40,6 +41,12 @@ struct symEntry{
         this->type = type;
         this->lineno = lineno;
         this->size = size;
+    }
+    symEntry(TYPE type, int lineno, int size, bool isfunction){
+        this->type = type;
+        this->lineno = lineno;
+        this->size = size;
+        this->isfunction = isfunction;
     }
 };
 
@@ -55,6 +62,7 @@ public:
 
     void insertSymEntry(string lex, TYPE t, int line);
     void insertSymEntry(string lex, TYPE t, int line, int size);
+    void insertSymEntry(string lex, TYPE t, int line, int size, bool isfunction);
 
     int lookup(string lex);
 

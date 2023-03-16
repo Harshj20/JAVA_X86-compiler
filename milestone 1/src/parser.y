@@ -824,7 +824,7 @@ MethodDeclaration: MethodHeader MethodBody
                             $$->children.push_back($2);
                             if(!isDot){
                                 currentSymTableId = symTables[currentSymTableId].parentID;
-                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), $1->type, yylineno,fsize);
+                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
                                 for(int i=1;i<vt.size();i++){
                                     symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
                                 }
@@ -908,7 +908,7 @@ MethodDeclarator:
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     //cout<<"abs"<<vfs[i-1]<<endl;
