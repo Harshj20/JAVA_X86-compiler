@@ -1,8 +1,9 @@
 public class GFG {
 
     int a = 0;
-    public static void main(final String[] args) {
+    public static int[][] main(char[][] args, int q, int[] z) {
         int n = 10, c, d, swap;
+        char l = 2;
 
         final int array[] = new int[] { 23, 1, 78, 45, 46, 90, 2, 12, 75, 0 };
         c=10;
@@ -16,8 +17,8 @@ public class GFG {
                 }
             }
         }
-        System.out.println("Sorted list of numbers:");
-        for (c = 0; c < n; c++)
-            System.out.println(array[c]);
+        // System.out.println("Sorted list of numbers:");
+        for (c = 0; c < n; c++);
+            // System.out.println(array[c]);
     }
 }
