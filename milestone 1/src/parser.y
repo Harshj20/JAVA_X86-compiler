@@ -689,6 +689,8 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             //     }
                             // }
                             t = VOID;
+                            size = 0;
+                            isarr = false;
                         }
                         | Type VariableDeclaratorList s_semicolon     
                         {
@@ -703,6 +705,8 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             //     }
                             // }
                             t = VOID;
+                            size = 0;
+                            isarr = false;
                         }
 
 VariableDeclaratorList:VariableDeclarator     
@@ -767,10 +771,12 @@ VariableDeclaratorId: Identifier
                                 exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                            for(int i=0;i<size;i++){
-                                symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                            }
+                            if(isarr){
+                                for(int i=0;i<size;i++){
+                                    symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                                }
                             //cout<<enum_types[t]<<endl;
+                            }
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -927,6 +933,8 @@ MethodDeclarator:
 FormalParameterList: FormalParameter    
                         {
                             $$=$1;
+                            size = 0;
+                            isarr = false;
                         }
 	                |FormalParameterList s_comma FormalParameter   
                         {
@@ -1472,7 +1480,6 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$->children.push_back(new Node(";", "Separator", yylineno));
         isarr=false;
         size=0;
-        ArrayArgumentDepth = 0;
     }
     ;
 

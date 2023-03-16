@@ -1,4 +1,4 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo
-main,Identifier,VOID,0,40
-main,Identifier,INT,0,40
-main,Identifier,CHAR,0,40
+a,Identifier,INT,0,3
+main,Identifier,VOID,0,23
+main,Identifier,CHAR,0,23
