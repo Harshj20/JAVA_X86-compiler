@@ -19,10 +19,11 @@ $(OBJECT): $(LEXER) $(PARSER)
 	$(BISON) $(BFLAGS) $(PARSER)
 	$(CC) -c $(SYMBOL_TABLE)
 	$(CC) SymTable.o lex.yy.c parser.tab.c -o $(OBJECT)
+	rm -f lex.yy.c parser.tab.c parser.tab.h parser.output SymTable.o
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) lex.yy.c parser.tab.c parser.tab.h parser.output myASTGenerator parse_tree.dot SymTable.o
+	rm -f $(OBJECT) *.dot *.csv
 
 
 	
