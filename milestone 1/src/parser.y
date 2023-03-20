@@ -8,9 +8,9 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 map<string, unsigned long long int> class_to_symboltable;
-map<string, unsigned long long int> method_to_symboltable;
+map<string, unsigned long long int> name_to_id;
 
-vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "STRING", "HEX", "BOOL", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "VOID", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE"};
+vector<string> enum_types = {    "BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
@@ -1125,9 +1125,10 @@ ConstructorDeclarator:
             }
 	|SimpleName S_open_paren s_close_paren {  
             if(isDot)
-            $$=new Node("ConstructorDeclarator"); 
+                $$=new Node("ConstructorDeclarator"); 
             else
-            $$=new Node($1->id.c_str(), "ConstructorDeclarator", yylineno); 
+                $$=new Node($1->id.c_str(), "ConstructorDeclarator", yylineno);  
+
             $$->children.push_back($1);
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
@@ -1528,6 +1529,10 @@ VariableInitializerList: VariableInitializer
 {
     $$ = $1;
     $$->size = 1;
+    if(!isDot && widen($1->type, t) != t ){
+        yyerror("Type mismatch in VariableIntializer");
+        exit(0);
+    }
 }
 	| VariableInitializerList s_comma VariableInitializer
     {
@@ -1536,6 +1541,10 @@ VariableInitializerList: VariableInitializer
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back($3);
         $$->size = $1->size + 1;
+        if(!isDot && widen($3->type, t) != t ){
+        yyerror("Type mismatch in VariableIntializer");
+        exit(0);
+        }
     }
 	;
 
@@ -2258,9 +2267,9 @@ PrimaryNoNewArray:
     | k_this {$$ = new Node("this","Keyword", yylineno);}
     | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING, yylineno);}
     | char_Literal {$$ = new Node($1,"Literal", CHAR, yylineno);}
-    | true_Literal {$$ = new Node("true","Keyword", BOOL);}
-    | false_Literal {$$ = new Node("false","Keyword", BOOL);}
-    | null_Literal {$$ = new Node("null","Keyword", _NULL);}
+    | true_Literal {$$ = new Node("true","Keyword", BOOL, yylineno);}
+    | false_Literal {$$ = new Node("false","Keyword", BOOL, yylineno);}
+    | null_Literal {$$ = new Node("null","Keyword", BOOL, yylineno);}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->type = $2->type;
@@ -2397,7 +2406,7 @@ DimExpr:
      {
         $$ = new Node("DimExpr");
         if(!isDot){
-            if($2->type != INT)
+            if(widen($2->type, LONG) != LONG)
             {
                 yyerror("Array index must be of type int");
                 exit(0);
@@ -2510,7 +2519,7 @@ ArrayAccess:
     {$$ = new Node("ArrayAccess");
      $$->type= $1->type;
      if(!isDot){
-        if($3->type != INT)
+        if(widen($3->type, LONG) != LONG)
         {
             yyerror("Array index must be of type int");
             exit(0);
@@ -2525,7 +2534,7 @@ ArrayAccess:
     {$$ = new Node("ArrayAccess");
         $$->type= $1->type;
         if(!isDot){
-            if($3->type != INT)
+            if(widen($3->type, LONG) != LONG)
             {
                 yyerror("Array index must be of type int");
                 exit(0);
@@ -2554,7 +2563,7 @@ PostIncrementExpression:
     {$$ = new Node("PostIncrementExpression");
      $$->type= $1->type;
      if(!isDot){
-        if (add_set.find($1->type) == add_set.end() || $1->type == FLOAT || $1->type == DOUBLE || $1->type == HEX_FLOAT)
+        if (widen($1->type, LONG) != LONG )
         {
             yyerror("Post increment can only be applied to int");
             exit(0);
@@ -2570,7 +2579,7 @@ PostDecrementExpression:
     {$$ = new Node("PostDecrementExpression");
         $$->type= $1->type;
         if(!isDot){
-            if (add_set.find($1->type) == add_set.end() || $1->type == FLOAT || $1->type == DOUBLE || $1->type == HEX_FLOAT)
+            if (widen($1->type, LONG) != LONG )
             {
                 yyerror("Post decrement can only be applied to int");
                 exit(0);
@@ -2588,7 +2597,7 @@ UnaryExpression:
     {$$ = new Node("UnaryExpression");
     $$->type= $2->type;
     if(!isDot){
-        if (add_set.find($2->type) == add_set.end() || $2->type == CHAR)
+        if (widen($2->type, DOUBLE) != DOUBLE)
         {
             yyerror("Unary plus can only be applied to int");
             exit(0);
@@ -2600,7 +2609,7 @@ UnaryExpression:
     {$$ = new Node("UnaryExpression");
     $$->type= $2->type;
     if(!isDot){
-        if (add_set.find($2->type) == add_set.end() || $2->type == CHAR)
+        if (widen($2->type, DOUBLE) != DOUBLE)
         {
             yyerror("Unary minus can only be applied to int");
             exit(0);
@@ -2617,7 +2626,7 @@ PreIncrementExpression:
     {$$ = new Node("PreIncrementExpression");
      $$->type= $2->type;
      if(!isDot){
-        if (add_set.find($2->type)==add_set.end() || $2->type == FLOAT || $2->type == DOUBLE || $2->type == HEX_FLOAT )
+        if (widen($2->type, LONG) != LONG )
         {
             yyerror("Pre increment can only be applied to int");
             exit(0);
@@ -2632,7 +2641,7 @@ PreDecrementExpression:
     {$$ = new Node("PreDecrementExpression");
         $$->type= $2->type;
         if(!isDot){
-            if (add_set.find($2->type)==add_set.end() || $2->type == FLOAT || $2->type == DOUBLE || $2->type == HEX_FLOAT )
+            if (widen($2->type, LONG) != LONG)
             {
                 yyerror("Pre decrement can only be applied to int");
                 exit(0);
@@ -2647,9 +2656,9 @@ UnaryExpressionNotPlusMinus:
    {$$ = $1;}
     | o_bitwise_complement UnaryExpression
     {$$ = new Node("UnaryExpressionNotPlusMinus");
-     $$->type= $2->type;
+     $$->type= widen($2->type, INT);
      if(!isDot){
-        if (add_set.find($2->type) == add_set.end() || $2->type == FLOAT || $2->type == DOUBLE || $2->type == HEX_FLOAT)
+        if (widen($2->type, LONG) != LONG)
         {
             yyerror("Bitwise complement can only be applied to int");
             exit(0);
@@ -2662,9 +2671,9 @@ UnaryExpressionNotPlusMinus:
         $$ = new Node("UnaryExpressionNotPlusMinus");
         $$->type= $2->type;
         if(!isDot){
-            if (add_set.find($2->type) == add_set.end() || $2->type == FLOAT || $2->type == DOUBLE || $2->type == HEX_FLOAT)
+            if ($2->type != BOOL)
             {
-                yyerror("Bitwise complement can only be applied to int");
+                yyerror("Logical not can only be applied to BOOL");
                 exit(0);
             }
         }
@@ -2677,6 +2686,13 @@ UnaryExpressionNotPlusMinus:
 CastExpression:
     s_open_paren PrimitiveType s_close_paren UnaryExpression
     {$$ = new Node("CastExpression");
+    if(!isDot){
+        if (widen($2->type, DOUBLE) != DOUBLE || widen($4->type, DOUBLE) != DOUBLE)
+        {
+            yyerror("Cast can only be applied to integer types");
+            exit(0);
+        }
+    }
      $$->type= $2->type;
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
@@ -2686,6 +2702,13 @@ CastExpression:
     | s_open_paren PrimitiveType Dims s_close_paren UnaryExpression
     {
     $$ = new Node("CastExpression");
+    if(!isDot){
+        if (widen($2->type, DOUBLE) != DOUBLE || widen($5->type, DOUBLE) != DOUBLE)
+        {
+            yyerror("Cast can only be applied to integer types");
+            exit(0);
+        }
+    }
     $$->type= $2->type;
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
@@ -2696,6 +2719,13 @@ CastExpression:
     | s_open_paren Expression s_close_paren UnaryExpressionNotPlusMinus
     {
     $$ = new Node("CastExpression");
+    if(!isDot){
+        if (widen($2->type, DOUBLE) != DOUBLE || widen($4->type, DOUBLE) != DOUBLE)
+        {
+            yyerror("Cast can only be applied to integer types");
+            exit(0);
+        }
+    }
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node(")","Separator", yylineno));
@@ -2721,13 +2751,13 @@ MultiplicativeExpression:
     {
     $$ = new Node("MultiplicativeExpression");
     if(!isDot){
-        if (add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end() || $1->type==CHAR || $3->type==CHAR)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
             yyerror("Multiplication can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
-    $$->type=widen($1->type,$3->type);
     $$->children.push_back($1);
     $$->children.push_back(new Node("*","Separator", yylineno));
     $$->children.push_back($3);
@@ -2736,13 +2766,13 @@ MultiplicativeExpression:
     {
     $$ = new Node("MultiplicativeExpression");
     if(!isDot){
-        if (add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end() || $1->type==CHAR || $3->type==CHAR)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("Division can only be applied to int");
+            yyerror("DIVISION can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
-    $$->type=widen($1->type,$3->type);
     $$->children.push_back($1);
     $$->children.push_back(new Node("/","Separator", yylineno));
     $$->children.push_back($3);
@@ -2751,13 +2781,13 @@ MultiplicativeExpression:
     {
     $$ = new Node("MultiplicativeExpression");
     if(!isDot){
-        if (add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end() || $1->type==CHAR || $3->type==CHAR)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
             yyerror("Modulo can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
-    $$->type=widen($1->type,$3->type);
     $$->children.push_back($1);
     $$->children.push_back(new Node("%","Separator", yylineno));
     $$->children.push_back($3);
@@ -2773,13 +2803,13 @@ AdditiveExpression:
     {
     $$ = new Node("AdditiveExpression");
     if(!isDot){
-        if (!($1->type==STRING && $3->type==STRING) && (add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end()))
+        if (widen($1->type, STRING) != STRING || widen($3->type, STRING) != STRING)
         {
             yyerror("Addition can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
-    $$->type=widen($1->type,$3->type);
     $$->children.push_back($1);
     $$->children.push_back(new Node("+","Separator", yylineno));
     $$->children.push_back($3);
@@ -2788,13 +2818,13 @@ AdditiveExpression:
     {
     $$ = new Node("AdditiveExpression");
     if(!isDot){
-        if (add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("Subtraction can only be applied to int");
+            yyerror("Addition can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
-    $$->type=widen($1->type,$3->type);
     $$->children.push_back($1);
     $$->children.push_back(new Node("-","Separator", yylineno));
     $$->children.push_back($3);
@@ -2810,11 +2840,12 @@ ShiftExpression:
     {
     $$ = new Node("ShiftExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || (widen($3->type, LONG) != LONG || $3->type == CHAR) )
         {
             yyerror("Shift Operation can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, INT);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("<<","Separator", yylineno));
@@ -2824,11 +2855,12 @@ ShiftExpression:
     {
     $$ = new Node("ShiftExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || (widen($3->type, LONG) != LONG || $3->type == CHAR) )
         {
             yyerror("Shift Operation can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, INT);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">>","Separator", yylineno));
@@ -2838,11 +2870,12 @@ ShiftExpression:
     {
     $$ = new Node("ShiftExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || (widen($3->type, LONG) != LONG || $3->type == CHAR) )
         {
             yyerror("Shift Operation can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, INT);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">>>","Separator", yylineno));
@@ -2860,12 +2893,12 @@ RelationalExpression:
     $$ = new Node("RelationalExpression");
     $$->children.push_back($1);
     if(!isDot){
-    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {   
-        yyerror("Relational Operation cannot be applied to this type");
-        cout<<$1->type<<" "<<$3->type<<endl;
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("less than operator can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = BOOL;
     }
     $$->children.push_back(new Node("<","Separator", yylineno));
     $$->children.push_back($3);
@@ -2874,11 +2907,12 @@ RelationalExpression:
     {
     $$ = new Node("RelationalExpression");
     if(!isDot){
-    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {
-        yyerror("Relational Operation cannot be applied to this type");
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("less than operator can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = BOOL;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">","Separator", yylineno));
@@ -2888,11 +2922,12 @@ RelationalExpression:
     {
     $$ = new Node("RelationalExpression");
     if(!isDot){
-    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {
-        yyerror("Relational Operation cannot be applied to this type");
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("less than operator can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = BOOL;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("<=","Separator", yylineno));
@@ -2902,11 +2937,12 @@ RelationalExpression:
     {
     $$ = new Node("RelationalExpression");
     if(!isDot){
-    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {
-        yyerror("Relational Operation cannot be applied to this type");
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("less than operator can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = BOOL;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">=","Separator", yylineno));
@@ -2930,11 +2966,12 @@ EqualityExpression:
     {
     $$ = new Node("EqualityExpression");
     if(!isDot){
-    if(!((add_set.find($1->type)!=add_set.end() && add_set.find($3->type)!=add_set.end()) || ($1->type == $3->type)))
-    {
-        yyerror("Equality Operation cannot be applied to this type");
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("Equality can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = widen($1->type, $3->type);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("==","Separator", yylineno));
@@ -2944,11 +2981,12 @@ EqualityExpression:
     {
     $$ = new Node("EqualityExpression");
     if(!isDot){
-    if(!((add_set.find($1->type)!=add_set.end() && add_set.find($3->type)!=add_set.end()) || ($1->type == $3->type)))
-    {
-        yyerror("Equality Operation cannot be applied to this type");
-        exit(0);
-    }
+        if(widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        {
+            yyerror("Equality can only be applied to same common super type");
+            exit(0);
+        }
+        $$->type = widen($1->type, $3->type);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("!=","Separator", yylineno));
@@ -2965,11 +3003,12 @@ AndExpression:
     {
     $$ = new Node("AndExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || widen($3->type, LONG) != LONG)
         {
-            yyerror("Shift Operation can only be applied to int");
+            yyerror("Bitwise AND can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("&","Separator", yylineno));
@@ -2986,11 +3025,12 @@ ExclusiveOrExpression:
     {
     $$ = new Node("ExclusiveOrExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || widen($3->type, LONG) != LONG)
         {
-            yyerror("Shift Operation can only be applied to int");
+            yyerror("Bitwise XOR can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("^","Separator", yylineno));
@@ -3007,11 +3047,12 @@ InclusiveOrExpression:
     {
     $$ = new Node("InclusiveOrExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if(widen($1->type, LONG) != LONG || widen($3->type, LONG) != LONG)
         {
-            yyerror("Shift Operation can only be applied to int");
+            yyerror("Bitwise OR can only be applied to int");
             exit(0);
         }
+        $$->type = widen($1->type, $3->type);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("|","Separator", yylineno));
@@ -3028,11 +3069,12 @@ ConditionalAndExpression:
     {
     $$ = new Node("ConditionalAndExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if($1->type != BOOL || $3->type != BOOL)
         {
-            yyerror("Shift Operation can only be applied to int");
+            yyerror("Only Bools allowed");
             exit(0);
         }
+        $$->type = BOOL; 
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("&&","Separator", yylineno));
@@ -3049,11 +3091,12 @@ ConditionalOrExpression:
     {
     $$ = new Node("ConditionalOrExpression");
     if(!isDot){
-        if(add_set.find($1->type) == add_set.end() || add_set.find($3->type) == add_set.end())
+        if($1->type != BOOL || $3->type != BOOL)
         {
-            yyerror("Shift Operation can only be applied to int");
+            yyerror("Only Bools allowed");
             exit(0);
         }
+        $$->type = BOOL; 
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("||","Separator", yylineno));
@@ -3064,28 +3107,26 @@ ConditionalOrExpression:
 ConditionalExpression:  
     ConditionalOrExpression
     {
-    $$ = $1;
+        $$ = $1;
     }
-    | ConditionalOrExpression o_question_mark Expression o_colon ConditionalExpression
-    {
-    $$ = new Node("ConditionalExpression");
-    if(!isDot){
-    if($1->type != BOOL)
-    {
-        yyerror("Conditional Operation can only be applied to boolean");
-        exit(0);
-    }
-    if($3->type != $5->type)
-    {
-        yyerror("Conditional Operation can only be applied to same type");
-        exit(0);
-    }
-    }
-    $$->children.push_back($1);
-    $$->children.push_back(new Node("?","Separator", yylineno));
-    $$->children.push_back($3);
-    $$->children.push_back(new Node(":","Separator", yylineno));
-    $$->children.push_back($5);
+    | ConditionalOrExpression o_question_mark Expression o_colon ConditionalExpression{
+        $$ = new Node("ConditionalExpression");
+        if(!isDot){
+            if($1->type != BOOL){
+                yyerror("Conditional Operation can only be applied to boolean");
+                exit(0);
+            }
+            if(widen($3->type, $5->type) != $5->type || widen($3->type, $5->type) != $3->type){
+                yyerror("Conditional Operation can only be applied to same type");
+                exit(0);
+            }
+            $$->type = widen($5->type, $3->type);
+        }
+        $$->children.push_back($1);
+        $$->children.push_back(new Node("?","Separator", yylineno));
+        $$->children.push_back($3);
+        $$->children.push_back(new Node(":","Separator", yylineno));
+        $$->children.push_back($5);
     }
     ;
 
@@ -3103,17 +3144,17 @@ AssignmentExpression:
 Assignment:
     LeftHandSide AssignmentOperator Expression
     {
-    $$ = new Node("Assignment");
-    if(!isDot){
-    if(add_set.find($1->type)==add_set.end() || add_set.find($3->type)==add_set.end())
-    {
-        yyerror("Assignment Operation can only be applied to same type");
-        exit(0);
-    }
-    }
-    $$->children.push_back($1);
-    $$->children.push_back($2);
-    $$->children.push_back($3);
+        $$ = new Node("Assignment");
+        if(!isDot){
+            if(widen($1->type,$3->type) != $1->type){
+                yyerror("Assignment Operation can only be applied to same type");
+                exit(0);
+            }
+            $$->type = $1->type;
+        }
+        $$->children.push_back($1);
+        $$->children.push_back($2);
+        $$->children.push_back($3);
     }
     ;
 

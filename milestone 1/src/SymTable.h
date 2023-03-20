@@ -7,9 +7,7 @@ enum TYPE{
     BIN,
     OCT,
     HEX_FLOAT,
-    STRING,
     HEX,
-    BOOL,
     VOID,
     FUNCTION,
     CLASS,
@@ -26,7 +24,9 @@ enum TYPE{
     INT,
     LONG,
     FLOAT,
-    DOUBLE
+    DOUBLE,
+    STRING,
+    BOOL,
 };
 struct symEntry{
     TYPE type;
