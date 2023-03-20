@@ -180,11 +180,11 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
                     $$->type = $1->type;
-                    $$->isArray = true;
+                    
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
-                    $$->isArray = true;
+                    
                     $$->size++;
                     isarr = true;
                     ++size;
@@ -193,7 +193,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 	| Name s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
-                    $$->isArray = true;
+                    
                     if(!isDot){
                         if(!symTables[currentSymTableId].lookup($1->id)){
                             string s1 = "Undeclared type " + $1->id;
@@ -205,7 +205,7 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
-                    $$->isArray = true;
+                    
                     $$->size++;
                     isarr = true;
                     ++size;
@@ -214,12 +214,12 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 	|ArrayType s_open_square_bracket s_close_square_bracket
                 {
                     $$=new Node("ArrayType"); 
-                    $$->isArray = true;
+                    
                     $$->type = $1->type;
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
-                    $$->isArray = true;
+                    
                     $$->size=$1->size+1;
                     ++size;
                     isarr = true;
@@ -239,7 +239,7 @@ Name:SimpleName
                 exit(0);
             }
             $$->symid=class_to_symboltable[$1->id];
-            cout<<class_to_symboltable[$1->id]<<endl;
+            //cout<<class_to_symboltable[$1->id]<<endl;
         }
      }
 	| QualifiedName
@@ -252,7 +252,7 @@ SimpleName: Identifier
                 string lex($1);
                 if(!isDot){
                     int t1=symTables[currentSymTableId].grand_lookup(lex);
-                    cout<<lex<<" "<<currentSymTableId<<endl;
+                    //cout<<lex<<" "<<currentSymTableId<<endl;
                     for(auto i = symTables[1].entries.begin(); i!=symTables[1].entries.end(); ++i){
                         cout<<i->first<<endl;
                     }
@@ -264,6 +264,7 @@ SimpleName: Identifier
                     }
                     $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
                     $$->symid=t1;
+                    $$->size=symTables[t1].entries[lex][0].size;
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -283,7 +284,7 @@ QualifiedName: Name s_dot Identifier
 
                         if(!symTables[$1->symid].grand_lookup(s)){
                             string s1 = "Undeclared variable " + s;
-                            cout<<$1->symid<<endl;
+                            //cout<<$1->symid<<endl;
                             yyerror(s1.c_str());
                             exit(0);
                         }
@@ -2523,7 +2524,7 @@ MethodInvocation:
     $$->children.push_back(new Node(")","Separator", yylineno));
     if(!isDot){
         vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
-        if((*a).size()!=1){
+        if((*a).size()!=1 || !(*a)[0].isfunction){
             yyerror("Method not found");
             exit(0);
         }
@@ -2539,7 +2540,7 @@ MethodInvocation:
      $$->children.push_back(new Node(")","Separator", yylineno));
         if(!isDot){
             vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
-            if((*a).size()!=vfs.size()+1){
+            if((*a).size()!=vfs.size()+1 || !(*a)[0].isfunction){
                 yyerror("Method not found");
                 exit(0);
             }
@@ -2570,7 +2571,7 @@ MethodInvocation:
             exit(0);
         }
         vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($3);
-        if((*a).size()!=1){
+        if((*a).size()!=1 || !(*a)[0].isfunction){
             yyerror("Method not found");
             exit(0);
         }
@@ -2592,7 +2593,7 @@ MethodInvocation:
             exit(0);
         }
         vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($3);
-        if((*a).size()!=vfs.size()+1){
+        if((*a).size()!=vfs.size()+1 || !(*a)[0].isfunction){
             yyerror("Method not found");
             exit(0);
         }
@@ -2631,14 +2632,25 @@ MethodInvocation:
 
 ArrayAccess:
     Name s_open_square_bracket Expression s_close_square_bracket
-    {$$ = new Node("ArrayAccess");
-     $$->type= $1->type;
-     if(!isDot){
+    {
+     if(isDot)
+     $$ = new Node("ArrayAccess");
+     else{
+        $$ = new Node($1->id.c_str(),"ArrayAccess",yylineno);
         if(widen($3->type, LONG) != LONG)
         {
             yyerror("Array index must be of type int");
             exit(0);
         }
+        vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
+        ++size;
+        if(size>(*a).size()-1 || (*a)[0].isfunction){
+            yyerror("Array dimension mismatch");
+            exit(0);
+        }
+        $$->type=(*a)[0].type;
+        $$->size=(*a).size()-1-size;
+        $$->symid=$1->symid;
      }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[","Separator", yylineno));
@@ -2646,15 +2658,25 @@ ArrayAccess:
     $$->children.push_back(new Node("]","Separator", yylineno));
     }
     | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
-    {$$ = new Node("ArrayAccess");
-        $$->type= $1->type;
-        if(!isDot){
+    {   if(isDot)
+        $$ = new Node("ArrayAccess");
+        else{
+            $$ = new Node($1->id.c_str(),"ArrayAccess",yylineno);
             if(widen($3->type, LONG) != LONG)
             {
                 yyerror("Array index must be of type int");
                 exit(0);
             }
-        }
+            ++size;
+            vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
+            if((*a).size()-1<size || (*a)[0].isfunction){
+                yyerror("Array dimension mismatch");
+                exit(0);
+            }
+            $$->type=(*a)[0].type;
+            $$->size=(*a).size()-size-1;
+            $$->symid=$1->symid;
+     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[","Separator", yylineno));
     $$->children.push_back($3);
@@ -3248,11 +3270,11 @@ ConditionalExpression:
 AssignmentExpression:
     ConditionalExpression
     {
-    $$ = $1;
+        $$ = $1;
     }
     | Assignment
     {
-    $$ = $1;
+        $$ = $1;
     }
     ;   
 
@@ -3263,6 +3285,10 @@ Assignment:
         if(!isDot){
             if(widen($1->type,$3->type) != $1->type){
                 yyerror("Assignment Operation can only be applied to same type");
+                exit(0);
+            }
+            if($1->size != $3->size){
+                yyerror("Assignment Operation can only be applied to same size");
                 exit(0);
             }
             $$->type = $1->type;
@@ -3285,6 +3311,7 @@ LeftHandSide:
     | ArrayAccess
     {
     $$ = $1;
+    size=0;
     }
     ;
 

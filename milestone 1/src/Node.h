@@ -12,7 +12,6 @@ public:
     vector<Node*> children;
     TYPE type = UNKNOWN;
     int lineno = -1;
-    bool isArray = false;
     int size = 0;
     int symid=1;
 
