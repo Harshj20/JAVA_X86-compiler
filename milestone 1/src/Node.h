@@ -14,6 +14,7 @@ public:
     int lineno = -1;
     bool isArray = false;
     int size = 0;
+    int symid=1;
 
     Node(const char* id) {
         string s(id);

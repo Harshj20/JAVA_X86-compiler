@@ -8,21 +8,20 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 map<string, unsigned long long int> class_to_symboltable;
-map<string, unsigned long long int> name_to_id;
 
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
-int currentSymTableId = -1;
-int symTablescount = 0;
+int currentSymTableId = 0;
+int symTablescount = 1;
 bool isDot = false;
-vector<TYPE>vt;
+vector<TYPE>vt;  // vector used for types
 TYPE t = VOID;
 int size = 0;
 int fsize = 0;
-vector<int>vs;
-vector<int>vfs;
+vector<int>vs;  // vector to store max size of dimensions of array
+vector<int>vfs; // vector to store dimensions of function arguments
 bool isarr=false;
 int ArrayArgumentDepth = 0;
 
@@ -233,6 +232,15 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 Name:SimpleName
      {
         $$=$1;
+        if(!isDot && $1->type==CLASS){
+            if(!symTables[$1->symid].grand_lookup($1->id)){
+                string s1 = "Undeclared variable " + $1->id;
+                yyerror(s1.c_str());
+                exit(0);
+            }
+            $$->symid=class_to_symboltable[$1->id];
+            cout<<class_to_symboltable[$1->id]<<endl;
+        }
      }
 	| QualifiedName
       {
@@ -246,10 +254,12 @@ SimpleName: Identifier
                     int t1=symTables[currentSymTableId].grand_lookup(lex);
                     if(!t1){
                         string s1 = "Undeclared variable " + lex;
+                        cout<<"Abchche"<<endl;
                         yyerror(s1.c_str());
                         exit(0);
                     }
                     $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
+                    $$->symid=t1;
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -257,17 +267,23 @@ SimpleName: Identifier
             }
 
 QualifiedName: Name s_dot Identifier 
-                {
-                    if(isDot){
-                        $$=new Node("QualifiedName"); 
-                        $$->children.push_back($1);
-                        $$->children.push_back(new Node(".","Separator", yylineno));
-                        $$->children.push_back(new Node($3,"Identifier",yylineno));
-                    }
-                    else{
+                {   
+                    if(isDot)
+                    $$=new Node("QualifiedName"); 
+                    else $$=new Node($3,"QualifiedName",yylineno);
+                    $$->children.push_back($1);
+                    $$->children.push_back(new Node(".","Separator", yylineno));
+                    $$->children.push_back(new Node($3,"Identifier",yylineno));
+                    if(!isDot){
                         string s($3);
-                        s = $1->id +"."+ s;
-                        $$=new Node(s.c_str(), "QualifiedName", yylineno);
+
+                        if(!symTables[$1->symid].grand_lookup(s)){
+                            string s1 = "Undeclared variable " + s;
+                            cout<<$1->symid<<endl;
+                            yyerror(s1.c_str());
+                            exit(0);
+                        }
+                        $$->symid=$1->symid;
                     }
 
                 }
@@ -465,6 +481,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
     }
     | Modifiers k_class Identifier Super ClassBody
@@ -479,6 +497,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -499,6 +519,8 @@ NormalClassDeclaration:
 
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -518,6 +540,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -536,6 +560,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
         $$->children.push_back(new Node("class","Keyword", yylineno));
         $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -555,6 +581,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -573,6 +601,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -591,6 +621,8 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
+            class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -636,7 +668,6 @@ ClassBody: S_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket
     $$->children.push_back(new Node("{","Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}","Separator", yylineno));
-    currentSymTableId = symTables[currentSymTableId].parentID;
 }
 | s_open_curly_bracket s_close_curly_bracket 
 {
@@ -1173,7 +1204,6 @@ ConstructorBody:
             $$->children.push_back(new Node("}","Separator", yylineno));
             }
 	;
-
 ExplicitConstructorInvocation:
 	k_this s_open_paren ArgumentList s_close_paren s_semicolon {  
             $$=new Node("ExplicitConstructorInvocation"); 
@@ -2317,13 +2347,23 @@ ClassInstanceCreationExpression:
 
 ArgumentList:
     Expression
-    {$$ = $1;}
+    {
+        $$ = $1;
+        if(!isDot){
+            vt.push_back($1->type);
+            vfs.push_back($1->size);
+        }
+    }
     | ArgumentList s_comma Expression
     {
         $$ = new Node("ArgumentList");
         $$->children.push_back($1);
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back($3);
+        if(!isDot){
+            vt.push_back($3->type);
+            vfs.push_back($3->size);
+        }
     }
     ;
 
@@ -2414,7 +2454,6 @@ DimExpr:
                 exit(0);
             }
             if(isarr){
-
                 vs.push_back(vs.size()+1);
             }
         }
@@ -2467,6 +2506,14 @@ MethodInvocation:
     $$->children.push_back($1);
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back(new Node(")","Separator", yylineno));
+    if(!isDot){
+        vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
+        if((*a).size()!=1){
+            yyerror("Method not found");
+            exit(0);
+        }
+        $$->type=(*a)[0].type;
+    }
     }
     | Name s_open_paren ArgumentList s_close_paren
      {$$ = new Node("MethodInvocation");
@@ -2475,6 +2522,22 @@ MethodInvocation:
      $$->children.push_back(new Node("(","Separator", yylineno));
      $$->children.push_back($3);
      $$->children.push_back(new Node(")","Separator", yylineno));
+        if(!isDot){
+            vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
+            if((*a).size()!=vfs.size()+1){
+                yyerror("Method not found");
+                exit(0);
+            }
+            $$->type=(*a)[0].type;
+            for(int i=0;i<vfs.size();i++){
+                if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
+                    yyerror("Argument type mismatch");
+                    exit(0);
+                }
+            }
+            vt.clear();
+            vfs.clear();
+        }
      }
     | Primary s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
@@ -2484,6 +2547,18 @@ MethodInvocation:
     $$->children.push_back(new Node($3,"Identifier",yylineno));
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back(new Node(")","Separator", yylineno));
+    if(!isDot){
+        if(!symTables[$1->symid].grand_lookup($3)){
+            yyerror("Method not found");
+            exit(0);
+        }
+        vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($3);
+        if((*a).size()!=1){
+            yyerror("Method not found");
+            exit(0);
+        }
+        $$->type=(*a)[0].type;
+    }
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
@@ -2494,6 +2569,26 @@ MethodInvocation:
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back($5);
     $$->children.push_back(new Node(")","Separator", yylineno));
+    if(!isDot){
+        if(!symTables[$1->symid].grand_lookup($3)){
+            yyerror("Method not found");
+            exit(0);
+        }
+        vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($3);
+        if((*a).size()!=vfs.size()+1){
+            yyerror("Method not found");
+            exit(0);
+        }
+        $$->type=(*a)[0].type;
+        for(int i=0;i<vfs.size();i++){
+            if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
+                yyerror("Argument type mismatch");
+                exit(0);
+            }
+        }
+        vt.clear();
+        vfs.clear();
+    }
     }
     | k_super s_dot Identifier s_open_paren s_close_paren
     {$$ = new Node("MethodInvocation");
@@ -2503,6 +2598,7 @@ MethodInvocation:
     $$->children.push_back(new Node($3,"Identifier",yylineno));
     $$->children.push_back(new Node("(","Separator", yylineno));
     $$->children.push_back(new Node(")","Separator", yylineno));
+
     }
     | k_super s_dot Identifier s_open_paren ArgumentList s_close_paren
     {$$ = new Node("MethodInvocation");
