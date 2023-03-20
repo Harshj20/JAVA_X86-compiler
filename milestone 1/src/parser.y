@@ -252,9 +252,13 @@ SimpleName: Identifier
                 string lex($1);
                 if(!isDot){
                     int t1=symTables[currentSymTableId].grand_lookup(lex);
+                    cout<<lex<<" "<<currentSymTableId<<endl;
+                    for(auto i = symTables[1].entries.begin(); i!=symTables[1].entries.end(); ++i){
+                        cout<<i->first<<endl;
+                    }
                     if(!t1){
                         string s1 = "Undeclared variable " + lex;
-                        cout<<"Abchche"<<endl;
+                        cout<<t1<<endl;
                         yyerror(s1.c_str());
                         exit(0);
                     }
@@ -474,6 +478,8 @@ NormalClassDeclaration:
         $$->children.push_back($6);
         if(!isDot){
             string s($3);
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
@@ -481,8 +487,6 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
         }
     }
     | Modifiers k_class Identifier Super ClassBody
@@ -490,6 +494,8 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
@@ -497,8 +503,7 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -511,6 +516,8 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
@@ -519,8 +526,7 @@ NormalClassDeclaration:
 
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -533,6 +539,8 @@ NormalClassDeclaration:
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
         if(!isDot){
+            class_to_symboltable[$3] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
                 exit(0);
@@ -540,8 +548,6 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("class","Keyword", yylineno));
@@ -552,6 +558,8 @@ NormalClassDeclaration:
       {   
         $$=new Node("NormalClassDeclaration"); 
         if(!isDot){
+            class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
                 string s($2);
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
@@ -560,8 +568,7 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$2] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            
         }
         $$->children.push_back(new Node("class","Keyword", yylineno));
         $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -573,6 +580,8 @@ NormalClassDeclaration:
         {   
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
+                class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             string s($2);
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
@@ -581,8 +590,6 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$2] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -593,6 +600,8 @@ NormalClassDeclaration:
         {   
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
+                class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             string s($2);
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
@@ -601,8 +610,6 @@ NormalClassDeclaration:
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
             } 
-            class_to_symboltable[$2] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -613,6 +620,8 @@ NormalClassDeclaration:
        {
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
+                class_to_symboltable[$2] = currentSymTableId;
+            currentSymTableId = symTables[currentSymTableId].parentID;
             string s($2);
             if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
                 yyerror("Class already declared");
@@ -620,9 +629,7 @@ NormalClassDeclaration:
             }
             else{
                 symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
-            } 
-            class_to_symboltable[$2] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            }
         }
             $$->children.push_back(new Node("class","Keyword", yylineno));
             $$->children.push_back(new Node($2,"Identifier",yylineno));
@@ -997,6 +1004,8 @@ MethodDeclarator:
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                 }
+                vt.clear();
+                vfs.clear();
             }
         }
 	| MethodDeclarator s_open_square_bracket s_close_square_bracket {  
@@ -2350,6 +2359,8 @@ ArgumentList:
     {
         $$ = $1;
         if(!isDot){
+            cout<<"vfs size: "<<vfs.size()<<endl;
+            cout<<"vt size: "<<vt.size()<<endl;
             vt.push_back($1->type);
             vfs.push_back($1->size);
         }
@@ -2361,7 +2372,11 @@ ArgumentList:
         $$->children.push_back(new Node(",","Separator", yylineno));
         $$->children.push_back($3);
         if(!isDot){
+            cout<<$3->type<<endl;
+            cout<<"vfs size: "<<vfs.size()<<endl;
+            cout<<"vt size: "<<vt.size()<<endl;
             vt.push_back($3->type);
+            cout<<vt[vt.size() -1]<<endl;
             vfs.push_back($3->size);
         }
     }
@@ -2529,7 +2544,9 @@ MethodInvocation:
                 exit(0);
             }
             $$->type=(*a)[0].type;
+            cout<<vfs.size()<<" "<<vt.size()<<endl;
             for(int i=0;i<vfs.size();i++){
+                cout<<vt[i]<<" "<<(*a)[i+1].type<<endl;
                 if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
                     yyerror("Argument type mismatch");
                     exit(0);
