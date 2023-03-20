@@ -54,6 +54,7 @@ class symtab {
 public:
     int parentID;
     int ID;
+    bool isfunction = false;
     map<string, vector<struct symEntry>> entries;
 
     symtab();
