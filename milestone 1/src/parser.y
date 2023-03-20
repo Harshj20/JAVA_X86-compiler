@@ -184,7 +184,6 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
-                    
                     $$->size++;
                     isarr = true;
                     ++size;
@@ -219,7 +218,6 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
                     $$->children.push_back($1);
                     $$->children.push_back(new Node("[","Separator", yylineno));
                     $$->children.push_back(new Node("]","Separator", yylineno));
-                    
                     $$->size=$1->size+1;
                     ++size;
                     isarr = true;
@@ -264,7 +262,7 @@ SimpleName: Identifier
                     }
                     $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
                     $$->symid=t1;
-                    $$->size=symTables[t1].entries[lex][0].size;
+                    //$$->size=symTables[t1].entries[lex][0].size;
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -826,12 +824,14 @@ VariableDeclaratorId: Identifier
                                 cout<<"Variable "<<s<<" already declared in this scope"<<endl;
                                 exit(0);
                             }
-                            symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                            symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
                             if(isarr){
                                 for(int i=0;i<size;i++){
-                                    symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                                    symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
                                 }
-                            //cout<<enum_types[t]<<endl;
+                                //$$->size=size;
+                                //cout<<size<<endl;
+                                //cout<<enum_types[t]<<endl;
                             }
                         }
                       }
