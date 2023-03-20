@@ -8,7 +8,6 @@ public:
     string id;
     unsigned int count=0;
     string token="";
-    bool isBlock = false;
     vector<Node*> children;
     TYPE type = UNKNOWN;
     int lineno = -1;
