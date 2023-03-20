@@ -23,13 +23,16 @@ void symtab::insertSymEntry(string lex, TYPE t, int line, int size, bool isfunct
 
 int symtab::lookup(string lex){
     int scopeID = this->ID;
-    while(symTables[scopeID].parentID>1){
+    while(symTables[scopeID].isfunction){
         if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
             scopeID =  symTables[scopeID].parentID;
         }
         else {
             return scopeID;
         }
+    }
+    if(symTables[scopeID].entries.find(lex)!=symTables[scopeID].entries.end()){
+            return scopeID; 
     }
     return 0;
 }
@@ -39,6 +42,8 @@ int symtab::grand_lookup(string lex){
     while(symTables[scopeID].parentID>=0){
         if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
             scopeID =  symTables[scopeID].parentID;
+            if(scopeID==0)
+                return 0;
         }
         else {
             return scopeID;
