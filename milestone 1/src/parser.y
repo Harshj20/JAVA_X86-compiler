@@ -72,7 +72,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant 
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class
 
 %%
 // ------------------ Start -----------------------
@@ -464,13 +464,17 @@ ClassDeclaration : NormalClassDeclaration
                    {
                     $$=$1;
                    }
+key_class : k_class 
+           {
+                $$ = new Node("class","Keyword", yylineno);
+           }
 
 NormalClassDeclaration:
-	Modifiers k_class Identifier Super Interfaces ClassBody
+	Modifiers key_class Identifier Super Interfaces ClassBody
     {   
         $$=new Node("NormalClassDeclaration"); 
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword", yylineno));
+        $$->children.push_back($2);
         $$->children.push_back(new Node($3,"Identifier",yylineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
@@ -484,11 +488,11 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
             } 
         }
     }
-    | Modifiers k_class Identifier Super ClassBody
+    | Modifiers key_class Identifier Super ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
@@ -500,17 +504,17 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
             } 
             
         }
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword", yylineno));
-        $$->children.push_back(new Node($3,"Identifier",yylineno));
+        $$->children.push_back($2);
+        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
       }
-    | Modifiers k_class Identifier Interfaces ClassBody
+    | Modifiers key_class Identifier Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
@@ -523,17 +527,17 @@ NormalClassDeclaration:
             }
             else{                    isarr = true;
 
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
             } 
             
         }
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword", yylineno));
-        $$->children.push_back(new Node($3,"Identifier",yylineno));
+        $$->children.push_back($2);
+        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
         $$->children.push_back($4);
         $$->children.push_back($5);
       }
-    | Modifiers k_class Identifier ClassBody
+    | Modifiers key_class Identifier ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         string s($3);
@@ -545,15 +549,15 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
             } 
         }
         $$->children.push_back($1);
-        $$->children.push_back(new Node("class","Keyword", yylineno));
-        $$->children.push_back(new Node($3,"Identifier",yylineno));
+        $$->children.push_back($2);
+        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
         $$->children.push_back($4);
       }
-    | k_class Identifier Super Interfaces ClassBody
+    | key_class Identifier Super Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         if(!isDot){
@@ -565,17 +569,17 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
             } 
             
         }
-        $$->children.push_back(new Node("class","Keyword", yylineno));
-        $$->children.push_back(new Node($2,"Identifier",yylineno));
+        $$->children.push_back($1);
+        $$->children.push_back(new Node($2,"Identifier",$1->lineno));
         $$->children.push_back($3);
         $$->children.push_back($4);
         $$->children.push_back($5);
       }
-    | k_class Identifier Super ClassBody
+    | key_class Identifier Super ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
@@ -587,15 +591,15 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
             } 
         }
-            $$->children.push_back(new Node("class","Keyword", yylineno));
-            $$->children.push_back(new Node($2,"Identifier",yylineno));
+            $$->children.push_back($1);
+            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
         }
-    | k_class Identifier Interfaces ClassBody
+    | key_class Identifier Interfaces ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
@@ -607,15 +611,15 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
             } 
         }
-            $$->children.push_back(new Node("class","Keyword", yylineno));
-            $$->children.push_back(new Node($2,"Identifier",yylineno));
+            $$->children.push_back($1);
+            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
             $$->children.push_back($3);
             $$->children.push_back($4);
         }
-    | k_class Identifier ClassBody 
+    | key_class Identifier ClassBody 
        {
             $$=new Node("NormalClassDeclaration"); 
             if(!isDot){
@@ -627,11 +631,11 @@ NormalClassDeclaration:
                 exit(0);
             }
             else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
             }
         }
-            $$->children.push_back(new Node("class","Keyword", yylineno));
-            $$->children.push_back(new Node($2,"Identifier",yylineno));
+            $$->children.push_back($1);
+            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
             $$->children.push_back($3);
        }
 
@@ -824,7 +828,7 @@ VariableDeclaratorId: Identifier
                                 cout<<"Variable "<<s<<" already declared in this scope"<<endl;
                                 exit(0);
                             }
-                            symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
+                            symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                             if(isarr){
                                 for(int i=0;i<size;i++){
                                     symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
