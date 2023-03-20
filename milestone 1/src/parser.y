@@ -15,7 +15,7 @@ set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
 int currentSymTableId = 0;
 int symTablescount = 1;
-bool isDot = false;
+bool isDot = false, islocal=false;
 vector<TYPE>vt;  // vector used for types
 TYPE t = VOID;
 int size = 0;
@@ -85,7 +85,6 @@ Program :
     | CompilationUnit
     {
         root=new Node("Program");
-        root->isBlock=true; 
         root->children.push_back($1);
         root->children.push_back(new Node("EOF","EOF",-1));
     } 
@@ -674,7 +673,7 @@ InterfaceTypeList:InterfaceType
 ClassBody: S_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
 {
     $$=new Node("ClassBody");
-    $$->isBlock=true;
+    
     $$->children.push_back(new Node("{","Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}","Separator", yylineno));
@@ -824,9 +823,9 @@ VariableDeclaratorId: Identifier
                         $$ = new Node($1,"Identifier",yylineno);
                         if(!isDot){
                             string s($1);
-                            if(symTables[currentSymTableId].lookup(s)){
-                                cout<<"Variable "<<s<<" already declared in this scope"<<endl;
-                                exit(0);
+                            if(islocal ? symTables[currentSymTableId].lookup(s) : symTables[currentSymTableId].grand_lookup(s)){
+                                    cout<<"Variable "<<s<<" already declared in this scope"<<endl;
+                                    exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                             if(isarr){
@@ -845,10 +844,6 @@ VariableDeclaratorId: Identifier
                             if(!isDot){
                                 string s($1->id);
                                 $$=new Node($1->id.c_str(),"VariableDeclaratorId",yylineno);
-                                if(!symTables[currentSymTableId].lookup(s)){
-                                    cout<<"Variable "<<s<<" already declared in this scope"<<endl;
-                                    exit(0);
-                                }
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
                                 ++size;
                                 isarr = true;
@@ -872,7 +867,7 @@ VariableInitializer:Expression
 MethodDeclaration: MethodHeader MethodBody     
                         {
                             $$=new Node("MethodDeclaration");
-                            $$->isBlock = true;
+                            
                             $$->children.push_back($1);
                             $$->children.push_back($2);
                             if(!isDot){
@@ -965,6 +960,7 @@ S_open_paren : s_open_paren {
         if(!isDot){
             vt.push_back(t);
             initializeSymTable();
+            symTables[currentSymTableId].isfunction = true;
             size=0;
             isarr = 0;
         }
@@ -1198,7 +1194,7 @@ ConstructorBody:
             }
 	| s_open_curly_bracket BlockStatements s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
-            $$->isBlock = true;
+            
             $$->children.push_back(new Node("{","Separator", yylineno));
             $$->children.push_back($2);
             $$->children.push_back(new Node("}","Separator", yylineno));
@@ -1211,7 +1207,7 @@ ConstructorBody:
             }
 	| s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket {  
             $$=new Node("ConstructorBody"); 
-            $$->isBlock = true;
+            
             $$->children.push_back(new Node("{","Separator", yylineno));
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -1287,7 +1283,7 @@ ClassImplements : k_implements InterfaceTypeList {
 
 EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody"); 
-                    $$->isBlock = true;
+                    
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node(",","Separator", yylineno));
@@ -1296,14 +1292,14 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     }
           |s_open_curly_bracket EnumConstantList s_comma s_close_curly_bracket  {  
                     $$=new Node("EnumBody"); 
-                    $$->isBlock = true;
+                    
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumConstantList EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back($3);
@@ -1311,14 +1307,14 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     }
           |s_open_curly_bracket EnumConstantList s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket s_comma EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back(new Node(",","Separator", yylineno));
                     $$->children.push_back($3);
@@ -1326,21 +1322,21 @@ EnumBody : s_open_curly_bracket EnumConstantList s_comma EnumBodyDeclarations s_
                     }
           |s_open_curly_bracket s_comma s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back(new Node(",","Separator", yylineno));
                     $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket EnumBodyDeclarations s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back($2);
                     $$->children.push_back(new Node("}","Separator", yylineno));
                     }
           |s_open_curly_bracket s_close_curly_bracket {  
                     $$=new Node("EnumBody");
-                    $$->isBlock=true; 
+                     
                     $$->children.push_back(new Node("{","Separator", yylineno));
                     $$->children.push_back(new Node("}","Separator", yylineno));
                     }
@@ -1452,7 +1448,7 @@ InterfaceBody:
 	s_open_curly_bracket InterfaceMemberDeclarations s_close_curly_bracket
     {
         $$=new Node("InterfaceBody");
-        $$->isBlock=true;
+        
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
@@ -1523,7 +1519,7 @@ ArrayInitializer:
 	|*/ array_s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
-        $$->isBlock=true;
+        
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
@@ -1546,7 +1542,7 @@ ArrayInitializer:
 	*/| array_s_open_curly_bracket  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
-        $$->isBlock=true;
+        
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back(new Node("}","Separator", yylineno));
@@ -1643,6 +1639,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$->children.push_back(new Node(";", "Separator", yylineno));
         isarr=false;
         size=0;
+        islocal=false;
     }
     ;
 
@@ -1666,10 +1663,16 @@ LocalVariableType :
     Type
     {
         $$ = $1;
+        if(!isDot){
+            islocal=true;
+        }
     }
     | k_var
     {
         $$ = new Node("var", "Keyword", VAR);
+        if(!isDot){
+            islocal=true;
+        }
     }
 
 Statement : 
@@ -1779,7 +1782,7 @@ IfThenStatement :
     k_if invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("IfThenStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1796,7 +1799,7 @@ IfThenElseStatement :
     k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else Statement 
     {
         $$ = new Node("IfThenElseStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1811,7 +1814,7 @@ IfThenElseStatementNoShortIf :
     k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
     {
         $$ = new Node("IfThenElseStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1831,7 +1834,7 @@ WhileStatement :
     k_while invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("WhileStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("while", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1846,7 +1849,7 @@ WhileStatementNoShortIf :
     k_while invoke_paren Expression s_close_paren StatementNoShortIf 
     {
         $$ = new Node("WhileStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("while", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1865,7 +1868,7 @@ BasicForStatement:
 	k_for invoke_paren s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -1879,7 +1882,7 @@ BasicForStatement:
     | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -1894,7 +1897,7 @@ BasicForStatement:
     | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -1909,7 +1912,7 @@ BasicForStatement:
     | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -1925,7 +1928,7 @@ BasicForStatement:
     | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1940,7 +1943,7 @@ BasicForStatement:
     | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1956,7 +1959,7 @@ BasicForStatement:
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1972,7 +1975,7 @@ BasicForStatement:
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1993,7 +1996,7 @@ BasicForStatementNoShortIf:
 	k_for invoke_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
      {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -2007,7 +2010,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -2022,7 +2025,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -2037,7 +2040,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
@@ -2053,7 +2056,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -2068,7 +2071,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -2084,7 +2087,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -2100,7 +2103,7 @@ BasicForStatementNoShortIf:
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
     {
         $$ = new Node("BasicForStatementNoShortIf");
-        $$->isBlock = true;
+        
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -2119,7 +2122,7 @@ BasicForStatementNoShortIf:
 EnhancedForStatementNoShortIf: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
 {
     $$ = new Node("EnhancedForStatementNoShortIf");
-    $$->isBlock = true;
+    
     $$->children.push_back(new Node("for", "Keyword", yylineno));
     $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($3);
@@ -2153,7 +2156,7 @@ ForUpdate :
 EnhancedForStatement: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
 {
     $$ = new Node("EnhancedForStatement");
-    $$->isBlock = true;
+    
     $$->children.push_back(new Node("for", "Keyword", yylineno));
     $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($3);
@@ -3402,128 +3405,6 @@ void print_dot(const char* filename) {
   dotfile.close();
 }
 
-bool check_semantic_expression(Node* node, TYPE t){
-    if(node->token == "Identifier"){
-        int t1 = symTables[currentSymTableId].lookup(node->id);
-        cout<<"T-------------------"<<t1<<endl;
-        if(!t1){
-            cout<<"Symbol not Declared"<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
-            exit(0);
-        }
-        vector<struct symEntry>* a = symTables[currentSymTableId].getSymEntry(node->children[0]->id);
-        if(!a){
-            cout<<"Symbol not found in Symbol Table "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
-            exit(0);
-        }
-        if((*a)[0].type != t && t !=VAR){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<enum_types[t]<<" but found "<<enum_types[(*a)[0].type]<<endl;
-            exit(0);
-        }
-        return true;
-    }
-    if(node->token == "Literal"){
-        if(node->type != t){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->type<<endl;
-            exit(0);
-        }
-        return true;
-    }
-    if(node->id.find("Pre") == 0)
-        return check_semantic_expression(node->children[1], t);
-    if(node->id.find("Unary") == 0)
-        return check_semantic_expression(node->children[1], t);
-
-    for(auto i = node->children.begin(); i != node->children.end(); i += 2){
-        if(!check_semantic_expression(*i, t)){
-            cout<<"Error in evaluating expression"<<endl;
-            exit(0);
-        }
-    }
-    return true;
-}
-
-bool check_semantic_VariableAssignment(Node*node, TYPE t){
-    if(node->id == "Assignment"){
-        int t1 = symTables[currentSymTableId].lookup(node->children[0]->id);
-        cout<<"T-------------------"<<t1<<endl;
-        if(!t1){
-            cout<<"Symbol not Declared"<<node->children[0]->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
-            exit(0);
-        }
-        vector<struct symEntry>* a = symTables[currentSymTableId].getSymEntry(node->children[0]->id);
-        if(!a){
-            cout<<"Symbol not found in Symbol Table "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
-            exit(0);
-        }
-        if((*a)[0].type != t && t !=VAR){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<enum_types[t]<<" but found "<<enum_types[(*a)[0].type]<<endl;
-            exit(0);
-        }
-        if(node->children[2]->id == "Assignment")
-            return check_semantic_VariableAssignment(node->children[2], (*a)[0].type);
-        return check_semantic_expression(node->children[2], (*a)[0].type);
-    }
-    if(node->token=="Literal"){
-        if(node->type != t){
-            cout<<"Type mismatch at line "<<node->lineno<<". Expected "<<t<<" but found "<<node->type<<endl;
-            exit(0);
-        }
-        return true;
-    }
-    return true;
-}
-
-bool check_semantic_LocalVariableDeclaration(Node*node, TYPE t){
-
-    if(node->id == "VariableDeclaratorList"){
-        cout<<"Entering VariableDeclaratorList"<<endl;
-        return check_semantic_LocalVariableDeclaration(node->children[0], t) && check_semantic_LocalVariableDeclaration(node->children[2], t);
-    }
-    if(node->id == "VariableDeclarator"){
-        cout<<"Entering VariableDeclarator or Assignment"<<endl;
-        if(check_semantic_VariableAssignment(node->children[2], t)){
-            return check_semantic_LocalVariableDeclaration(node->children[0], t);
-        }
-        else 
-            return false;
-    }
-    if(node->id == "Assignment"){
-        return check_semantic_VariableAssignment(node, t);
-    }
-    if(node->token == "Identifier"){
-        cout<<"Entering Identifier"<<endl;
-        int t1 = symTables[currentSymTableId].lookup(node->id);
-        if(t1){
-            cout<<"Redeclaration of symbol "<<node->id<<" at line "<<node->lineno<<". First declared at line "<<t1<<"."<<endl;
-            exit(0);
-        }
-        else{
-            symTables[currentSymTableId].insertSymEntry(node->id,t,node->lineno);
-            return true;
-        }
-    }
-    if(node->token == "Literal"){
-        cout<<"Entering Literal for type: "<<enum_types[t]<<endl;
-        return node->type == t;
-    }
-    return true;
-}
-
-void LocalVariableDeclaration(Node* node){
-    cout<<"entering LocalVariableDeclaration"<<endl;
-    TYPE t = VOID;
-    Node*temp = node;
-    while(temp->children.size()){
-        if(temp->children[0]->id == "final")
-            temp = temp->children[1];
-        else    
-            temp = temp->children[0];
-    }
-    t = temp->type;
-    cout<<"-------------------Local VariableDeclaration type passed = "<<enum_types[t]<<endl;
-    check_semantic_LocalVariableDeclaration(node->children[node->children.size()-1], t);
-}
-
 void symTab_csv(symtab* a){
     ofstream fout;
     string s= "symtab"+to_string(a->ID)+".csv";
@@ -3534,66 +3415,6 @@ void symTab_csv(symtab* a){
             fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->size<<","<<j->lineno<<endl;
     }
     fout.close();
-}
-
-void FieldDeclaration(Node* node){
-    cout<<"Entering FieldDeclaration"<<endl;
-    TYPE t = VOID;
-    Node*temp = node;
-    while(temp->children.size()){
-        if(temp->children.size() == 4)
-            temp = temp->children[1];
-        else    
-            temp = temp->children[0];
-    }
-    t = temp->type;
-    cout<<enum_types[t]<<endl;
-    check_semantic_LocalVariableDeclaration(node->children[node->children.size()-2], t);
-}
-
-void traverse_semantics(Node*node, int &counter){
-
-    if(node->id == "LocalVariableDeclaration"){
-        LocalVariableDeclaration(node);
-        return;
-    }
-    if(node->id == "FieldDeclaration"){
-        FieldDeclaration(node);
-        return;
-    }
-    if(node->id == "Assignment"){
-        check_semantic_VariableAssignment(node, VAR);
-        return;
-    }
-    if(node->id == "LocalVariableDeclaration"){
-        LocalVariableDeclaration(node);
-        return;
-    }
-    if(node->id == "FieldDeclaration"){
-        FieldDeclaration(node);
-        return;
-    }
-    if(node->id == "Assignment"){
-        check_semantic_VariableAssignment(node, VAR);
-        return;
-    }
-
-    node->count = counter++;
-    symtab *a = NULL;
-    if(node->isBlock){
-        a = new symtab(node->count, currentSymTableId);
-        cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and ID "<<node->count<<" and nodeID "<<node->id<<" "<<node->isBlock<<endl;
-        currentSymTableId = node->count;
-        symTables[currentSymTableId] = *a;
-    }
-    for(int i=0;i<node->children.size();i++) {
-        traverse_semantics(node->children[i], counter);
-    }
-    if(a){
-        if(node->id != "MethodHeader")
-            currentSymTableId = a->parentID; 
-    }
-
 }
 
 void check_semantics(){
