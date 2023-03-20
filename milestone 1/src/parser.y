@@ -10,7 +10,7 @@ extern map<unsigned long long int, symtab> symTables;
 map<string, unsigned long long int> class_to_symboltable;
 map<string, unsigned long long int> name_to_id;
 
-vector<string> enum_types = {    "BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL"};
+vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
@@ -834,13 +834,6 @@ MethodDeclaration: MethodHeader MethodBody
                             $$->children.push_back($2);
                             if(!isDot){
                                 currentSymTableId = symTables[currentSymTableId].parentID;
-                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
-                                for(int i=1;i<vt.size();i++){
-                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
-                                }
-                                vt.clear();
-                                vfs.clear();
-                                fsize = 0;
                             }
                         }
 
@@ -946,10 +939,15 @@ MethodDeclarator:
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno,fsize,true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
+                    symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     //cout<<"abs"<<vfs[i-1]<<endl;
                 }
+                vt.clear();
+                vfs.clear();
+                fsize = 0;
             }
         }
     | Identifier S_open_paren s_close_paren {  
@@ -963,8 +961,10 @@ MethodDeclarator:
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
+                    symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                 }
             }
         }
@@ -979,8 +979,10 @@ MethodDeclarator:
             if(!isDot){
                 //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
+                    symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                 }
             }
         }
@@ -3432,59 +3434,6 @@ void traverse_semantics(Node*node, int &counter){
         return;
     }
 
-    // ----------------Expression----------------------
-
-    // if(node->id == "ConditionalExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t) && check_semantic_expression(node->children[4], t);
-    // }
-    // if(node->id == "ConditionalOrExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "ConditionalAndExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "InclusiveOrExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "ExclusiveOrExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "AndExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "EqualityExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "RelationalExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "ShiftExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "AdditiveExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "MultiplicativeExpression"){
-    //     return check_semantic_expression(node->children[0], t) && check_semantic_expression(node->children[2], t);
-    // }
-    // if(node->id == "UnaryExpression"){
-    //     return check_semantic_expression(node->children[1], t);
-    // }
-    // if(node->id == "PreIncrementExpression"){
-    //     return check_semantic_expression(node->children[1], t);
-    // }
-    // if(node->id == "PreDecrementExpression"){
-    //     return check_semantic_expression(node->children[1], t);
-    // }
-    // if(node->id == "UnaryExpressionNotPlusMinus"){
-    //     return check_semantic_expression(node->children[1], t);
-    // }
-    // if(node->id == "PostIncrementExpression"){
-    //     return check_semantic_expression(node->children[0], t);
-    // }
-    // if(node->id == "PostDecrementExpression"){
-    //     return check_semantic_expression(node->children[0], t);
-    // }
     node->count = counter++;
     symtab *a = NULL;
     if(node->isBlock){
