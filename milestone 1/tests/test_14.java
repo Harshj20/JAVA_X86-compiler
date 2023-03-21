@@ -10,10 +10,10 @@ class Geek {
 	}
 }
 class GFG {
-	public static void main(/*String[] args*/)
+	public static void main(String[] args)
 	{
 		// This would invoke the parameterized constructor.
-		Geek geek1 = new Geek(14);
+		Geek geek1 = new Geek(14,2);
 		//System.out.println("GeekName :" + geek1.name + " and GeekId :" + geek1.id);
 	}
 }

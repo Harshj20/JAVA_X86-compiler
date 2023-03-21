@@ -1,6 +1,0 @@
-Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID
-Geek,Identifier,VOID,0,10,0
-Geek,Identifier,INT,0,10,0
-Geek,Identifier,INT,0,10,0
-id,Identifier,INT,0,5,0
-name,Identifier,INT,0,4,0
