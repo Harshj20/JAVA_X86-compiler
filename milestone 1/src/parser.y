@@ -797,17 +797,24 @@ VariableDeclarator: VariableDeclaratorId
                                 //     cout<<"Type Mismatch in Variable Declarator"<<endl;
                                 //     exit(0);
                                 // }
-                                if(isarr){
+                                if(widen(t,$3->type)!=t){
+                                    cout<<"Type Mismatch in Variable Declarator"<<endl;
+                                    exit(0);
+                                }
+                                cout<<size<<" "<<$3->size<<endl;
+                                if($3->size!=size){
+                                    yyerror("Size Mismatch in Variable Declarator");
+                                    exit(0);
+                                }
                                     vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
                                     if(!s){
-                                        yyerror("Random");
+                                        yyerror("Variable not declared");
                                         exit(0);
                                     }
                                     for(int i = 0; i < vs.size(); i++){
                                         (*s)[i+1].size = vs[i];
                                     }
                                     vs.clear();
-                                }
                                 $$=new Node($1->id.c_str(), "VariableDeclarator", yylineno);
                             }
                             else{
@@ -832,7 +839,7 @@ VariableDeclaratorId: Identifier
                                 for(int i=0;i<size;i++){
                                     symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
                                 }
-                                //$$->size=size;
+                                $$->size=size;
                                 //cout<<size<<endl;
                                 //cout<<enum_types[t]<<endl;
                             }
@@ -961,6 +968,7 @@ S_open_paren : s_open_paren {
             vt.push_back(t);
             initializeSymTable();
             symTables[currentSymTableId].isfunction = true;
+            islocal = true;
             size=0;
             isarr = 0;
         }
@@ -987,6 +995,7 @@ MethodDeclarator:
                 vt.clear();
                 vfs.clear();
                 fsize = 0;
+                islocal = false;
             }
         }
     | Identifier S_open_paren s_close_paren {  
@@ -1007,6 +1016,8 @@ MethodDeclarator:
                 }
                 vt.clear();
                 vfs.clear();
+                fsize = 0;
+                islocal = false;
             }
         }
 	| MethodDeclarator s_open_square_bracket s_close_square_bracket {  
@@ -1164,6 +1175,7 @@ ConstructorDeclarator:
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     //cout<<"abs"<<vfs[i-1]<<endl;
                 }
+                islocal=false;
             }
             }
 	|SimpleName S_open_paren s_close_paren {  
@@ -1182,8 +1194,9 @@ ConstructorDeclarator:
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     //cout<<"abs"<<vfs[i-1]<<endl;
                 }
+                islocal=false;
             }
-            }
+        }
 	;
 
 ConstructorBody:
@@ -1530,7 +1543,7 @@ ArrayInitializer:
             }
             vs[ArrayArgumentDepth-1] = $2->size;
             ArrayArgumentDepth--;
-        }
+        }   
     }
 	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
     {
@@ -2313,7 +2326,17 @@ PrimaryNoNewArray:
     | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT, yylineno);} 
     | string_Literal {$$ = new Node($1,"Literal", STRING, yylineno);} 
     | hex_Literal {$$ = new Node($1,"Literal", HEX, yylineno);}
-    | k_this {$$ = new Node("this","Keyword", yylineno);}
+    | k_this {
+        $$ = new Node("this","Keyword", yylineno);
+        if(!isDot){
+        int x = currentSymTableId;
+        while(!symTables[x].isfunction){
+            x=symTables[x].parentID;
+        }
+        $$->symid=symTables[x].parentID;
+        //cout<<"this symid: "<<$$->symid<<endl;
+        }
+    }
     | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING, yylineno);}
     | char_Literal {$$ = new Node($1,"Literal", CHAR, yylineno);}
     | true_Literal {$$ = new Node("true","Keyword", BOOL, yylineno);}
@@ -2403,6 +2426,7 @@ ArrayCreationExpression:
                 yyerror("Type mismatch in arrayCreationExpression rhs");
                 exit(0);
         }
+        $$->size = vs.size();
        }
      }
     | k_new PrimitiveType Dims ArrayInitializer
@@ -2417,6 +2441,7 @@ ArrayCreationExpression:
                     yyerror("Type mismatch in arrayCreationExpression rhs");
                     exit(0);
             }
+            $$->size = vs.size();
        }
     }
     | k_new PrimitiveType DimExprs Dims
@@ -2428,9 +2453,10 @@ ArrayCreationExpression:
        $$->children.push_back($4);
        if(!isDot){
         if(t != $2->type){
-                yyerror("Type mismatch in arrayCreationExpression rhs");
+                yyerror("Type mismatch in ArrayCreationExpression rhs");
                 exit(0);
         }
+        $$->size = vs.size();
        }
     }
     | k_new Name DimExprs 
@@ -2438,21 +2464,45 @@ ArrayCreationExpression:
           $$->type= $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
-       $$->children.push_back($3);}
+       $$->children.push_back($3);
+       if(!isDot){
+        if(t != $2->type){
+                yyerror("Type mismatch in ArrayCreationExpression rhs");
+                exit(0);
+        }
+        $$->size = vs.size();
+       }
+      }
     | k_new Name DimExprs Dims
         { $$ = new Node("ArrayCreationExpression");
             $$->type= $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
-       $$->children.push_back($4);}
+       $$->children.push_back($4);
+         if(!isDot){
+          if(t != $2->type){
+                 yyerror("Type mismatch in ArrayCreationExpression rhs");
+                 exit(0);
+          }
+          $$->size = vs.size();
+       }
+     }
     | k_new Name Dims ArrayInitializer
         { $$ = new Node("ArrayCreationExpression");
             $$->type= $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back($3);
-       $$->children.push_back($4);}
+       $$->children.push_back($4);
+         if(!isDot){
+          if(t != $2->type){
+                 yyerror("Type mismatch in ArrayCreationExpression rhs");
+                 exit(0);
+          }
+          $$->size = vs.size();
+       }
+      }
     ;
 
 
@@ -2509,11 +2559,30 @@ Dims:
 
 FieldAccess:
     Primary s_dot Identifier
-    {$$ = new Node("FieldAccess");
-    //$$->type= $3->type;
-    $$->children.push_back($1);
-    $$->children.push_back(new Node(".","Separator", yylineno));
-    $$->children.push_back(new Node($3,"Identifier",yylineno));}
+    {   if(isDot)
+        $$ = new Node("FieldAccess");
+        else
+        $$ = new Node($3,"FieldAccess",yylineno);
+        $$->children.push_back($1);
+        $$->children.push_back(new Node(".","Separator", yylineno));
+        $$->children.push_back(new Node($3,"Identifier",yylineno));
+    if(!isDot){
+        if(!symTables[$1->symid].grand_lookup($3)){
+            yyerror("Requested field not found");
+            exit(0);
+        }
+        vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($3);
+        if(/*(*a).size()!=1 ||*/ (*a)[0].isfunction){
+            yyerror("Requested field not found");
+            exit(0);
+        }
+        $$->type=(*a)[0].type;
+        $$->size=(*a).size()-1;
+        $$->symid=$1->symid;
+        // cout<<$$->size<<endl;
+        // cout<<"jshkjwbjeb"<<endl;
+    }
+    }
     | k_super s_dot Identifier
     {$$ = new Node("FieldAccess");
     //$$->type= $3->type;
@@ -3294,6 +3363,7 @@ Assignment:
                 yyerror("Assignment Operation can only be applied to same type");
                 exit(0);
             }
+            cout<<$1->size<<" "<<$3->size<<endl;
             if($1->size != $3->size){
                 yyerror("Assignment Operation can only be applied to same size");
                 exit(0);
