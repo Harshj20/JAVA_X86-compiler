@@ -34,7 +34,7 @@ class GFG {
         // Calling method of above class
         // to add two integer
         // using instance created
-        //int s = Addition.addTwoInt(1, 2);
+        int s = add.addTwoInt(1, 2);
  
         // Printing the sum of two numbers
         // System.out.println("Sum of two integer values :"

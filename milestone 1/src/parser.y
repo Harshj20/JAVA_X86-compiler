@@ -36,8 +36,8 @@ void yyerror(const char* s){
     }
 }
 
-void initializeSymTable(){
-    symtab*a = new symtab(symTablescount, currentSymTableId);
+void initializeSymTable(int parentID){
+    symtab*a = new symtab(symTablescount, parentID);
     cout<<"Symbol Table Created with Parent ID "<<currentSymTableId<<" and current ID "<<symTablescount<<endl;
     currentSymTableId = symTablescount;
     symTablescount++;
@@ -73,7 +73,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super
 
 %%
 // ------------------ Start -----------------------
@@ -243,13 +243,25 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 Name:SimpleName
      {
         $$=$1;
-        if(!isDot && $1->type==CLASS){
+        if(!isDot){
+            if( $1->type==CLASS){
             if(!symTables[$1->symid].grand_lookup($1->id)){
                 string s1 = "Undeclared variable " + $1->id;
                 yyerror(s1.c_str());
                 exit(0);
             }
             $$->symid=class_to_symboltable[$1->id];
+            //cout<<class_to_symboltable[$1->id]<<endl;
+        }
+        }
+        if($1->type == OBJECT){
+            if(!symTables[currentSymTableId].grand_lookup($1->id)){
+                string s1 = "Undeclared variable " + $1->id;
+                yyerror(s1.c_str());
+                exit(0);
+            }
+            vector<struct symEntry> v1 = (*symTables[currentSymTableId].getSymEntry($1->id));
+            $$->symid= v1[0].symid;
             //cout<<class_to_symboltable[$1->id]<<endl;
         }
      }
@@ -478,6 +490,25 @@ ClassDeclaration : NormalClassDeclaration
                    {
                     $$=$1;
                    }
+key_class_super: k_class Identifier Super{
+                $$ = new Node("abc","key_class_super", yylineno);
+                $$->children.push_back(new Node("class","Keyword", yylineno));
+                $$->children.push_back(new Node($2,"Identifier",yylineno));
+                $$->children.push_back($3);
+                if(!isDot){
+                    string s($2);
+                    if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+                        yyerror("Class already declared");
+                        exit(0);
+                    }
+                    else{
+                        symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                        cout<<currentSymTableId<<endl;
+                    } 
+                    initializeSymTable($3->symid);
+                    class_to_symboltable[s] = currentSymTableId;
+                }
+            }
 key_class : k_class Identifier
            {    
                 $$ = new Node("abc","key_class", yylineno);
@@ -493,26 +524,26 @@ key_class : k_class Identifier
                         symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
                         cout<<currentSymTableId<<endl;
                     } 
-                    initializeSymTable();
+                    initializeSymTable(currentSymTableId);
                     class_to_symboltable[s] = currentSymTableId;
                 }
            }
 
 NormalClassDeclaration:
-	Modifiers key_class Super Interfaces ClassBody
+	Modifiers key_class_super Interfaces ClassBody
     {   
         $$=new Node("NormalClassDeclaration"); 
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
         $$->children.push_back($1);
         $$->children.push_back($2->children[0]);
         $$->children.push_back($2->children[1]);
+        $$->children.push_back($2->children[2]);
         $$->children.push_back($3);
         $$->children.push_back($4);
-        $$->children.push_back($5);
     }
-    | Modifiers key_class Super ClassBody
+    | Modifiers key_class_super ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         //string s($3);
@@ -528,13 +559,13 @@ NormalClassDeclaration:
         //     }   
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
         $$->children.push_back($1);
         $$->children.push_back($2->children[0]);
         $$->children.push_back($2->children[1]);
+        $$->children.push_back($2->children[2]);
         $$->children.push_back($3);
-        $$->children.push_back($4);
       }
     | Modifiers key_class Interfaces ClassBody
       {   
@@ -554,7 +585,7 @@ NormalClassDeclaration:
             
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
         $$->children.push_back($1);
         $$->children.push_back($2->children[0]);
@@ -578,14 +609,14 @@ NormalClassDeclaration:
         //     } 
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
         $$->children.push_back($1);
         $$->children.push_back($2->children[0]);
         $$->children.push_back($2->children[1]);
         $$->children.push_back($3);
       }
-    | key_class Super Interfaces ClassBody
+    | key_class_super Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
         // if(!isDot){
@@ -602,15 +633,16 @@ NormalClassDeclaration:
             
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
         $$->children.push_back($1->children[0]);
         $$->children.push_back($1->children[1]);
+        $$->children.push_back($1->children[2]);
         $$->children.push_back($2);
         $$->children.push_back($3);
 
       }
-    | key_class Super ClassBody
+    | key_class_super ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
         //     if(!isDot){
@@ -626,12 +658,12 @@ NormalClassDeclaration:
         //     } 
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
             $$->children.push_back($1->children[0]);
             $$->children.push_back($1->children[1]);
+            $$->children.push_back($1->children[2]);
             $$->children.push_back($2);
-            $$->children.push_back($3);
         }
     | key_class Interfaces ClassBody
         {   
@@ -649,7 +681,7 @@ NormalClassDeclaration:
         //     } 
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
             $$->children.push_back($1->children[0]);
             $$->children.push_back($1->children[1]);
@@ -672,7 +704,7 @@ NormalClassDeclaration:
         //     }
         // }
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
+            currentSymTableId = 1;
         }
             $$->children.push_back($1->children[0]);
             $$->children.push_back($1->children[1]);
@@ -681,7 +713,7 @@ NormalClassDeclaration:
 
 /* S_open_curly_bracket: s_open_curly_bracket { 
                     if(!isDot){
-                        initializeSymTable();
+                        initializeSymTable(currentSymTableId);
                     }
                 } */
 
@@ -690,6 +722,7 @@ Super: k_extends ClassType
             $$=new Node("Super");
             $$->children.push_back(new Node("extends","Keyword", yylineno));
             $$->children.push_back($2);
+            $$->symid = class_to_symboltable[$2->id];
         }
 
 Interfaces: k_implements InterfaceTypeList
@@ -1008,7 +1041,7 @@ MethodHeader:
 S_open_paren : s_open_paren {
         if(!isDot){
             vt.push_back(t);
-            initializeSymTable();
+            initializeSymTable(currentSymTableId);
             symTables[currentSymTableId].isfunction = true;
             islocal = true;
             size=0;
@@ -1883,7 +1916,7 @@ IfThenElseStatementNoShortIf :
 
 invoke_paren : s_open_paren {
     if(!isDot)
-    initializeSymTable();
+    initializeSymTable(currentSymTableId);
 }
 
 WhileStatement : 
@@ -2689,6 +2722,7 @@ MethodInvocation:
      $$->children.push_back(new Node(")","Separator", yylineno));
         if(!isDot){
             vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
+            cout<<"this simid "<<$1->symid<<endl;
             if((*a).size()!=vfs.size()+1 || !(*a)[0].isfunction){
                 yyerror("Method not found");
                 exit(0);
@@ -3651,7 +3685,7 @@ int main(int argc, char**argv){
         yyin = stdin;
     }
     if(!isDot){
-        initializeSymTable();
+        initializeSymTable(currentSymTableId);
     }
     yyparse();
     if(root){
