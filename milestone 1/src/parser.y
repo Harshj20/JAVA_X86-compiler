@@ -784,9 +784,9 @@ ClassBodyDeclaration:ClassMemberDeclaration
                             $$=$1;
                             if(!isDot){
                                 currentSymTableId = symTables[currentSymTableId].parentID;
-                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
+                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], $1->lineno,fsize,true);
                                 for(int i=1;i<vt.size();i++){
-                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
+                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], $1->lineno, vfs[i-1]);
                                 }
                                 vt.clear();
                                 vfs.clear();
@@ -1198,7 +1198,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else{
-                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", $2->lineno);
             }
             $$->children.push_back($1);
             $$->children.push_back($2);
@@ -1209,7 +1209,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", $2->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -1218,7 +1218,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", $1->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -1227,7 +1227,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", $1->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             }
