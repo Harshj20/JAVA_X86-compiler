@@ -5,7 +5,7 @@ class Addition {
     // Initially taking sum as 0
     // as we have not started computation
     // static int sum = 0;
-    int a[] = new int[10];
+    int a[][] = new int[10][9];
  
     // Method
     // To add two numbers
@@ -13,31 +13,31 @@ class Addition {
     {
  
         // Adding two integer value
-        int sum[] = this.a;
- 
+        int[] sum = this.a[9], c[]=this.a;
+
         // Returning summation of two values
         return a;
     }
 }
  
 // Class 2
-// Helper class
-// class GFG {
+//Helper class
+class GFG {
  
-//     // Main driver method
-//     public static void main()
-//     {
+    // Main driver method
+    public static void main()
+    {
  
-//         // Creating object of class 1 inside main() method
-//         Addition add = new Addition();
+        // Creating object of class 1 inside main() method
+        Addition add = new Addition();
  
-//         // Calling method of above class
-//         // to add two integer
-//         // using instance created
-//         int s = Addition.addTwoInt(1, 2);
+        // Calling method of above class
+        // to add two integer
+        // using instance created
+        //int s = Addition.addTwoInt(1, 2);
  
-//         // Printing the sum of two numbers
-//         // System.out.println("Sum of two integer values :"
-//         //                    + s);
-//     }
-// } 
+        // Printing the sum of two numbers
+        // System.out.println("Sum of two integer values :"
+        //                    + s);
+    }
+} 
