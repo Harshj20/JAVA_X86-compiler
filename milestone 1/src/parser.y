@@ -243,28 +243,6 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 Name:SimpleName
      {
         $$=$1;
-        // if(!isDot){
-        //     if( $1->type==CLASS){
-        //     if(!symTables[$1->symid].grand_lookup($1->id)){
-        //         string s1 = "Undeclared variable " + $1->id;
-        //         yyerror(s1.c_str());
-        //         exit(0);
-        //     }
-        //     // $$->symid=class_to_symboltable[$1->id];
-        //     // cout<<"------------------"<<$1->id<<"--------"<<$$->symid<<endl;
-        //     //cout<<class_to_symboltable[$1->id]<<endl;
-        // }
-        // }
-        // if($1->type == OBJECT){
-        //     if(!symTables[currentSymTableId].grand_lookup($1->id)){
-        //         string s1 = "Undeclared variable " + $1->id;
-        //         yyerror(s1.c_str());
-        //         exit(0);
-        //     }
-        //     vector<struct symEntry> v1 = (*symTables[currentSymTableId].getSymEntry($1->id));
-        //     // $$->symid= v1[0].symid;
-        //     //cout<<class_to_symboltable[$1->id]<<endl;
-        // }
      }
 	| QualifiedName
       {
@@ -276,10 +254,6 @@ SimpleName: Identifier
                 string lex($1);
                 if(!isDot){
                     int t1=symTables[currentSymTableId].grand_lookup(lex);
-                    //cout<<lex<<" "<<currentSymTableId<<endl;
-                    // for(auto i = symTables[1].entries.begin(); i!=symTables[1].entries.end(); ++i){
-                    //     cout<<i->first<<endl;
-                    // }
                     if(!t1){
                         string s1 = "Undeclared variable " + lex;
                         cout<<t1<<endl;
@@ -564,18 +538,6 @@ NormalClassDeclaration:
     | Modifiers key_class_super ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
-        //string s($3);
-        // if(!isDot){
-        //     class_to_symboltable[$3] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-        //     }   
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -588,20 +550,6 @@ NormalClassDeclaration:
     | Modifiers key_class Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
-        //string s($3);
-        // if(!isDot){
-        //     class_to_symboltable[$3] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{                    isarr = true;
-
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-        //     } 
-            
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -614,18 +562,6 @@ NormalClassDeclaration:
     | Modifiers key_class ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
-        //string s($3);
-        // if(!isDot){
-        //     class_to_symboltable[$3] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-        //     } 
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -637,19 +573,6 @@ NormalClassDeclaration:
     | key_class_super Interfaces ClassBody
       {   
         $$=new Node("NormalClassDeclaration"); 
-        // if(!isDot){
-        //     class_to_symboltable[$2] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //         string s($2);
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-        //     } 
-            
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -663,18 +586,6 @@ NormalClassDeclaration:
     | key_class_super ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-        //     if(!isDot){
-        //         class_to_symboltable[$2] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     string s($2);
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-        //     } 
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -686,18 +597,6 @@ NormalClassDeclaration:
     | key_class Interfaces ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-        //     if(!isDot){
-        //         class_to_symboltable[$2] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     string s($2);
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-        //     } 
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -709,18 +608,6 @@ NormalClassDeclaration:
     | key_class ClassBody 
        {
             $$=new Node("NormalClassDeclaration"); 
-        //     if(!isDot){
-        //         class_to_symboltable[$2] = currentSymTableId;
-        //     currentSymTableId = symTables[currentSymTableId].parentID;
-        //     string s($2);
-        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-        //         yyerror("Class already declared");
-        //         exit(0);
-        //     }
-        //     else{
-        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-        //     }
-        // }
         if(!isDot){
             currentSymTableId = 1;
         }
@@ -728,12 +615,6 @@ NormalClassDeclaration:
             $$->children.push_back($1->children[1]);
             $$->children.push_back($2);
        }
-
-/* S_open_curly_bracket: s_open_curly_bracket { 
-                    if(!isDot){
-                        initializeSymTable(currentSymTableId);
-                    }
-                } */
 
 Super: k_extends ClassType
         {
@@ -935,8 +816,6 @@ VariableDeclaratorId: Identifier
                                 (*sentry)[0].symid = class_to_symboltable[reftype];
                             }
                             $$->size=size;
-                                //cout<<size<<endl;
-                                //cout<<enum_types[t]<<endl;
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -1077,7 +956,6 @@ MethodDeclarator:
             $$->children.push_back($3);
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);
                 symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno,fsize,true);
                 for(int i=1;i<vt.size();i++){
@@ -1100,7 +978,6 @@ MethodDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
                 symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
@@ -1122,7 +999,6 @@ MethodDeclarator:
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
-                //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
                 symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
@@ -1149,11 +1025,9 @@ FormalParameter: Type VariableDeclaratorId
                             $$=new Node("FormalParameter");
                             $$->children.push_back($1);
                             $$->children.push_back($2);
-                            //cout<<"size is "<<size<<endl;
                             vt.push_back(t);
                             t=VOID;
                             vfs.push_back(size);
-                           // cout<<size<<endl;
                             fsize -= size;
                             size = 0;
                             isarr = false;
@@ -1263,11 +1137,9 @@ ConstructorDeclarator:
             $$->children.push_back($3);
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize,true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
-                    //cout<<"abs"<<vfs[i-1]<<endl;
                 }
                 islocal=false;
             }
@@ -1282,11 +1154,9 @@ ConstructorDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                //currentSymTableId = symTables[currentSymTableId].parentID;
                 symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize,true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
-                    //cout<<"abs"<<vfs[i-1]<<endl;
                 }
                 islocal=false;
             }
@@ -1615,15 +1485,7 @@ AbstractMethodDeclaration: MethodHeader s_semicolon
 // ------------------------------- Production 10 ---------------------
 
 ArrayInitializer:
-	/*s_open_curly_bracket VariableInitializerList s_comma s_close_curly_bracket
-    {
-        $$=new Node("ArrayInitializer");
-        $$->children.push_back(new Node("{","Separator", yylineno));
-        $$->children.push_back($2);
-        $$->children.push_back(new Node(",","Separator", yylineno));
-        $$->children.push_back(new Node("}","Separator", yylineno));
-    }
-	|*/ array_s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
+	array_s_open_curly_bracket VariableInitializerList  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         
@@ -1639,14 +1501,7 @@ ArrayInitializer:
             ArrayArgumentDepth--;
         }   
     }
-	/*| s_open_curly_bracket  s_comma s_close_curly_bracket
-    {
-        $$=new Node("ArrayInitializer");
-        $$->children.push_back(new Node("{","Separator", yylineno));
-        $$->children.push_back(new Node(",","Separator", yylineno));
-        $$->children.push_back(new Node("}","Separator", yylineno));
-    }
-	*/| array_s_open_curly_bracket  s_close_curly_bracket
+	| array_s_open_curly_bracket  s_close_curly_bracket
     {
         $$=new Node("ArrayInitializer");
         
@@ -3624,8 +3479,6 @@ void symTab_csv(symtab* a){
 }
 
 void check_semantics(){
-    //int counter = 0;
-    //traverse_semantics(root, counter);
     for(auto i = symTables.begin(); i != symTables.end(); i++){
         symTab_csv(&i->second);
     }
