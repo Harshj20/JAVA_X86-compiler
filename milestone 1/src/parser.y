@@ -256,12 +256,13 @@ SimpleName: Identifier
                 if(!isDot){
                     int t1=symTables[currentSymTableId].grand_lookup(lex);
                     //cout<<lex<<" "<<currentSymTableId<<endl;
-                    for(auto i = symTables[1].entries.begin(); i!=symTables[1].entries.end(); ++i){
-                        cout<<i->first<<endl;
-                    }
+                    // for(auto i = symTables[1].entries.begin(); i!=symTables[1].entries.end(); ++i){
+                    //     cout<<i->first<<endl;
+                    // }
                     if(!t1){
                         string s1 = "Undeclared variable " + lex;
                         cout<<t1<<endl;
+                        cout<<currentSymTableId<<endl;
                         yyerror(s1.c_str());
                         exit(0);
                     }
@@ -469,186 +470,212 @@ ClassDeclaration : NormalClassDeclaration
                    {
                     $$=$1;
                    }
-key_class : k_class 
-           {
-                $$ = new Node("class","Keyword", yylineno);
+key_class : k_class Identifier
+           {    
+                $$ = new Node("abc","key_class", yylineno);
+                $$->children.push_back(new Node("class","Keyword", yylineno));
+                $$->children.push_back(new Node($2,"Identifier",yylineno));
+                if(!isDot){
+                    string s($2);
+                    if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+                        yyerror("Class already declared");
+                        exit(0);
+                    }
+                    else{
+                        symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
+                        cout<<currentSymTableId<<endl;
+                    } 
+                    initializeSymTable();
+                    class_to_symboltable[s] = currentSymTableId;
+                }
            }
 
 NormalClassDeclaration:
-	Modifiers key_class Identifier Super Interfaces ClassBody
+	Modifiers key_class Super Interfaces ClassBody
     {   
         $$=new Node("NormalClassDeclaration"); 
-        $$->children.push_back($1);
-        $$->children.push_back($2);
-        $$->children.push_back(new Node($3,"Identifier",yylineno));
-        $$->children.push_back($4);
-        $$->children.push_back($5);
-        $$->children.push_back($6);
         if(!isDot){
-            string s($3);
-            class_to_symboltable[$3] = currentSymTableId;
             currentSymTableId = symTables[currentSymTableId].parentID;
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-            } 
-        }
-    }
-    | Modifiers key_class Identifier Super ClassBody
-      {   
-        $$=new Node("NormalClassDeclaration"); 
-        string s($3);
-        if(!isDot){
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-            } 
-            
         }
         $$->children.push_back($1);
-        $$->children.push_back($2);
-        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
-        $$->children.push_back($4);
-        $$->children.push_back($5);
-      }
-    | Modifiers key_class Identifier Interfaces ClassBody
-      {   
-        $$=new Node("NormalClassDeclaration"); 
-        string s($3);
-        if(!isDot){
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{                    isarr = true;
-
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-            } 
-            
-        }
-        $$->children.push_back($1);
-        $$->children.push_back($2);
-        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
-        $$->children.push_back($4);
-        $$->children.push_back($5);
-      }
-    | Modifiers key_class Identifier ClassBody
-      {   
-        $$=new Node("NormalClassDeclaration"); 
-        string s($3);
-        if(!isDot){
-            class_to_symboltable[$3] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
-            } 
-        }
-        $$->children.push_back($1);
-        $$->children.push_back($2);
-        $$->children.push_back(new Node($3,"Identifier",$2->lineno));
-        $$->children.push_back($4);
-      }
-    | key_class Identifier Super Interfaces ClassBody
-      {   
-        $$=new Node("NormalClassDeclaration"); 
-        if(!isDot){
-            class_to_symboltable[$2] = currentSymTableId;
-            currentSymTableId = symTables[currentSymTableId].parentID;
-                string s($2);
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-            } 
-            
-        }
-        $$->children.push_back($1);
-        $$->children.push_back(new Node($2,"Identifier",$1->lineno));
+        $$->children.push_back($2->children[0]);
+        $$->children.push_back($2->children[1]);
         $$->children.push_back($3);
         $$->children.push_back($4);
         $$->children.push_back($5);
+    }
+    | Modifiers key_class Super ClassBody
+      {   
+        $$=new Node("NormalClassDeclaration"); 
+        //string s($3);
+        // if(!isDot){
+        //     class_to_symboltable[$3] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
+        //     }   
+        // }
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+        }
+        $$->children.push_back($1);
+        $$->children.push_back($2->children[0]);
+        $$->children.push_back($2->children[1]);
+        $$->children.push_back($3);
+        $$->children.push_back($4);
       }
-    | key_class Identifier Super ClassBody
+    | Modifiers key_class Interfaces ClassBody
+      {   
+        $$=new Node("NormalClassDeclaration"); 
+        //string s($3);
+        // if(!isDot){
+        //     class_to_symboltable[$3] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{                    isarr = true;
+
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
+        //     } 
+            
+        // }
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+        }
+        $$->children.push_back($1);
+        $$->children.push_back($2->children[0]);
+        $$->children.push_back($2->children[1]);
+        $$->children.push_back($3);
+        $$->children.push_back($4);
+      }
+    | Modifiers key_class ClassBody
+      {   
+        $$=new Node("NormalClassDeclaration"); 
+        //string s($3);
+        // if(!isDot){
+        //     class_to_symboltable[$3] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $2->lineno);
+        //     } 
+        // }
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+        }
+        $$->children.push_back($1);
+        $$->children.push_back($2->children[0]);
+        $$->children.push_back($2->children[1]);
+        $$->children.push_back($3);
+      }
+    | key_class Super Interfaces ClassBody
+      {   
+        $$=new Node("NormalClassDeclaration"); 
+        // if(!isDot){
+        //     class_to_symboltable[$2] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //         string s($2);
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
+        //     } 
+            
+        // }
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+        }
+        $$->children.push_back($1->children[0]);
+        $$->children.push_back($1->children[1]);
+        $$->children.push_back($2);
+        $$->children.push_back($3);
+
+      }
+    | key_class Super ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-            if(!isDot){
-                class_to_symboltable[$2] = currentSymTableId;
+        //     if(!isDot){
+        //         class_to_symboltable[$2] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     string s($2);
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
+        //     } 
+        // }
+        if(!isDot){
             currentSymTableId = symTables[currentSymTableId].parentID;
-            string s($2);
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-            } 
         }
-            $$->children.push_back($1);
-            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
+            $$->children.push_back($1->children[0]);
+            $$->children.push_back($1->children[1]);
+            $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->children.push_back($4);
         }
-    | key_class Identifier Interfaces ClassBody
+    | key_class Interfaces ClassBody
         {   
             $$=new Node("NormalClassDeclaration"); 
-            if(!isDot){
-                class_to_symboltable[$2] = currentSymTableId;
+        //     if(!isDot){
+        //         class_to_symboltable[$2] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     string s($2);
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
+        //     } 
+        // }
+        if(!isDot){
             currentSymTableId = symTables[currentSymTableId].parentID;
-            string s($2);
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-            } 
         }
-            $$->children.push_back($1);
-            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
+            $$->children.push_back($1->children[0]);
+            $$->children.push_back($1->children[1]);
+            $$->children.push_back($2);
             $$->children.push_back($3);
-            $$->children.push_back($4);
         }
-    | key_class Identifier ClassBody 
+    | key_class ClassBody 
        {
             $$=new Node("NormalClassDeclaration"); 
-            if(!isDot){
-                class_to_symboltable[$2] = currentSymTableId;
+        //     if(!isDot){
+        //         class_to_symboltable[$2] = currentSymTableId;
+        //     currentSymTableId = symTables[currentSymTableId].parentID;
+        //     string s($2);
+        //     if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
+        //         yyerror("Class already declared");
+        //         exit(0);
+        //     }
+        //     else{
+        //         symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
+        //     }
+        // }
+        if(!isDot){
             currentSymTableId = symTables[currentSymTableId].parentID;
-            string s($2);
-            if(symTables[currentSymTableId].entries.find(s) != symTables[currentSymTableId].entries.end()){
-                yyerror("Class already declared");
-                exit(0);
-            }
-            else{
-                symTables[currentSymTableId].insertSymEntry(s, CLASS, $1->lineno);
-            }
         }
-            $$->children.push_back($1);
-            $$->children.push_back(new Node($2,"Identifier",$1->lineno));
-            $$->children.push_back($3);
+            $$->children.push_back($1->children[0]);
+            $$->children.push_back($1->children[1]);
+            $$->children.push_back($2);
        }
 
-S_open_curly_bracket: s_open_curly_bracket { 
+/* S_open_curly_bracket: s_open_curly_bracket { 
                     if(!isDot){
                         initializeSymTable();
                     }
-                }
+                } */
 
 Super: k_extends ClassType
         {
@@ -676,7 +703,7 @@ InterfaceTypeList:InterfaceType
                         $$->children.push_back($3);
                     }
 
-ClassBody: S_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
+ClassBody: s_open_curly_bracket ClassBodyDeclarations s_close_curly_bracket 
 {
     $$=new Node("ClassBody");
     
@@ -2375,11 +2402,17 @@ PrimaryNoNewArray:
 ClassInstanceCreationExpression:
     k_new ClassType s_open_paren s_close_paren
     { $$ = new Node("ClassInstanceCreationExpression");
-       $$->type = $2->type;
+       //$$->type = $2->type;
        $$->children.push_back(new Node("new","Keyword", yylineno));
        $$->children.push_back($2);
        $$->children.push_back(new Node("(","Separator", yylineno));
        $$->children.push_back(new Node(")","Separator", yylineno));
+       if(!isDot){
+            if(reftype!=$2->id){
+                yyerror("ClassType mismatch");
+                exit(0);
+            }
+       }
     }
     | k_new ClassType s_open_paren ArgumentList s_close_paren
         { 
@@ -2390,6 +2423,30 @@ ClassInstanceCreationExpression:
         $$->children.push_back(new Node("(","Separator", yylineno));
         $$->children.push_back($4);
         $$->children.push_back(new Node(")","Separator", yylineno));
+        if(!isDot){
+            if(reftype!=$2->id){
+                yyerror("ClassType mismatch");
+                exit(0);
+            }
+            cout<<"this symid : "<<class_to_symboltable[$2->id]<<endl;
+            vector<struct symEntry>* a = symTables[class_to_symboltable[$2->id]].getSymEntry($2->id);
+            if((*a).size()!=vfs.size()+1 || !(*a)[0].isfunction){
+                cout<<(*a).size()<<" "<<vfs.size()<<endl;
+                yyerror("Constructor not found");
+                exit(0);
+            }
+            $$->type=(*a)[0].type;
+            cout<<vfs.size()<<" "<<vt.size()<<endl;
+            for(int i=0;i<vfs.size();i++){
+                cout<<vt[i]<<" "<<(*a)[i+1].type<<endl;
+                if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
+                    yyerror("Argument type mismatch");
+                    exit(0);
+                }
+            }
+            vt.clear();
+            vfs.clear();
+        }
         }
     ;
 
