@@ -798,7 +798,7 @@ VariableDeclarator: VariableDeclaratorId
                                 //     exit(0);
                                 // }
                                 if(widen(t,$3->type)!=t){
-                                    cout<<"Type Mismatch in Variable Declarator"<<endl;
+                                    yyerror("Type Mismatch in Variable Declarator");
                                     exit(0);
                                 }
                                 cout<<size<<" "<<$3->size<<endl;

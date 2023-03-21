@@ -23,7 +23,7 @@ void symtab::insertSymEntry(string lex, TYPE t, int line, int size, bool isfunct
 
 int symtab::lookup(string lex){
     int scopeID = this->ID;
-    while(symTables[scopeID].isfunction){
+    while(!symTables[scopeID].isfunction){
         if(symTables[scopeID].entries.find(lex)==symTables[scopeID].entries.end()){
             scopeID =  symTables[scopeID].parentID;
         }
