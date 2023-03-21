@@ -1,0 +1,7 @@
+Lexeme,Tokens,Type,ArrayDimSize,LineNo
+a,Identifier,INT,0,8
+a,Identifier,INT,1,8
+a,Identifier,INT,2,8
+addTwoInt,Identifier,INT,0,12
+addTwoInt,Identifier,INT,0,12
+addTwoInt,Identifier,INT,0,12

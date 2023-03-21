@@ -801,8 +801,8 @@ VariableDeclarator: VariableDeclaratorId
                                     yyerror("Type Mismatch in Variable Declarator");
                                     exit(0);
                                 }
-                                cout<<size<<" "<<$3->size<<endl;
-                                if($3->size!=size){
+                                cout<<$1->size<<" "<<$3->size<<endl;
+                                if($3->size!=$1->size){
                                     yyerror("Size Mismatch in Variable Declarator");
                                     exit(0);
                                 }
@@ -835,14 +835,13 @@ VariableDeclaratorId: Identifier
                                     exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                            if(isarr){
                                 for(int i=0;i<size;i++){
                                     symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
                                 }
                                 $$->size=size;
+                                
                                 //cout<<size<<endl;
                                 //cout<<enum_types[t]<<endl;
-                            }
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
@@ -852,7 +851,7 @@ VariableDeclaratorId: Identifier
                                 string s($1->id);
                                 $$=new Node($1->id.c_str(),"VariableDeclaratorId",yylineno);
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                                ++size;
+                                $$->size = $1->size+1;
                                 isarr = true;
                             }
                             else 
@@ -2719,14 +2718,19 @@ ArrayAccess:
             exit(0);
         }
         vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
-        ++size;
+        if($3->size != 0){
+            yyerror("Array index must be of type int");
+            exit(0);
+        }
+        vs.push_back($3->size);
         if(size>(*a).size()-1 || (*a)[0].isfunction){
             yyerror("Array dimension mismatch");
             exit(0);
         }
         $$->type=(*a)[0].type;
-        $$->size=(*a).size()-1-size;
+        $$->size=(*a).size()-1-vs.size();
         $$->symid=$1->symid;
+        cout<<"Size is "<<vs.size()<<" "<<(*a).size()<<endl;
      }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[","Separator", yylineno));
@@ -2743,15 +2747,20 @@ ArrayAccess:
                 yyerror("Array index must be of type int");
                 exit(0);
             }
-            ++size;
+            if($3->size != 0){
+                yyerror("Array index must be of type int");
+                exit(0);
+            }
+            vs.push_back($3->size);
             vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
             if((*a).size()-1<size || (*a)[0].isfunction){
                 yyerror("Array dimension mismatch");
                 exit(0);
             }
             $$->type=(*a)[0].type;
-            $$->size=(*a).size()-size-1;
+            $$->size=(*a).size()-vs.size()-1;
             $$->symid=$1->symid;
+            cout<<"Size is "<<vs.size()<<" "<<(*a).size()<<" "<<$$->size<<endl;
      }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[","Separator", yylineno));
@@ -3389,6 +3398,7 @@ LeftHandSide:
     {
     $$ = $1;
     size=0;
+        vs.clear();
     }
     ;
 
