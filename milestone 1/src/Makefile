@@ -23,7 +23,7 @@ $(OBJECT): $(LEXER) $(PARSER)
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) *.dot *.csv *.ps
+	rm -f $(OBJECT) *.dot *.csv *.ps *.svg
 
 
 	
