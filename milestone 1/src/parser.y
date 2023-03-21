@@ -243,27 +243,28 @@ ArrayType: PrimitiveType s_open_square_bracket s_close_square_bracket
 Name:SimpleName
      {
         $$=$1;
-        if(!isDot){
-            if( $1->type==CLASS){
-            if(!symTables[$1->symid].grand_lookup($1->id)){
-                string s1 = "Undeclared variable " + $1->id;
-                yyerror(s1.c_str());
-                exit(0);
-            }
-            $$->symid=class_to_symboltable[$1->id];
-            //cout<<class_to_symboltable[$1->id]<<endl;
-        }
-        }
-        if($1->type == OBJECT){
-            if(!symTables[currentSymTableId].grand_lookup($1->id)){
-                string s1 = "Undeclared variable " + $1->id;
-                yyerror(s1.c_str());
-                exit(0);
-            }
-            vector<struct symEntry> v1 = (*symTables[currentSymTableId].getSymEntry($1->id));
-            $$->symid= v1[0].symid;
-            //cout<<class_to_symboltable[$1->id]<<endl;
-        }
+        // if(!isDot){
+        //     if( $1->type==CLASS){
+        //     if(!symTables[$1->symid].grand_lookup($1->id)){
+        //         string s1 = "Undeclared variable " + $1->id;
+        //         yyerror(s1.c_str());
+        //         exit(0);
+        //     }
+        //     // $$->symid=class_to_symboltable[$1->id];
+        //     // cout<<"------------------"<<$1->id<<"--------"<<$$->symid<<endl;
+        //     //cout<<class_to_symboltable[$1->id]<<endl;
+        // }
+        // }
+        // if($1->type == OBJECT){
+        //     if(!symTables[currentSymTableId].grand_lookup($1->id)){
+        //         string s1 = "Undeclared variable " + $1->id;
+        //         yyerror(s1.c_str());
+        //         exit(0);
+        //     }
+        //     vector<struct symEntry> v1 = (*symTables[currentSymTableId].getSymEntry($1->id));
+        //     // $$->symid= v1[0].symid;
+        //     //cout<<class_to_symboltable[$1->id]<<endl;
+        // }
      }
 	| QualifiedName
       {
@@ -286,8 +287,19 @@ SimpleName: Identifier
                         yyerror(s1.c_str());
                         exit(0);
                     }
+                    // cout<<"------------"<<lex<<"    "<<t1<<endl;
                     $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
-                    $$->symid=t1;
+
+                    if($$->type == OBJECT){
+                            vector<struct symEntry> v1 = (*symTables[t1].getSymEntry(lex));
+                            $$->symid=v1[0].symid;
+                        }
+                    else if($$->type==CLASS){
+                            $$->symid=class_to_symboltable[lex];
+                    }
+                    else
+                        $$->symid=t1;
+                    // cout<<"Type is ---------------"<<$$->type<<endl;
                     //$$->size=symTables[t1].entries[lex][0].size;
                 }
                 else {
@@ -312,7 +324,13 @@ QualifiedName: Name s_dot Identifier
                             yyerror(s1.c_str());
                             exit(0);
                         }
-                        $$->symid=$1->symid;
+                        $$->type = symTables[$1->symid].entries[s][0].type;
+                        if($$->type == OBJECT){
+                            $$->symid=symTables[$1->symid].entries[s][0].symid;
+                        }
+                        else{
+                            $$->symid=$1->symid;
+                        }
                     }
 
                 }
@@ -784,9 +802,9 @@ ClassBodyDeclaration:ClassMemberDeclaration
                             $$=$1;
                             if(!isDot){
                                 currentSymTableId = symTables[currentSymTableId].parentID;
-                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], yylineno,fsize,true);
+                                symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], $1->lineno,fsize,true);
                                 for(int i=1;i<vt.size();i++){
-                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], yylineno, vfs[i-1]);
+                                    symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], $1->lineno, vfs[i-1]);
                                 }
                                 vt.clear();
                                 vfs.clear();
@@ -1198,7 +1216,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else{
-                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", $2->lineno);
             }
             $$->children.push_back($1);
             $$->children.push_back($2);
@@ -1209,7 +1227,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($2->id.c_str(),"ConstructorDeclaration", $2->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -1218,7 +1236,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", $2->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
@@ -1227,7 +1245,7 @@ ConstructorDeclaration:
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
             else
-                $$=new Node($1->id.c_str(),"ConstructorDeclaration", yylineno);
+                $$=new Node($1->id.c_str(),"ConstructorDeclaration", $2->lineno);
             $$->children.push_back($1);
             $$->children.push_back($2);
             }
@@ -2722,7 +2740,7 @@ MethodInvocation:
      $$->children.push_back(new Node(")","Separator", yylineno));
         if(!isDot){
             vector<struct symEntry>* a = symTables[$1->symid].getSymEntry($1->id);
-            cout<<"this simid "<<$1->symid<<endl;
+            cout<<"this simid "<<$1->id<<endl;
             if((*a).size()!=vfs.size()+1 || !(*a)[0].isfunction){
                 yyerror("Method not found");
                 exit(0);
@@ -3673,6 +3691,14 @@ int main(int argc, char**argv){
         return 0;
     }
 
+    if(!isDot){
+            initializeSymTable(currentSymTableId);
+            yyin = fopen("System.java", "r");
+            yyparse();
+            yylineno = 1;
+    }
+
+
     if (argc > 1) {
         if(input_index)
             yyin = fopen(argv[input_index], "r");
@@ -3683,9 +3709,6 @@ int main(int argc, char**argv){
     }
     else {
         yyin = stdin;
-    }
-    if(!isDot){
-        initializeSymTable(currentSymTableId);
     }
     yyparse();
     if(root){
