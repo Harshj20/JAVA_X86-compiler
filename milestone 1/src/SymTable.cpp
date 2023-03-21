@@ -3,7 +3,7 @@ map<unsigned long long int, symtab> symTables;
 
 symtab::symtab(){
         this->ID = -1;
-        this->parentID = -1;
+        this->parentID = 0;
     }
 
 symtab::symtab(int id, int parentID) {

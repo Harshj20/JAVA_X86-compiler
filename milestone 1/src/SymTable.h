@@ -27,12 +27,14 @@ enum TYPE{
     DOUBLE,
     STRING,
     BOOL,
+    OBJECT
 };
 struct symEntry{
     TYPE type;
     int lineno;
     int size = 0;
     bool isfunction = false;
+    int symid = -1;
     symEntry(TYPE type, int lineno){
         this->type = type;
         this->lineno = lineno;

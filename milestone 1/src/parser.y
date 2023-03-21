@@ -9,7 +9,7 @@ extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 map<string, unsigned long long int> class_to_symboltable;
 
-vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL"};
+vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL", "OBJECT"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
@@ -24,6 +24,7 @@ vector<int>vs;  // vector to store max size of dimensions of array
 vector<int>vfs; // vector to store dimensions of function arguments
 bool isarr=false;
 int ArrayArgumentDepth = 0;
+string reftype = "";
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -157,6 +158,11 @@ FloatingPointType: k_float {
 ReferenceType:ClassOrInterfaceType
               {
                 $$=$1;
+                if(!isDot){
+                    $$->type=OBJECT;
+                    t = OBJECT;
+                    reftype=$1->id;
+                }
               }
 	         |ArrayType
              {
@@ -801,8 +807,8 @@ VariableDeclarator: VariableDeclaratorId
                                     yyerror("Type Mismatch in Variable Declarator");
                                     exit(0);
                                 }
-                                cout<<size<<" "<<$3->size<<endl;
-                                if($3->size!=size){
+                                cout<<$1->size<<" "<<$3->size<<endl;
+                                if($3->size!=$1->size){
                                     yyerror("Size Mismatch in Variable Declarator");
                                     exit(0);
                                 }
@@ -835,19 +841,21 @@ VariableDeclaratorId: Identifier
                                     exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-                            if(isarr){
-                                for(int i=0;i<size;i++){
-                                    symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
-                                }
-                                $$->size=size;
+                            for(int i=0;i<size;i++){
+                                symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
+                            }
+                            if(t==OBJECT){
+                                vector<struct symEntry> *sentry = symTables[currentSymTableId].getSymEntry(s);
+                                (*sentry)[0].symid = class_to_symboltable(reftype);
+                            }
+                            $$->size=size;
+                            size=0;
                                 //cout<<size<<endl;
                                 //cout<<enum_types[t]<<endl;
-                            }
                         }
                       }
 	                 |VariableDeclaratorId s_open_square_bracket s_close_square_bracket     
                         {   
-
                             if(!isDot){
                                 string s($1->id);
                                 $$=new Node($1->id.c_str(),"VariableDeclaratorId",yylineno);
@@ -1122,8 +1130,9 @@ ConstructorDeclaration:
 	Modifiers ConstructorDeclarator Throws ConstructorBody {  
             if(isDot)
                 $$=new Node("ConstructorDeclaration"); 
-            else
+            else{
                 $$=new Node($2->id.c_str(),"ConstructorDeclaration", yylineno);
+            }
             $$->children.push_back($1);
             $$->children.push_back($2);
             $$->children.push_back($3);
