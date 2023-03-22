@@ -25,6 +25,7 @@ vector<int>vfs; // vector to store dimensions of function arguments
 bool isarr=false;
 int ArrayArgumentDepth = 0;
 string reftype = "";
+string returnFunctionName = "";
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -271,10 +272,11 @@ SimpleName: Identifier
                     else if($$->type==CLASS){
                             $$->symid=class_to_symboltable[lex];
                     }
-                    else
+                    else{
                         $$->symid=t1;
+                    }
                     // cout<<"Type is ---------------"<<$$->type<<endl;
-                    //$$->size=symTables[t1].entries[lex][0].size;
+                    $$->size=symTables[t1].entries[lex].size()-1;
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -305,6 +307,7 @@ QualifiedName: Name s_dot Identifier
                         else{
                             $$->symid=$1->symid;
                         }
+                        $$->size=symTables[$1->symid].entries[s].size()-1;
                     }
 
                 }
@@ -720,6 +723,7 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             // }
                             t = VOID;
                             size = 0;
+                            fsize = 0;
                             isarr = false;
                         }
                         | Type VariableDeclaratorList s_semicolon     
@@ -736,6 +740,7 @@ FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon
                             // }
                             t = VOID;
                             size = 0;
+                            fsize = 0;
                             isarr = false;
                         }
 
@@ -967,6 +972,7 @@ MethodDeclarator:
                 vfs.clear();
                 fsize = 0;
                 islocal = false;
+                returnFunctionName = $1;
             }
         }
     | Identifier S_open_paren s_close_paren {  
@@ -988,6 +994,7 @@ MethodDeclarator:
                 vfs.clear();
                 fsize = 0;
                 islocal = false;
+                returnFunctionName = $1;
             }
         }
 	| MethodDeclarator s_open_square_bracket s_close_square_bracket {  
@@ -1005,6 +1012,7 @@ MethodDeclarator:
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                 }
+                returnFunctionName = $1->id;
             }
         }
 
@@ -1602,6 +1610,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         isarr=false;
         size=0;
         islocal=false;
+        fsize = 0;
     }
     ;
 
@@ -2168,6 +2177,19 @@ ReturnStatement: k_return s_semicolon
     $$ = new Node("ReturnStatement");
     $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back(new Node(";", "Separator", yylineno));
+    int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
+    if(!t1){
+        yyerror("Function associated with this return statement not found");
+        exit(0);
+    }
+    if(symTables[t1].entries[returnFunctionName][0].type != VOID){
+        yyerror("Return type of function does not match return statement");
+        exit(0);
+    }
+    if(symTables[t1].entries[returnFunctionName][0].size != 0){
+        yyerror("Return size of function does not match return statement");
+        exit(0);
+    }
 }
 | k_return Expression s_semicolon 
 {
@@ -2175,6 +2197,21 @@ ReturnStatement: k_return s_semicolon
     $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node(";", "Separator", yylineno));
+    int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
+    if(!t1){
+        yyerror("Function associated with this return statement not found");
+        exit(0);
+    }
+    if(symTables[t1].entries[returnFunctionName][0].type != $2->type){
+        yyerror("Return type of function does not match return statement");
+        exit(0);
+    }
+    if(symTables[t1].entries[returnFunctionName][0].size != $2->size){
+        cout<<$2->size<<" "<<symTables[t1].entries[returnFunctionName][0].size;
+        cout<<returnFunctionName<<endl;
+        yyerror("Return size of function does not match return statement");
+        exit(0);
+    }
 }
 
 ThrowStatement: k_throw s_semicolon
@@ -3388,6 +3425,7 @@ LeftHandSide:
     $$ = $1;
     size=0;
         vs.clear();
+    fsize = 0;
     }
     ;
 
