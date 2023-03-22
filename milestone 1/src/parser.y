@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #include "Node.h"
 #include "SymTable.h"
+#include "ThreeAC.h"
 using namespace std;
 extern int yylex();
 extern int yylineno;
@@ -15,7 +16,7 @@ set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
 int currentSymTableId = 0;
 int symTablescount = 1;
-bool isDot = false, islocal=false;
+bool isDot = false, islocal=false; 
 vector<TYPE>vt;  // vector used for types
 TYPE t = VOID;
 int size = 0;
@@ -25,6 +26,8 @@ vector<int>vfs; // vector to store dimensions of function arguments
 bool isarr=false;
 int ArrayArgumentDepth = 0;
 string reftype = "";
+
+vector<threeACNode*> threeAC;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -53,6 +56,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %code requires{
     #include "Node.h"
+    #include "ThreeAC.h"
 }
 
 %union {
@@ -978,8 +982,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
@@ -999,8 +1003,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
@@ -2583,9 +2587,7 @@ MethodInvocation:
             yyerror("Method not found");
             exit(0);
         }
-        $$->symid = (*a)[0].symid;
         $$->type=(*a)[0].type;
-        $$->size = (*a)[0].size;
     }
     }
     | Name s_open_paren ArgumentList s_close_paren
@@ -2603,8 +2605,6 @@ MethodInvocation:
                 exit(0);
             }
             $$->type=(*a)[0].type;
-            $$->symid = (*a)[0].symid;
-            $$->size = (*a)[0].size;
             cout<<vfs.size()<<" "<<vt.size()<<endl;
             for(int i=0;i<vfs.size();i++){
                 cout<<vt[i]<<" "<<(*a)[i+1].type<<endl;
@@ -2636,8 +2636,6 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
-        $$->symid = (*a)[0].symid;
-        $$->size = (*a)[0].size;
     }
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
@@ -2660,8 +2658,6 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
-        $$->symid = (*a)[0].symid;
-        $$->size = (*a)[0].size;
         for(int i=0;i<vfs.size();i++){
             if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
                 yyerror("Argument type mismatch");
@@ -3486,10 +3482,21 @@ void symTab_csv(symtab* a){
     fout.close();
 }
 
+void generate_3AC(){
+    ofstream fout;
+    fout.open("3AC.csv");
+    fout<<"Operator,Operand1,Operand2,Result"<<endl;
+    for(int i = 0; i < threeAC.size(); i++){
+        fout<<threeAC[i]->op<<","<<threeAC[i]->arg1<<","<<threeAC[i]->arg2<<","<<threeAC[i]->res<<endl;
+    }
+    fout.close();
+}
+
 void check_semantics(){
     for(auto i = symTables.begin(); i != symTables.end(); i++){
         symTab_csv(&i->second);
     }
+    generate_3AC();
 }
 
 int main(int argc, char**argv){
