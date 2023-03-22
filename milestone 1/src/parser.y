@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 #include "Node.h"
 #include "SymTable.h"
-#include "ThreeAC.h"
+//#include "ThreeAC.h"
 using namespace std;
 extern int yylex();
 extern int yylineno;
@@ -1662,7 +1662,11 @@ Statement :
     | LabeledStatement
     {$$ = $1;} 
     | IfThenStatement
-    {$$ = $1;} 
+    {
+        $$ = $1;
+        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+    } 
     | IfThenElseStatement
     {$$ = $1;} 
     | WhileStatement
@@ -1673,7 +1677,11 @@ Statement :
 
 StatementNoShortIf : 
     StatementWithoutTrailingSubstatement
-    {$$ = $1;}
+    {
+        $$ = $1;
+        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+    }
     | LabeledStatementNoShortIf 
     {$$ = $1;}
     | IfThenElseStatementNoShortIf 
@@ -1690,7 +1698,9 @@ StatementWithoutTrailingSubstatement :
     | EmptyStatement 
     {$$ = $1;}
     | ExpressionStatement 
-    {$$ = $1;}
+    {
+        $$ = $1;
+    }
     | BreakStatement 
     {$$ = $1;}
     | ContinueStatement 
@@ -1732,13 +1742,15 @@ LabeledStatementNoShortIf:
     }
 
 ExpressionStatement:
-
 	StatementExpression s_semicolon
-    {
+    {   
         $$ = new Node("ExpressionStatement");
         $$->children.push_back($1);
         $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->threeACCode = $1->threeACCode;
         threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->field = $1->field;
     }
 	;
 
@@ -1764,24 +1776,34 @@ IfThenStatement :
     k_if invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("IfThenStatement");
-        
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
         if(!isDot){
-            currentSymTableId=symTables[currentSymTableId].parentID;  
+            currentSymTableId=symTables[currentSymTableId].parentID;
+            if($3->type != BOOL){
+                yyerror("If statement expression must have the type boolean");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -=2;
         }
     }
-    ;
-
 
 IfThenElseStatement : 
     k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else Statement 
     {
         $$ = new Node("IfThenElseStatement");
-        
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
@@ -1789,6 +1811,28 @@ IfThenElseStatement :
         $$->children.push_back($5);
         $$->children.push_back(new Node("else", "Keyword", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+            if($3->type != BOOL){
+                yyerror("If statement expression must have the type boolean");
+                exit(0);
+            }
+            //$$->type = widen($5->type, $3->type);
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $7->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter-=2;
+            //$$->size=$3->size;
+            //$$->field = "t" + to_string(tcounter++);
+        }
     }
     ;
 
@@ -1804,6 +1848,26 @@ IfThenElseStatementNoShortIf :
         $$->children.push_back($5);
         $$->children.push_back(new Node("else", "Keyword", yylineno));
         $$->children.push_back($7);
+        if(!isDot){
+            if($3->type != BOOL){
+                yyerror("If statement expression must have the type boolean");
+                exit(0);
+            }
+            //$$->type = widen($5->type, $3->type);
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $7->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -=2;
+        }
     }
     ;
 

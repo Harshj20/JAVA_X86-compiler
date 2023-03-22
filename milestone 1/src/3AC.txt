@@ -9,3 +9,10 @@ L-1:
 L-2:
 	b = t3
 	a = b
+	a = 1
+	t1 = a < b
+	if t1 goto L-3
+	goto L-4
+L-3:
+	t1 = 
+L-4:
