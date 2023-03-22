@@ -3681,14 +3681,16 @@ ConditionalExpression:
             $$->threeACCode.push_back("\tif " + $1->field + " goto " + "L" + to_string(lcounter));
             $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
             $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
-            $1->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $3->field);
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter -=2;
             $$->size=$3->size;
+            $$->field = "t" + to_string(tcounter++);
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("?","Separator", yylineno));
