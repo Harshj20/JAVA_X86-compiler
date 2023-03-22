@@ -31,6 +31,7 @@ int tcounter=1;
 int lcounter=-1;
 
 vector<string>threeAC;
+vector<int>loopscope; // to store the scope of loops
 //vector<string>$$->threeACCode;
 string returnFunctionName = "";
 
@@ -82,7 +83,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super if_invoke_paren
 
 %%
 // ------------------ Start -----------------------
@@ -1778,98 +1779,99 @@ StatementExpression:
     { $$ = $1; }
 	;
 
-IfThenStatement : 
-    k_if invoke_paren Expression s_close_paren Statement 
+if_invoke_paren : k_if s_open_paren
     {
-        $$ = new Node("IfThenStatement");
+        $$ = new Node("if_invoke_paren");
         $$->children.push_back(new Node("if", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back($3);
+        if(!isDot){
+            initializeSymTable(currentSymTableId);
+        }
+    }
+
+IfThenStatement : 
+    if_invoke_paren Expression s_close_paren Statement 
+    {
+        $$ = new Node("IfThenStatement");
+        $$->children.push_back($1->children[0]);
+        $$->children.push_back($1->children[1]);
+        $$->children.push_back($2);
         $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($5);
+        $$->children.push_back($4);
         if(!isDot){
             currentSymTableId=symTables[currentSymTableId].parentID;
-            if($3->type != BOOL){
+            if($2->type != BOOL){
                 yyerror("If statement expression must have the type boolean");
                 exit(0);
             }
-            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-            $3->threeACCode.clear();
-            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
-            $5->threeACCode.clear();
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $4->threeACCode.clear();
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter -=2;
         }
     }
 
 IfThenElseStatement : 
-    k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else Statement 
+    if_invoke_paren Expression s_close_paren StatementNoShortIf k_else Statement 
     {
         $$ = new Node("IfThenElseStatement");
-        $$->children.push_back(new Node("if", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back($3);
+        $$->children.push_back($1->children[0]);
+        $$->children.push_back($1->children[1]);
+        $$->children.push_back($2);
         $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($5);
+        $$->children.push_back($4);
         $$->children.push_back(new Node("else", "Keyword", yylineno));
-        $$->children.push_back($7);
+        $$->children.push_back($6);
         if(!isDot){
-            if($3->type != BOOL){
+            if($2->type != BOOL){
                 yyerror("If statement expression must have the type boolean");
                 exit(0);
             }
-            //$$->type = widen($5->type, $3->type);
-            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-            $3->threeACCode.clear();
-            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
-            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-            $7->threeACCode.clear();
-            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $6->threeACCode.clear();
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
-            $5->threeACCode.clear();
-            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $6->threeACCode.clear();
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter-=2;
-            //$$->size=$3->size;
-            //$$->field = "t" + to_string(tcounter++);
         }
     }
     ;
 
 IfThenElseStatementNoShortIf : 
-    k_if invoke_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
+    if_invoke_paren Expression s_close_paren StatementNoShortIf k_else StatementNoShortIf 
     {
         $$ = new Node("IfThenElseStatementNoShortIf");
-        
-        $$->children.push_back(new Node("if", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back($3);
+        $$->children.push_back($1->children[0]);
+        $$->children.push_back($1->children[1]);
+        $$->children.push_back($2);
         $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($5);
+        $$->children.push_back($4);
         $$->children.push_back(new Node("else", "Keyword", yylineno));
-        $$->children.push_back($7);
+        $$->children.push_back($6);
         if(!isDot){
-            if($3->type != BOOL){
+            if($2->type != BOOL){
                 yyerror("If statement expression must have the type boolean");
                 exit(0);
             }
-            //$$->type = widen($5->type, $3->type);
-            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-            $3->threeACCode.clear();
-            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
-            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-            $7->threeACCode.clear();
-            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $6->threeACCode.clear();
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
-            $5->threeACCode.clear();
-            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $4->threeACCode.clear();
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter -=2;
         }
@@ -1877,8 +1879,10 @@ IfThenElseStatementNoShortIf :
     ;
 
 invoke_paren : s_open_paren {
-    if(!isDot)
-    initializeSymTable(currentSymTableId);
+    if(!isDot){
+        initializeSymTable(currentSymTableId);
+        loopscope.push_back(currentSymTableId);
+    }
 }
 
 WhileStatement : 
@@ -1891,11 +1895,23 @@ WhileStatement :
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
         if(!isDot){
-            currentSymTableId = symTables[currentSymTableId].parentID;
             if($3->type != BOOL){
                 yyerror("While statement expression must have the type boolean");
                 exit(0);
             }
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter-=2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
 
     }
@@ -1905,14 +1921,30 @@ WhileStatementNoShortIf :
     k_while invoke_paren Expression s_close_paren StatementNoShortIf 
     {
         $$ = new Node("WhileStatementNoShortIf");
-        
         $$->children.push_back(new Node("while", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
-        if(!isDot)
-        currentSymTableId = symTables[currentSymTableId].parentID;
+        if(!isDot){
+            if($3->type != BOOL){
+                yyerror("While statement expression must have the type boolean");
+                exit(0);
+            }
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter-=2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
     }
     ;
 
@@ -1920,8 +1952,8 @@ WhileStatementNoShortIf :
 ForStatement : BasicForStatement {$$=$1;}| EnhancedForStatement {$$=$1;}
 ForStatementNoShortIf : BasicForStatementNoShortIf {$$=$1;}| EnhancedForStatementNoShortIf {$$=$1;}
 
-BasicForStatement:
-	k_for invoke_paren s_semicolon s_semicolon s_close_paren Statement 
+BasicForStatement :
+k_for invoke_paren s_semicolon s_semicolon s_close_paren Statement 
     {
         $$ = new Node("BasicForStatement");
         
@@ -1932,7 +1964,20 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($6);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren Statement 
@@ -1947,7 +1992,19 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren Statement 
@@ -1962,7 +2019,27 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            if($4->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($4->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
@@ -1978,7 +2055,27 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            if($4->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($4->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren Statement 
@@ -1993,7 +2090,19 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($7);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren Statement 
@@ -2009,7 +2118,19 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren Statement 
@@ -2025,7 +2146,27 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            if($5->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($5->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
     | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement 
@@ -2042,91 +2183,186 @@ BasicForStatement:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
-        }
-    }
-    ;
-
-
-BasicForStatementNoShortIf:
-	k_for invoke_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf
-     {
-        $$ = new Node("BasicForStatementNoShortIf");
-        
-        $$->children.push_back(new Node("for", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($6);
-        if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
-        }
-     }
-    | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
-    {
-        $$ = new Node("BasicForStatementNoShortIf");
-        
-        $$->children.push_back(new Node("for", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back($5);
-        $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($7);
-        if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
-        }
-    }
-    | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
-    {
-        $$ = new Node("BasicForStatementNoShortIf");
-        
-        $$->children.push_back(new Node("for", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($7);
-        if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
-        }
-    }
-    | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
-    {
-        $$ = new Node("BasicForStatementNoShortIf");
-        
-        $$->children.push_back(new Node("for", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back($4);
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back($6);
-        $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($8);
-        if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
-        }
-    }
-    | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf
-    {
-        $$ = new Node("BasicForStatementNoShortIf");
-        
-        $$->children.push_back(new Node("for", "Keyword", yylineno));
-        $$->children.push_back(new Node("(", "Separator", yylineno));
-        $$->children.push_back($3);
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->children.push_back(new Node(")", "Separator", yylineno));
-        $$->children.push_back($7);
-        if(!isDot){
+            if($5->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($5->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
             currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
-    | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf
+
+BasicForStatementNoShortIf :
+k_for invoke_paren s_semicolon s_semicolon s_close_paren StatementNoShortIf 
     {
-        $$ = new Node("BasicForStatementNoShortIf");
+        $$ = new Node("BasicForStatement");
+        
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
+        $$->children.push_back($6);
+        if(!isDot){
+            
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
+    }
+    | k_for invoke_paren s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf 
+    {
+        $$ = new Node("BasicForStatement");
+        
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back($5);
+        $$->children.push_back(new Node(")", "Separator", yylineno));
+        $$->children.push_back($7);
+        if(!isDot){
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
+    }
+    | k_for invoke_paren s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf 
+    {
+        $$ = new Node("BasicForStatement");
+        
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back($4);
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
+        $$->children.push_back($7);
+        if(!isDot){
+            if($4->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($4->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
+    }
+    | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf 
+    {
+        $$ = new Node("BasicForStatement");
+        
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back($4);
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back($6);
+        $$->children.push_back(new Node(")", "Separator", yylineno));
+        $$->children.push_back($8);
+        if(!isDot){
+            if($4->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($4->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
+    }
+    | k_for invoke_paren ForInit s_semicolon s_semicolon s_close_paren StatementNoShortIf 
+    {
+        $$ = new Node("BasicForStatement");
+        
+        $$->children.push_back(new Node("for", "Keyword", yylineno));
+        $$->children.push_back(new Node("(", "Separator", yylineno));
+        $$->children.push_back($3);
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        $$->children.push_back(new Node(")", "Separator", yylineno));
+        $$->children.push_back($7);
+        if(!isDot){
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
+        }
+    }
+    | k_for invoke_paren ForInit s_semicolon s_semicolon ForUpdate s_close_paren StatementNoShortIf 
+    {
+        $$ = new Node("BasicForStatement");
         
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
@@ -2137,12 +2373,24 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
-    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon s_close_paren StatementNoShortIf 
     {
-        $$ = new Node("BasicForStatementNoShortIf");
+        $$ = new Node("BasicForStatement");
         
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
@@ -2153,12 +2401,32 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($8);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            if($5->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($5->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
+            // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
-    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf
+    | k_for invoke_paren ForInit s_semicolon Expression s_semicolon ForUpdate s_close_paren StatementNoShortIf 
     {
-        $$ = new Node("BasicForStatementNoShortIf");
+        $$ = new Node("BasicForStatement");
         
         $$->children.push_back(new Node("for", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
@@ -2170,10 +2438,29 @@ BasicForStatementNoShortIf:
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($9);
         if(!isDot){
-        currentSymTableId = symTables[currentSymTableId].parentID;
+            if($5->type != BOOL){
+                yyerror("Expression in for loop must be of type bool");
+                exit(0);
+            }
+            if($5->size != 0){
+                yyerror("Expression in for loop must be of size 0");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
+            $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
+            $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -= 2;
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            loopscope.pop_back();
         }
     }
-    ;
 
 EnhancedForStatementNoShortIf: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren StatementNoShortIf 
 {
@@ -2188,7 +2475,8 @@ EnhancedForStatementNoShortIf: k_for invoke_paren LocalVariableDeclaration o_col
     $$->children.push_back($7);
     if(!isDot){
         currentSymTableId = symTables[currentSymTableId].parentID;
-        }
+        loopscope.pop_back();
+    }
 }
 
 ForInit : 
@@ -2212,7 +2500,6 @@ ForUpdate :
 EnhancedForStatement: k_for invoke_paren LocalVariableDeclaration o_colon Expression s_close_paren Statement 
 {
     $$ = new Node("EnhancedForStatement");
-    
     $$->children.push_back(new Node("for", "Keyword", yylineno));
     $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($3);
@@ -2220,6 +2507,11 @@ EnhancedForStatement: k_for invoke_paren LocalVariableDeclaration o_colon Expres
     $$->children.push_back($5);
     $$->children.push_back(new Node(")", "Separator", yylineno));
     $$->children.push_back($7);
+    if(!isDot){
+
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
+    }
 }
 
 StatementExpressionList:StatementExpression {$$ = $1;}
@@ -2232,22 +2524,43 @@ StatementExpressionList:StatementExpression {$$ = $1;}
                        }
 
 BreakStatement: k_break s_semicolon 
-{ 
-    $$ = new Node("BreakStatement");
-    $$->children.push_back(new Node("break", "Keyword", yylineno));
-    $$->children.push_back(new Node(";", "Separator", yylineno));}
- | k_break Identifier s_semicolon
- {
-    $$ = new Node("BreakStatement");
-    $$->children.push_back(new Node("break", "Keyword", yylineno));
-    $$->children.push_back(new Node($3, "Identifier",yylineno));
-    $$->children.push_back(new Node(";", "Separator", yylineno));}
+    { 
+        $$ = new Node("BreakStatement");
+        $$->children.push_back(new Node("break", "Keyword", yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+        if(!isDot){
+            if(loopscope.size() == 0){
+                yyerror("Break statement outside loop");
+                exit(0);
+            }
+            int x = currentSymTableId, c=-1;
+            while(x != loopscope.back()){
+                x = symTables[x].parentID;
+                c-=2;
+            }
+            $$->threeACCode.push_back("\tgoto L"+to_string(lcounter+c));
+        }
+    }
+    | k_break Identifier s_semicolon
+    {
+        $$ = new Node("BreakStatement");
+        $$->children.push_back(new Node("break", "Keyword", yylineno));
+        $$->children.push_back(new Node($3, "Identifier",yylineno));
+        $$->children.push_back(new Node(";", "Separator", yylineno));
+    }
 
 ContinueStatement: k_continue s_semicolon
     {
         $$ = new Node("ContinueStatement");
         $$->children.push_back(new Node("continue", "Keyword", yylineno));
         $$->children.push_back(new Node(";", "Separator", yylineno));
+        if(!isDot){
+            if(loopscope.size() == 0){
+                yyerror("Continue statement outside loop");
+                exit(0);
+            }
+            $$->threeACCode.push_back("\tgoto L"+to_string(loopscope.back()));
+        }
     }
  | k_continue Identifier s_semicolon 
  {
@@ -2903,16 +3216,16 @@ PostIncrementExpression:
         {
             yyerror("Post increment can only be applied to int");
             exit(0);
-            if($1->size!=0){
+        }
+        if($1->size!=0){
                 yyerror("Post increment can only be applied to int");
                 exit(0);
-            }
-            $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-            $1->threeACCode.clear();
-            $$->field = "t" + to_string(tcounter++);
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field + " + 1");
         }
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+        $$->threeACCode.push_back("\t" + $1->field  + " = " + $$->field + " + 1");
      }
     
     $$->children.push_back($1);
@@ -2937,7 +3250,7 @@ PostDecrementExpression:
             $1->threeACCode.clear();
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field + " - 1");
+            $$->threeACCode.push_back("\t" + $1->field  + " = " + $$->field + " - 1");
         }
     $$->children.push_back($1);}
     ;
@@ -2984,7 +3297,7 @@ UnaryExpression:
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->field = "t"+to_string(tcounter++);
-        $$->threeACCode.push_back("\t" + $$->field + " = " + "-" + $2->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = -" + $2->field);
     }    
     $$->children.push_back(new Node("-","Separator", yylineno));
     $$->children.push_back($2);}
@@ -3524,7 +3837,7 @@ EqualityExpression:
             yyerror("Equality can only be applied to same size");
             exit(0);
         }
-        $$->type = widen($1->type, $3->type);
+        $$->type = BOOL;
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3550,7 +3863,7 @@ EqualityExpression:
             yyerror("Size mismatch");
             exit(0);
         }
-        $$->type = widen($1->type, $3->type);
+        $$->type = BOOL;
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3938,8 +4251,9 @@ void symTab_csv(symtab* a){
     fout.open(s);
     fout<<"Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID"<<endl;
     for(auto i = a->entries.begin(); i != a->entries.end(); i++){
-        for(auto j = i->second.begin(); j != i->second.end(); j++)
+        for(auto j = i->second.begin(); j != i->second.end(); j++){
             fout<<i->first<<","<<"Identifier"<<","<<enum_types[j->type]<<","<<j->size<<","<<j->lineno<<","<<j->symid<<endl;
+        }
     }
     fout.close();
 }
@@ -3949,6 +4263,8 @@ void generate_3AC(){
     fout.open("3AC.txt");
     // fout<<"op,arg1,arg2,res"<<endl;
     for(int i=0;i<threeAC.size();i++){
+        /* if((i+1<threeAC.size() && threeAC[i][0]=='L' && threeAC[i+1][0]=='L') || (i==threeAC.size()-1 && threeAC[i][0]=='L'))
+            continue; */
         fout<<threeAC[i]<<endl;
     }
 }
