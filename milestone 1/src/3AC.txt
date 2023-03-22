@@ -1,1 +1,49 @@
-	s = 
+	x = 0
+L3:
+	a = 0
+	t1 = a
+	a = t1 + 1
+	b = t1
+	t1 = a > 1
+	if t1 goto L-1
+	t2 = a + 1
+	t3 = t2
+	goto L-2
+L-1:
+	t3 = c
+L-2:
+	b = t3
+	a = b
+	t1 = a < b
+	if t1 goto L-3
+	goto L-4
+L-3:
+	a = 1
+L-4:
+L5:
+	t1 = a < 3
+	if t1 goto L-11
+	goto L-12
+L-11:
+	t2 = a + b
+	b = t2
+L6:
+	if true goto L-9
+	goto L-10
+L-9:
+	t1 = b == 5
+	if t1 goto L-7
+	goto L-8
+L-7:
+	t2 = a == 3
+	if t2 goto L-5
+	goto L-6
+L-5:
+	goto L-10
+L-6:
+L-8:
+	goto L6
+L-10:
+	goto L-12
+	goto L5
+L-12:

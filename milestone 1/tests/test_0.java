@@ -5,11 +5,11 @@ class Addition {
     // Initially taking sum as 0
     // as we have not started computation
     // static int sum = 0;
-    int a[][] = new int[10][9];
+    static int a[][] = new int[10][9];
  
     // Method
     // To add two numbers
-    public static int addTwoInt(int a, int b)
+    int addTwoInt(int a, int b)
     {
  
         // Adding two integer value
@@ -22,7 +22,7 @@ class Addition {
  
 // Class 2
 //Helper class
-class GFG {
+class test_0 {
  
     // Main driver method
     public static void main()
@@ -35,8 +35,10 @@ class GFG {
         // to add two integer
         // using instance created
         int s = add.addTwoInt(1, 2);
+        s = add.a[0][0];
         String a = "Hello world";
+        int x, z[];
         // Printing the sum of two numbers
-        System.out.println(a);
+        // System.out.println(a);
     }
 } 
