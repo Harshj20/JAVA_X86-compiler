@@ -1,0 +1,9 @@
+	a = 1
+	t1 = a > 1
+	if t1 goto L-1
+	t2 = a + 1
+	goto L-2
+L-1:
+L-2:
+	b = 
+	a = b

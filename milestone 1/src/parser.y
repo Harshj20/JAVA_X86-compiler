@@ -10,6 +10,7 @@ extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables; 
 map<string, unsigned long long int> class_to_symboltable;
 
+
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL", "OBJECT"};
 
 set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
@@ -29,9 +30,10 @@ string reftype = "";
 int tcounter=1;
 int lcounter=-1;
 
-//vector<threeACNode*>threeAC;
+vector<string>threeAC;
 //vector<string>$$->threeACCode;
 string returnFunctionName = "";
+
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -283,6 +285,8 @@ SimpleName: Identifier
                     }
                     // cout<<"Type is ---------------"<<$$->type<<endl;
                     $$->size=symTables[t1].entries[lex].size()-1;
+                    $$->field = $$->id;
+
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -1734,6 +1738,7 @@ ExpressionStatement:
         $$ = new Node("ExpressionStatement");
         $$->children.push_back($1);
         $$->children.push_back(new Node(";", "Separator", yylineno));
+        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
     }
 	;
 
@@ -2832,7 +2837,7 @@ PostIncrementExpression:
             $1->threeACCode.clear();
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field " + 1");
+            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field + " + 1");
         }
      }
     
@@ -2858,7 +2863,7 @@ PostDecrementExpression:
             $1->threeACCode.clear();
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field " - 1");
+            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field + " - 1");
         }
     $$->children.push_back($1);}
     ;
@@ -2930,7 +2935,8 @@ PreIncrementExpression:
         }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\t" +  "t" + to_string(tcounter++)  + " = " + $2->field " + 1");
+        $$->threeACCode.push_back("\tt" + to_string(tcounter)  + " = " + $2->field + " + 1");
+        tcounter++;
         $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter-1));
         $$->field = $2->field;
      }
@@ -2956,7 +2962,7 @@ PreDecrementExpression:
             }
             $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
             $2->threeACCode.clear();
-            $$->threeACCode.push_back("\t" +  "t" + to_string(tcounter++)  + " = " + $2->field " - 1");
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++)  + " = " + $2->field + " - 1");
             $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter-1));
             $$->field = $2->field;
         }
@@ -3670,10 +3676,12 @@ ConditionalExpression:
                 exit(0);
             }
             $$->type = widen($5->type, $3->type);
+            $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+            $1->threeACCode.clear();
             $$->threeACCode.push_back("\tif " + $1->field + " goto " + "L" + to_string(lcounter));
             $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
             $5->threeACCode.clear();
-            $$->threeACCode.push_back("\tgoto " + "L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
@@ -3720,7 +3728,7 @@ Assignment:
             $3->threeACCode.clear();
             $1->threeACCode.clear();
             if($2->field.size()>1){
-                $$->threeACCode.push_back("\tt"+to_string(tcounter) " = " + $1->field + " " +  $2->field.substr(0,s.size()-1) + " " +  $3->field);
+                $$->threeACCode.push_back("\tt"+to_string(tcounter) + " = " + $1->field + " " +  $2->field.substr(0,$2->field.size()-1) + " " +  $3->field);
                 $$->threeACCode.push_back("\t" + $1->field + " = " + "t" + to_string(tcounter));
             }
             else{
@@ -3863,12 +3871,9 @@ void symTab_csv(symtab* a){
 void generate_3AC(){
     ofstream fout;
     fout.open("3AC.txt");
-    //fout<<"op,arg1,arg2,res"<<endl;
+    // fout<<"op,arg1,arg2,res"<<endl;
     for(int i=0;i<threeAC.size();i++){
-        if(threeAC[i]->op=="=")
-            fout<<threeAC[i]->res<<" "<<threeAC[i]->op<<" "<<threeAC[i]->arg1<<endl;
-        else
-            fout<<threeAC[i]->res<<" = "<<threeAC[i]->arg1<<" "<<threeAC[i]->op<<" "<<threeAC[i]->arg2<<endl;
+        fout<<threeAC[i]<<endl;
     }
 }
 
@@ -3876,7 +3881,7 @@ void check_semantics(){
     for(auto i = symTables.begin(); i != symTables.end(); i++){
         symTab_csv(&i->second);
     }
-    //generate_3AC();
+    generate_3AC();
 }
 
 int main(int argc, char**argv){
