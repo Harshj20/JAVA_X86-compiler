@@ -1,0 +1,10 @@
+Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID
+a,Identifier,INT,0,2,0
+add,Identifier,INT,0,2,0
+add,Identifier,INT,0,2,0
+add,Identifier,INT,0,2,0
+add,Identifier,INT,0,2,0
+add,Identifier,INT,0,2,0
+b,Identifier,INT,0,2,0
+c,Identifier,INT,0,2,0
+d,Identifier,INT,0,2,0

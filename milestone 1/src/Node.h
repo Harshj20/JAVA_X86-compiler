@@ -13,6 +13,7 @@ public:
     int lineno = -1;
     int size = 0;
     int symid=1;
+    string field="";
 
     Node(const char* id) {
         string s(id);

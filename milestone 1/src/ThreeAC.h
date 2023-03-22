@@ -8,7 +8,7 @@ struct threeACNode {
     string arg1="";
     string arg2="";
     string res="";
-    threeACNode(const char* op, const char* arg1, const char* arg2, const char* res) {
+    threeACNode(string op, string arg1, string arg2, string res) {
         string s(op);
         this->op=s;
         string a1(arg1);
@@ -18,7 +18,7 @@ struct threeACNode {
         string r(res);
         this->res=r;
     }
-    threeACNode(const char* op, const char* arg1, const char* res) {
+    threeACNode(string op, string arg1, string res) {
         string s(op);
         this->op=s;
         string a1(arg1);

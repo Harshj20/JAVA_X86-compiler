@@ -16,7 +16,7 @@ set<TYPE>add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 
 int currentSymTableId = 0;
 int symTablescount = 1;
-bool isDot = false, islocal=false; 
+bool isDot = false, islocal=false;
 vector<TYPE>vt;  // vector used for types
 TYPE t = VOID;
 int size = 0;
@@ -26,8 +26,9 @@ vector<int>vfs; // vector to store dimensions of function arguments
 bool isarr=false;
 int ArrayArgumentDepth = 0;
 string reftype = "";
+int tcounter=1;
 
-vector<threeACNode*> threeAC;
+vector<threeACNode*>threeAC;
 
 bool flag_verbose=false;
 void yyerror(const char* s){
@@ -56,7 +57,6 @@ TYPE widen(TYPE a, TYPE b);
 
 %code requires{
     #include "Node.h"
-    #include "ThreeAC.h"
 }
 
 %union {
@@ -279,6 +279,7 @@ SimpleName: Identifier
                         $$->symid=t1;
                     // cout<<"Type is ---------------"<<$$->type<<endl;
                     //$$->size=symTables[t1].entries[lex][0].size;
+                    $$->field = $1; 
                 }
                 else {
                     $$ = new Node($1,"Identifier",yylineno);
@@ -982,8 +983,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
@@ -1003,8 +1004,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize);
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
@@ -2272,8 +2273,8 @@ Primary:
     ;
 
 PrimaryNoNewArray:
-    int_Literal {$$ = new Node($1,"Literal", INT,yylineno);}
-    | bin_Literal {$$ = new Node($1,"Literal" , BIN, yylineno);} 
+    int_Literal {$$ = new Node($1,"Literal", INT,yylineno);$$->field = $$->id;}
+    | bin_Literal {$$ = new Node($1,"Literal" , BIN, yylineno);}  
     | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT ,yylineno);} 
     | oct_Literal {$$ = new Node($1,"Literal", OCT, yylineno);} 
     | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT, yylineno);} 
@@ -2587,7 +2588,9 @@ MethodInvocation:
             yyerror("Method not found");
             exit(0);
         }
+        $$->symid = (*a)[0].symid;
         $$->type=(*a)[0].type;
+        $$->size = (*a)[0].size;
     }
     }
     | Name s_open_paren ArgumentList s_close_paren
@@ -2605,6 +2608,8 @@ MethodInvocation:
                 exit(0);
             }
             $$->type=(*a)[0].type;
+            $$->symid = (*a)[0].symid;
+            $$->size = (*a)[0].size;
             cout<<vfs.size()<<" "<<vt.size()<<endl;
             for(int i=0;i<vfs.size();i++){
                 cout<<vt[i]<<" "<<(*a)[i+1].type<<endl;
@@ -2636,6 +2641,8 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
+        $$->symid = (*a)[0].symid;
+        $$->size = (*a)[0].size;
     }
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
@@ -2658,6 +2665,8 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
+        $$->symid = (*a)[0].symid;
+        $$->size = (*a)[0].size;
         for(int i=0;i<vfs.size();i++){
             if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
                 yyerror("Argument type mismatch");
@@ -3016,6 +3025,9 @@ AdditiveExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t"+to_string(tcounter);
+        threeAC.push_back(new threeACNode("+", $1->field, $3->field, $$->field));
+        tcounter++;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("+","Separator", yylineno));
@@ -3363,10 +3375,13 @@ Assignment:
                 exit(0);
             }
             $$->type = $1->type;
+            threeAC.push_back(new threeACNode($2->field,$3->field,$1->field));
         }
         $$->children.push_back($1);
         $$->children.push_back($2);
         $$->children.push_back($3);
+        $$->field = $1->field;
+        tcounter=1;
     }
     ;
 
@@ -3484,12 +3499,14 @@ void symTab_csv(symtab* a){
 
 void generate_3AC(){
     ofstream fout;
-    fout.open("3AC.csv");
-    fout<<"Operator,Operand1,Operand2,Result"<<endl;
-    for(int i = 0; i < threeAC.size(); i++){
-        fout<<threeAC[i]->op<<","<<threeAC[i]->arg1<<","<<threeAC[i]->arg2<<","<<threeAC[i]->res<<endl;
+    fout.open("3AC.txt");
+    //fout<<"op,arg1,arg2,res"<<endl;
+    for(int i=0;i<threeAC.size();i++){
+        if(threeAC[i]->op=="=")
+            fout<<threeAC[i]->res<<" "<<threeAC[i]->op<<" "<<threeAC[i]->arg1<<endl;
+        else
+            fout<<threeAC[i]->res<<" = "<<threeAC[i]->arg1<<" "<<threeAC[i]->op<<" "<<threeAC[i]->arg2<<endl;
     }
-    fout.close();
 }
 
 void check_semantics(){
