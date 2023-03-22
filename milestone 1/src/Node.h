@@ -14,6 +14,7 @@ public:
     int size = 0;
     int symid=1;
     string field="";
+    vector<string>threeACCode;
 
     Node(const char* id) {
         string s(id);

@@ -8,6 +8,7 @@ struct threeACNode {
     string arg1="";
     string arg2="";
     string res="";
+    string label="";
     threeACNode(string op, string arg1, string arg2, string res) {
         string s(op);
         this->op=s;

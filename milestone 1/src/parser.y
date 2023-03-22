@@ -27,8 +27,10 @@ bool isarr=false;
 int ArrayArgumentDepth = 0;
 string reftype = "";
 int tcounter=1;
+int lcounter=-1;
 
-vector<threeACNode*>threeAC;
+//vector<threeACNode*>threeAC;
+//vector<string>$$->threeACCode;
 string returnFunctionName = "";
 
 bool flag_verbose=false;
@@ -2310,12 +2312,12 @@ Primary:
 
 PrimaryNoNewArray:
     int_Literal {$$ = new Node($1,"Literal", INT,yylineno);$$->field = $$->id;}
-    | bin_Literal {$$ = new Node($1,"Literal" , BIN, yylineno);}  
-    | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT ,yylineno);} 
-    | oct_Literal {$$ = new Node($1,"Literal", OCT, yylineno);} 
-    | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT, yylineno);} 
-    | string_Literal {$$ = new Node($1,"Literal", STRING, yylineno);} 
-    | hex_Literal {$$ = new Node($1,"Literal", HEX, yylineno);}
+    | bin_Literal {$$ = new Node($1,"Literal" , BIN, yylineno);$$->field = $$->id;}
+    | deci_flo_Literal {$$ = new Node($1,"Literal", FLOAT ,yylineno);$$->field = $$->id;} 
+    | oct_Literal {$$ = new Node($1,"Literal", OCT, yylineno);$$->field = $$->id;} 
+    | hex_flo_Literal {$$ = new Node($1,"Literal", HEX_FLOAT, yylineno);$$->field = $$->id;} 
+    | string_Literal {$$ = new Node($1,"Literal", STRING, yylineno);$$->field = $$->id;} 
+    | hex_Literal {$$ = new Node($1,"Literal", HEX, yylineno);$$->field = $$->id;}
     | k_this {
         $$ = new Node("this","Keyword", yylineno);
         if(!isDot){
@@ -2328,16 +2330,19 @@ PrimaryNoNewArray:
         }
     }
     | Text_Block_Literal {$$ = new Node("TextBlock","Literal",STRING, yylineno);}
-    | char_Literal {$$ = new Node($1,"Literal", CHAR, yylineno);}
-    | true_Literal {$$ = new Node("true","Keyword", BOOL, yylineno);}
-    | false_Literal {$$ = new Node("false","Keyword", BOOL, yylineno);}
-    | null_Literal {$$ = new Node("null","Keyword", BOOL, yylineno);}
+    | char_Literal {$$ = new Node($1,"Literal", CHAR, yylineno);$$->field = $$->id;}
+    | true_Literal {$$ = new Node("true","Keyword", BOOL, yylineno);$$->field = $$->id;}
+    | false_Literal {$$ = new Node("false","Keyword", BOOL, yylineno);$$->field = $$->id;}
+    | null_Literal {$$ = new Node("null","Keyword", BOOL, yylineno);$$->field = $$->id;}
     | s_open_paren Expression s_close_paren {
         $$ = new Node("PrimaryNoNewArray");
         $$->type = $2->type;
         $$->children.push_back(new Node("(","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node(")","Separator", yylineno));
+        $$->field = $2->field;
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     | ClassInstanceCreationExpression 
     {
@@ -2819,6 +2824,15 @@ PostIncrementExpression:
         {
             yyerror("Post increment can only be applied to int");
             exit(0);
+            if($1->size!=0){
+                yyerror("Post increment can only be applied to int");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+            $1->threeACCode.clear();
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field " + 1");
         }
      }
     
@@ -2836,6 +2850,15 @@ PostDecrementExpression:
                 yyerror("Post decrement can only be applied to int");
                 exit(0);
             }
+            if($1->size!=0){
+                yyerror("Post decrement can only be applied to int");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+            $1->threeACCode.clear();
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+            $$->threeACCode.push_back("\t" + $1->field  + " = " + $1->field " - 1");
         }
     $$->children.push_back($1);}
     ;
@@ -2854,6 +2877,14 @@ UnaryExpression:
             yyerror("Unary plus can only be applied to int");
             exit(0);
         }
+        if($2->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->field = $2->field;
     }
     $$->children.push_back(new Node("+","Separator", yylineno));
     $$->children.push_back($2);}
@@ -2866,6 +2897,15 @@ UnaryExpression:
             yyerror("Unary minus can only be applied to int");
             exit(0);
         }
+        if($2->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->field = "t"+to_string(tcounter++);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + "-" + $2->field);
     }    
     $$->children.push_back(new Node("-","Separator", yylineno));
     $$->children.push_back($2);}
@@ -2883,9 +2923,20 @@ PreIncrementExpression:
             yyerror("Pre increment can only be applied to int");
             exit(0);
         }
+        if($2->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->threeACCode.push_back("\t" +  "t" + to_string(tcounter++)  + " = " + $2->field " + 1");
+        $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter-1));
+        $$->field = $2->field;
      }
     $$->children.push_back(new Node("++","Separator", yylineno));
-    $$->children.push_back($2);}
+    $$->children.push_back($2);
+    }
     ;
 
 PreDecrementExpression:
@@ -2898,6 +2949,16 @@ PreDecrementExpression:
                 yyerror("Pre decrement can only be applied to int");
                 exit(0);
             }
+            if($2->size != 0)
+            {
+                yyerror("Arrays not allowed");
+                exit(0);
+            }
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\t" +  "t" + to_string(tcounter++)  + " = " + $2->field " - 1");
+            $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter-1));
+            $$->field = $2->field;
         }
     $$->children.push_back(new Node("--","Separator", yylineno));
     $$->children.push_back($2);}
@@ -2905,29 +2966,50 @@ PreDecrementExpression:
 
 UnaryExpressionNotPlusMinus:
    PostFixExpression
-   {$$ = $1;}
+    {
+        $$ = $1;
+    }
     | o_bitwise_complement UnaryExpression
-    {$$ = new Node("UnaryExpressionNotPlusMinus");
-     $$->type= widen($2->type, INT);
-     if(!isDot){
-        if (widen($2->type, LONG) != LONG)
-        {
-            yyerror("Bitwise complement can only be applied to int");
-            exit(0);
-        }
+    {
+        $$ = new Node("UnaryExpressionNotPlusMinus");
+        if(!isDot){
+            if (widen($2->type, LONG) != LONG)
+            {
+                yyerror("Bitwise complement can only be applied to int");
+                exit(0);
+            }
+             if($2->size != 0)
+            {
+                yyerror("Arrays not allowed");
+                exit(0);
+            }
+            $$->type= widen($2->type, INT);
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\t" + $$->field + " = " + " ~ " + $2->field);
      }
     $$->children.push_back(new Node("~","Separator", yylineno));
     $$->children.push_back($2);}
     | o_logical_not UnaryExpression
     {
         $$ = new Node("UnaryExpressionNotPlusMinus");
-        $$->type= $2->type;
         if(!isDot){
             if ($2->type != BOOL)
             {
                 yyerror("Logical not can only be applied to BOOL");
                 exit(0);
             }
+            if($2->size != 0)
+            {
+                yyerror("Arrays not allowed");
+                exit(0);
+            }
+            $$->type= $2->type;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+            $2->threeACCode.clear();
+            $$->threeACCode.push_back("\t" + $$->field + " = " + " not " + $2->field);
         }
     $$->children.push_back(new Node("!","Separator", yylineno));
     $$->children.push_back($2);}
@@ -3009,6 +3091,17 @@ MultiplicativeExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("*","Separator", yylineno));
@@ -3024,6 +3117,17 @@ MultiplicativeExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " / " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("/","Separator", yylineno));
@@ -3039,6 +3143,17 @@ MultiplicativeExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " % " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("%","Separator", yylineno));
@@ -3061,9 +3176,17 @@ AdditiveExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        $$->field = "t"+to_string(tcounter);
-        threeAC.push_back(new threeACNode("+", $1->field, $3->field, $$->field));
-        tcounter++;
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("+","Separator", yylineno));
@@ -3079,6 +3202,17 @@ AdditiveExpression:
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " - " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("-","Separator", yylineno));
@@ -3101,6 +3235,17 @@ ShiftExpression:
             exit(0);
         }
         $$->type = widen($1->type, INT);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " << " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("<<","Separator", yylineno));
@@ -3116,6 +3261,17 @@ ShiftExpression:
             exit(0);
         }
         $$->type = widen($1->type, INT);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " >> " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">>","Separator", yylineno));
@@ -3130,7 +3286,19 @@ ShiftExpression:
             yyerror("Shift Operation can only be applied to int");
             exit(0);
         }
+        
         $$->type = widen($1->type, INT);
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " >>> " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">>>","Separator", yylineno));
@@ -3153,7 +3321,18 @@ RelationalExpression:
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL;
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " < " + $3->field);
     }
     $$->children.push_back(new Node("<","Separator", yylineno));
     $$->children.push_back($3);
@@ -3167,7 +3346,18 @@ RelationalExpression:
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL;
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " > " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">","Separator", yylineno));
@@ -3182,7 +3372,18 @@ RelationalExpression:
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL;
+         $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " <= " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("<=","Separator", yylineno));
@@ -3197,7 +3398,19 @@ RelationalExpression:
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL;
+         $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " >= " + $3->field);
+
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node(">=","Separator", yylineno));
@@ -3226,7 +3439,18 @@ EqualityExpression:
             yyerror("Equality can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != $3->size )
+        {   
+            yyerror("Equality can only be applied to same size");
+            exit(0);
+        }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " == " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("==","Separator", yylineno));
@@ -3241,7 +3465,18 @@ EqualityExpression:
             yyerror("Equality can only be applied to same common super type");
             exit(0);
         }
+        if($1->size != $3->size)
+        {
+            yyerror("Size mismatch");
+            exit(0);
+        }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " != " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("!=","Separator", yylineno));
@@ -3263,7 +3498,18 @@ AndExpression:
             yyerror("Bitwise AND can only be applied to int");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " & " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("&","Separator", yylineno));
@@ -3285,7 +3531,18 @@ ExclusiveOrExpression:
             yyerror("Bitwise XOR can only be applied to int");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " ^ " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("^","Separator", yylineno));
@@ -3307,7 +3564,18 @@ InclusiveOrExpression:
             yyerror("Bitwise OR can only be applied to int");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = widen($1->type, $3->type);
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " | " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("|","Separator", yylineno));
@@ -3329,7 +3597,18 @@ ConditionalAndExpression:
             yyerror("Only Bools allowed");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL; 
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " && " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("&&","Separator", yylineno));
@@ -3351,7 +3630,18 @@ ConditionalOrExpression:
             yyerror("Only Bools allowed");
             exit(0);
         }
+        if($1->size != 0 || $3->size != 0)
+        {
+            yyerror("Arrays not allowed");
+            exit(0);
+        }
         $$->type = BOOL; 
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " || " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("||","Separator", yylineno));
@@ -3371,11 +3661,26 @@ ConditionalExpression:
                 yyerror("Conditional Operation can only be applied to boolean");
                 exit(0);
             }
+            if($5->size != $3->size){
+                yyerror("Conditional Operation can only be applied to same type");
+                exit(0);
+            }
             if(widen($3->type, $5->type) != $5->type || widen($3->type, $5->type) != $3->type){
                 yyerror("Conditional Operation can only be applied to same type");
                 exit(0);
             }
             $$->type = widen($5->type, $3->type);
+            $$->threeACCode.push_back("\tif " + $1->field + " goto " + "L" + to_string(lcounter));
+            $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+            $5->threeACCode.clear();
+            $$->threeACCode.push_back("\tgoto " + "L" + to_string(lcounter-1));
+            $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $1->threeACCode.clear();
+            $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
+            lcounter -=2;
+            $$->size=$3->size;
         }
         $$->children.push_back($1);
         $$->children.push_back(new Node("?","Separator", yylineno));
@@ -3411,13 +3716,22 @@ Assignment:
                 exit(0);
             }
             $$->type = $1->type;
-            threeAC.push_back(new threeACNode($2->field,$3->field,$1->field));
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $1->threeACCode.clear();
+            if($2->field.size()>1){
+                $$->threeACCode.push_back("\tt"+to_string(tcounter) " = " + $1->field + " " +  $2->field.substr(0,s.size()-1) + " " +  $3->field);
+                $$->threeACCode.push_back("\t" + $1->field + " = " + "t" + to_string(tcounter));
+            }
+            else{
+                $$->threeACCode.push_back("\t" + $1->field+" = "+$3->field);
+            }
+            tcounter=1;
+            $$->field = $1->field;
         }
         $$->children.push_back($1);
         $$->children.push_back($2);
-        $$->children.push_back($3);
-        $$->field = $1->field;
-        tcounter=1;
+        $$->children.push_back($3); 
     }
     ;
 
@@ -3434,7 +3748,7 @@ LeftHandSide:
     {
     $$ = $1;
     size=0;
-        vs.clear();
+    vs.clear();
     fsize = 0;
     }
     ;
@@ -3442,58 +3756,70 @@ LeftHandSide:
 AssignmentOperator:
     o_assign
     {
-    $$ = new Node("=","Separator", yylineno);
+        $$ = new Node("=","Separator", yylineno);
+        $$->field = "=";
     }
     | o_add_assign
     {
     $$ = new Node("+=","Separator", yylineno);
+    $$->field = "+=";
     }
     | o_subtract_assign
     {
     $$ = new Node("-=","Separator", yylineno);
+    $$->field = "-=";
     }
     | o_multiply_assign
     {
     $$ = new Node("*=","Separator", yylineno);
+    $$->field = "*=";
     }
     | o_divide_assign
     {
     $$ = new Node("/=","Separator", yylineno);
+    $$->field = "/=";
     }
     | o_modulo_assign
     {
     $$ = new Node("%=","Separator", yylineno);
+    $$->field = "%=";
     }
     | o_left_shift_assign
     {
     $$ = new Node("<<=","Separator", yylineno);
+    $$->field = "<<=";
     }
     | o_right_shift_assign
     {
     $$ = new Node(">>=","Separator", yylineno);
+    $$->field = ">>=";
     }
     | o_unsigned_right_shift_assign
     {
     $$ = new Node(">>>=","Separator", yylineno);
+    $$->field = ">>>=";
     }
     | o_bitwise_and_assign
     {
     $$ = new Node("&=","Separator", yylineno);
+    $$->field = "&=";
     }
     | o_bitwise_or_assign
     {
     $$ = new Node("|=","Separator", yylineno);
+    $$->field = "|=";
     }
     | o_bitwise_xor_assign
     {
     $$ = new Node("^=","Separator", yylineno);
+    $$->field = "^=";
     }
     ;
 
 Expression:
     AssignmentExpression
     {
-    $$ = $1;
+        $$ = $1;
     }
     ;
 %%
@@ -3550,7 +3876,7 @@ void check_semantics(){
     for(auto i = symTables.begin(); i != symTables.end(); i++){
         symTab_csv(&i->second);
     }
-    generate_3AC();
+    //generate_3AC();
 }
 
 int main(int argc, char**argv){
