@@ -1585,6 +1585,10 @@ Block : s_open_curly_bracket s_close_curly_bracket
         $$->children.push_back(new Node("{","Separator", yylineno));
         $$->children.push_back($2);
         $$->children.push_back(new Node("}","Separator", yylineno));
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        threeAC.insert(threeAC.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->field = $2->field;
     }
     ;
 
@@ -1598,6 +1602,11 @@ BlockStatements :
         $$=new Node("BlockStatements");
         $$->children.push_back($1);
         $$->children.push_back($2);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->field = $2->field; 
     }
     ; 
 
@@ -1658,14 +1667,14 @@ LocalVariableType :
 
 Statement : 
     StatementWithoutTrailingSubstatement 
-    {$$ = $1;}
+    {
+        $$ = $1;
+    }
     | LabeledStatement
     {$$ = $1;} 
     | IfThenStatement
     {
         $$ = $1;
-        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-        $1->threeACCode.clear();
     } 
     | IfThenElseStatement
     {$$ = $1;} 
@@ -1679,8 +1688,6 @@ StatementNoShortIf :
     StatementWithoutTrailingSubstatement
     {
         $$ = $1;
-        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-        $1->threeACCode.clear();
     }
     | LabeledStatementNoShortIf 
     {$$ = $1;}
@@ -1747,15 +1754,14 @@ ExpressionStatement:
         $$ = new Node("ExpressionStatement");
         $$->children.push_back($1);
         $$->children.push_back(new Node(";", "Separator", yylineno));
-        $$->threeACCode = $1->threeACCode;
-        threeAC.insert(threeAC.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        //$$->threeACCode = $1->threeACCode;
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->field = $1->field;
     }
 	;
 
 StatementExpression:
-
 	Assignment
     { $$ = $1; }
 	| PreIncrementExpression
@@ -1794,7 +1800,6 @@ IfThenStatement :
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
             $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
             $5->threeACCode.clear();
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter -=2;
         }
@@ -1822,12 +1827,12 @@ IfThenElseStatement :
             $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
             $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
             $7->threeACCode.clear();
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
             $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
             $5->threeACCode.clear();
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter-=2;
             //$$->size=$3->size;
@@ -1859,12 +1864,12 @@ IfThenElseStatementNoShortIf :
             $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
             $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
             $7->threeACCode.clear();
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
+            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $7->field);
             $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
             $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
             $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
             $5->threeACCode.clear();
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
+            //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
             $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
             lcounter -=2;
         }
@@ -1880,14 +1885,19 @@ WhileStatement :
     k_while invoke_paren Expression s_close_paren Statement 
     {
         $$ = new Node("WhileStatement");
-        
         $$->children.push_back(new Node("while", "Keyword", yylineno));
         $$->children.push_back(new Node("(", "Separator", yylineno));
         $$->children.push_back($3);
         $$->children.push_back(new Node(")", "Separator", yylineno));
         $$->children.push_back($5);
-        if(!isDot)
-        currentSymTableId = symTables[currentSymTableId].parentID;
+        if(!isDot){
+            currentSymTableId = symTables[currentSymTableId].parentID;
+            if($3->type != BOOL){
+                yyerror("While statement expression must have the type boolean");
+                exit(0);
+            }
+        }
+
     }
     ;
 
