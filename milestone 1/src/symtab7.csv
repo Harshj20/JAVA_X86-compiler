@@ -1,0 +1,3 @@
+Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID
+a,Identifier,INT,0,22,0
+hello,Identifier,INT,1,21,0

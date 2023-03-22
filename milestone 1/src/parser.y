@@ -978,8 +978,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize);
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
@@ -999,8 +999,8 @@ MethodDeclarator:
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize);
+                symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
@@ -2583,7 +2583,9 @@ MethodInvocation:
             yyerror("Method not found");
             exit(0);
         }
+        $$->symid = (*a)[0].symid;
         $$->type=(*a)[0].type;
+        $$->size = (*a)[0].size;
     }
     }
     | Name s_open_paren ArgumentList s_close_paren
@@ -2601,6 +2603,8 @@ MethodInvocation:
                 exit(0);
             }
             $$->type=(*a)[0].type;
+            $$->symid = (*a)[0].symid;
+            $$->size = (*a)[0].size;
             cout<<vfs.size()<<" "<<vt.size()<<endl;
             for(int i=0;i<vfs.size();i++){
                 cout<<vt[i]<<" "<<(*a)[i+1].type<<endl;
@@ -2632,6 +2636,8 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
+        $$->symid = (*a)[0].symid;
+        $$->size = (*a)[0].size;
     }
     }
     | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
@@ -2654,6 +2660,8 @@ MethodInvocation:
             exit(0);
         }
         $$->type=(*a)[0].type;
+        $$->symid = (*a)[0].symid;
+        $$->size = (*a)[0].size;
         for(int i=0;i<vfs.size();i++){
             if(vt[i]!=(*a)[i+1].type || vfs[i]!=(*a)[i+1].size){
                 yyerror("Argument type mismatch");
