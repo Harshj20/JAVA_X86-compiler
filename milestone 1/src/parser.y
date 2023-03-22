@@ -29,6 +29,7 @@ int ArrayArgumentDepth = 0;
 string reftype = "";
 int tcounter=1;
 int lcounter=-1;
+string isPrivate = "";
 
 vector<string>threeAC;
 vector<int>loopscope; // to store the scope of loops
@@ -272,6 +273,11 @@ SimpleName: Identifier
                         exit(0);
                     }
                     // cout<<"------------"<<lex<<"    "<<t1<<endl;
+                    if(symTables[t1].entries[lex][0].isPrivate){
+                        string s1 = "Private variable " + lex;
+                        yyerror(s1.c_str());
+                        exit(0);
+                    }
                     $$ = new Node($1,"Identifier",symTables[t1].entries[lex][0].type,yylineno);
 
                     if($$->type == OBJECT){
@@ -308,6 +314,11 @@ QualifiedName: Name s_dot Identifier
                         if(!symTables[$1->symid].grand_lookup(s)){
                             string s1 = "Undeclared variable " + s;
                             //cout<<$1->symid<<endl;
+                            yyerror(s1.c_str());
+                            exit(0);
+                        }
+                        if(symTables[$1->symid].entries[s][0].isPrivate){
+                            string s1 = "Private variable " + s;
                             yyerror(s1.c_str());
                             exit(0);
                         }
@@ -450,14 +461,29 @@ Modifiers:Modifier
 Modifier: k_public 
           {
             $$ = new Node("public","Keyword", yylineno);
+            if(isPrivate.size() != 0){
+                yyerror("Two modifiers not allowed");
+                exit(0);
+            }
+            isPrivate = $$->id;
           }
         | k_protected 
           {
             $$ = new Node("protected","Keyword", yylineno);
+            if(isPrivate.size() != 0){
+                yyerror("Two modifiers not allowed");
+                exit(0);
+            }
+            isPrivate = $$->id;
           }
         | k_private
           {
             $$ = new Node("private","Keyword", yylineno);
+            if(isPrivate.size() != 0){
+                yyerror("Two modifiers not allowed");
+                exit(0);
+            }
+            isPrivate = $$->id;
           }
 	    | k_static
           {
@@ -491,6 +517,7 @@ Modifier: k_public
 ClassDeclaration : NormalClassDeclaration 
                    {
                     $$=$1;
+                    isPrivate.clear();
                    }
                   |EnumDeclaration
                    {
@@ -710,10 +737,12 @@ ClassBodyDeclaration:ClassMemberDeclaration
 ClassMemberDeclaration:FieldDeclaration     
                         {
                             $$=$1;
+                            isPrivate.clear();
                         }
                       |MethodDeclaration     
                         {
                             $$=$1;
+                            isPrivate.clear();
                         }
 
 FieldDeclaration: Modifiers Type VariableDeclaratorList s_semicolon     
@@ -824,6 +853,8 @@ VariableDeclaratorId: Identifier
                                     exit(0);
                             }
                             symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
+                            if(!islocal)
+                            symTables[currentSymTableId].entries[s][0].isPrivate = (isPrivate == "private")?true:false;
                             for(int i=0;i<size;i++){
                                 symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
                             }
@@ -972,8 +1003,14 @@ MethodDeclarator:
             $$->children.push_back($3);
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);
+                if(symTables[currentSymTableId].grand_lookup($1)){
+                    yyerror("Function already declared");
+                    exit(0);
+                }
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);   
+                symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private")?true:false;
                 symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno,fsize,true);
+                symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private")?true:false;
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
@@ -995,8 +1032,14 @@ MethodDeclarator:
             $$->children.push_back(new Node("(","Separator", yylineno));
             $$->children.push_back(new Node(")","Separator", yylineno));
             if(!isDot){
-                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
-                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
+                if(symTables[currentSymTableId].grand_lookup($1)){
+                    yyerror("Function already declared");
+                    exit(0);
+                }
+                symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize,true);   
+                symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private")?true:false;
+                symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno,fsize,true);
+                symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private")?true:false;
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i-1]);
@@ -1017,8 +1060,14 @@ MethodDeclarator:
             $$->children.push_back(new Node("[","Separator", yylineno));
             $$->children.push_back(new Node("]","Separator", yylineno));
             if(!isDot){
+                if(symTables[currentSymTableId].grand_lookup($1->id)){
+                    yyerror("Function already declared");
+                    exit(0);
+                }
                 symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+                symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private")?true:false;
                 symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+                symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private")?true:false;
                 for(int i=1;i<vt.size();i++){
                     symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
                     symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i-1]);
