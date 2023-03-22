@@ -790,20 +790,20 @@ VariableDeclarator: VariableDeclaratorId
                                     yyerror("Type Mismatch in Variable Declarator");
                                     exit(0);
                                 }
-                                cout<<$1->size<<" "<<$3->size<<endl;
                                 if($3->size!=$1->size){
                                     yyerror("Size Mismatch in Variable Declarator");
                                     exit(0);
                                 }
-                                    vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
-                                    if(!s){
-                                        yyerror("Variable not declared");
-                                        exit(0);
-                                    }
-                                    for(int i = 0; i < vs.size(); i++){
-                                        (*s)[i+1].size = vs[i];
-                                    }
-                                    vs.clear();
+                                $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+                                $$->threeACCode.push_back($1->id + " = " + $3->field);                                vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
+                                if(!s){
+                                    yyerror("Variable not declared");
+                                    exit(0);
+                                }
+                                for(int i = 0; i < vs.size(); i++){
+                                    (*s)[i+1].size = vs[i];
+                                }
+                                vs.clear();
                                 $$=new Node($1->id.c_str(), "VariableDeclarator", yylineno);
                             }
                             else{
@@ -831,6 +831,7 @@ VariableDeclaratorId: Identifier
                                 vector<struct symEntry> *sentry = symTables[currentSymTableId].getSymEntry(s);
                                 (*sentry)[0].symid = class_to_symboltable[reftype];
                             }
+                            $$->field = $1;
                             $$->size=size;
                         }
                       }

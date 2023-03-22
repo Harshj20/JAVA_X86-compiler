@@ -1,4 +1,0 @@
-Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID
-PrintStream,Identifier,CLASS,0,1,0
-System,Identifier,CLASS,0,8,0
-test_16,Identifier,CLASS,0,1,0
