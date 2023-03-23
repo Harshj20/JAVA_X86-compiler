@@ -59,6 +59,7 @@ public:
     int parentID;
     int ID;
     bool isfunction = false;
+    string name = "";
     map<string, vector<struct symEntry>> entries;
 
     symtab();

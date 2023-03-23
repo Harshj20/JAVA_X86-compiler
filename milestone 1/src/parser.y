@@ -29,7 +29,8 @@ string isPrivate = "";
 vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 // vector<string>$$->threeACCode;
-string returnFunctionName = "", name = "";
+string returnFunctionName = "";
+string className = "";
 int offset = 0;
 int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
 
@@ -549,6 +550,7 @@ ClassDeclaration : NormalClassDeclaration
     $$ = $1;
     symTables[currentSymTableId].entries[$1->id][0].offset = offset;
     offset = 0;
+    className.clear();
 }
 | EnumDeclaration
 {
@@ -574,7 +576,9 @@ key_class_super : k_class Identifier Super
             cout << currentSymTableId << endl;
         }
         initializeSymTable($3->symid);
+        symTables[currentSymTableId].name = s;
         class_to_symboltable[s] = currentSymTableId;
+        className = $2;
     }
     isPrivate.clear();
 }
@@ -597,7 +601,9 @@ key_class : k_class Identifier
             cout << currentSymTableId << endl;
         }
         initializeSymTable(currentSymTableId);
+        symTables[currentSymTableId].name = s;
         class_to_symboltable[s] = currentSymTableId;
+        className = $2;
     }
     isPrivate.clear();
 }
@@ -917,7 +923,10 @@ VariableDeclarator : VariableDeclaratorId
         }
 
         $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
-        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        if(islocal){
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
+        }
         $3->threeACCode.clear();
         $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
         // cout<<$$->threeACCode[0]<<endl;
@@ -1010,6 +1019,7 @@ MethodDeclaration : MethodHeader MethodBody
     {
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $$->threeACCode.push_back("");
         $1->threeACCode.clear();
         $2->threeACCode.clear();
         currentSymTableId = symTables[currentSymTableId].parentID;
@@ -1027,7 +1037,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($3);
     $$->children.push_back($4);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
     t = $2->type;
 }
@@ -1041,7 +1052,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($2);
     $$->children.push_back($3);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
     t = $2->type;
 }
@@ -1055,7 +1067,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($2);
     $$->children.push_back($3);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     t = $1->type;
 }
@@ -1068,7 +1081,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($1);
     $$->children.push_back($2);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     t = $1->type;
 }
@@ -1083,7 +1097,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($3);
     $$->children.push_back($4);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
     t = VOID;
 }
@@ -1097,7 +1112,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back(new Node("void", "Keyword", yylineno));
     $$->children.push_back($3);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
     t = VOID;
 }
@@ -1111,7 +1127,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back($2);
     $$->children.push_back($3);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     t = VOID;
 }
@@ -1124,7 +1141,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     $$->children.push_back(new Node("void", "Keyword", yylineno));
     $$->children.push_back($2);
     if(!isDot){
-        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     t = VOID;
 }
@@ -1165,13 +1183,15 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         {
             symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
-            // cout<<"abs"<<vfs[i-1]<<endl;
         }
         vt.clear();
         vfs.clear();
         fsize = 0;
         islocal = false;
         returnFunctionName = $1;
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
 }
 | Identifier S_open_paren s_close_paren
@@ -1204,6 +1224,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         fsize = 0;
         islocal = false;
         returnFunctionName = $1;
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
     }
 }
 | MethodDeclarator s_open_square_bracket s_close_square_bracket
@@ -1245,6 +1266,12 @@ FormalParameterList : FormalParameter
     $$->children.push_back($1);
     $$->children.push_back(new Node(",", "Separator", yylineno));
     $$->children.push_back($3);
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $1->threeACCode.clear();
+        $3->threeACCode.clear();
+    }
 }
 
 FormalParameter : Type VariableDeclaratorId
@@ -1258,6 +1285,9 @@ FormalParameter : Type VariableDeclaratorId
     fsize -= size;
     size = 0;
     isarr = false;
+    if(!isDot){
+        $$->threeACCode.push_back("\tparam " + $2->id);
+    }
 }
 | k_final Type VariableDeclaratorId
 {
@@ -1272,6 +1302,9 @@ FormalParameter : Type VariableDeclaratorId
     size = 0;
     isarr = false;
     t = VOID;
+    if(!isDot){
+        $$->threeACCode.push_back("\tparam " + $3->id);
+    }
 }
 
 Throws : k_throws ClassTypeList
@@ -2932,6 +2965,9 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return size of function does not match return statement");
         exit(0);
     }
+    if(!isDot){
+        $$->threeACCode.push_back("\tReturn");
+    }
 }
 | k_return Expression s_semicolon
 {
@@ -2956,6 +2992,11 @@ ReturnStatement : k_return s_semicolon
         cout << returnFunctionName << endl;
         yyerror("Return size of function does not match return statement");
         exit(0);
+    }
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->threeACCode.push_back("\tReturn " + $2->field);
     }
 }
 
@@ -3209,6 +3250,7 @@ ArgumentList : Expression
         cout << "vt size: " << vt.size() << endl;
         vt.push_back($1->type);
         vfs.push_back($1->size);
+        $$->threeACCode.push_back("\tparam " + $1->field);
     }
 }
 | ArgumentList s_comma Expression
@@ -3225,6 +3267,11 @@ ArgumentList : Expression
         vt.push_back($3->type);
         cout << vt[vt.size() - 1] << endl;
         vfs.push_back($3->size);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->threeACCode.push_back("\tparam " + $3->field);
     }
 };
 
@@ -3248,7 +3295,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             $$->threeACCode.push_back("\t ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
-            $$->threeACCode.push_back("\t" + $$->field " = allocate " + $3->field);
+            $$->threeACCode.push_back("\t" + $$->field + " = allocate " + $3->field);
         }
     }
 }
@@ -3459,6 +3506,8 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->symid = (*a)[0].symid;
         $$->type = (*a)[0].type;
         $$->size = (*a)[0].size;
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.push_back("\t" + $$->field + " = call " + symTables[$1->symid].name + "." + $1->id);
     }
 }
 | Name s_open_paren ArgumentList s_close_paren
@@ -3481,6 +3530,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->type = (*a)[0].type;
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
+        $$->field = "t" + to_string(tcounter++);
         cout << vfs.size() << " " << vt.size() << endl;
         for (int i = 0; i < vfs.size(); i++)
         {
@@ -3493,6 +3543,9 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.push_back("\t" + $$->field + " = call " + symTables[$1->symid].name + "." + $1->id);
+        $3->threeACCode.clear();
     }
 }
 | Primary s_dot Identifier s_open_paren s_close_paren
@@ -3520,6 +3573,8 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->type = (*a)[0].type;
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
+        string s($3);
+        $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
     }
 }
 | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
@@ -3558,6 +3613,10 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+        string s($3);
+        $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
+        $5->threeACCode.clear();
     }
 }
 | k_super s_dot Identifier s_open_paren s_close_paren
