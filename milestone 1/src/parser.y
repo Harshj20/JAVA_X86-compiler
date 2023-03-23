@@ -924,6 +924,7 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
+
         $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
@@ -3357,10 +3358,19 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
     {
         if (t != $2->type)
         {
-            yyerror("Type mismatch in arrayCreationExpression rhs");
+            yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
         $$->size = vs.size();
+        $$->field = "t" + to_string(tcounter++);
+        if(islocal){
+            $$->threeACCode.push_back("ArrayDeclaration :" );
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string(offsetVal[t]) + " // size of " + enum_types[t]);
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->field = "t" + to_string(tcounter++);
+        }
     }
 }
 | k_new PrimitiveType Dims ArrayInitializer
@@ -3414,6 +3424,13 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             exit(0);
         }
         $$->size = vs.size();
+        $$->field = "t" + to_string(tcounter++);;
+        if(islocal){
+            $$->threeACCode.push_back("ArrayDeclaration :" );
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\t" + $$->field + " = allocate " + $3->field);
+        }
     }
 }
 | k_new Name DimExprs Dims
@@ -3462,6 +3479,15 @@ DimExprs : DimExpr
     $$ = new Node("DimExprs");
     $$->children.push_back($1);
     $$->children.push_back($2);
+    if (!isDot)
+    {  
+       $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+       $1->threeACCode.clear();
+       $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+       $2->threeACCode.clear();
+       $$->field = "t" + to_string(tcounter++);
+       $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $2->field);
+    }
 };
 
 DimExpr : s_open_square_bracket Expression s_close_square_bracket
@@ -3476,8 +3502,11 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
         }
         if (isarr)
         {
-            vs.push_back(vs.size() + 1);
+            vs.push_back(atoi($2->field.c_str()));
         }
+        $$->field = $2->field;
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
     }
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back($2);
@@ -3758,6 +3787,9 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->size = (*a).size() - vs.size() - 1;
         $$->symid = $1->symid;
         cout << "Size is " << vs.size() << " " << (*a).size() << " " << $$->size << endl;
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $3->threeACCode.clear();
+        $$->field = $1->field;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));

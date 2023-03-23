@@ -37,6 +37,7 @@ struct symEntry{
     int symid = 0;
     bool isPrivate = false;
     int offset = 0;
+    string dimsize = "";
     symEntry(TYPE type, int lineno){
         this->type = type;
         this->lineno = lineno;

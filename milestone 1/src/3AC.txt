@@ -1,7 +1,7 @@
 test_16.test_16:
 	param x
 	z = x
-	
+
 test_16.hello:
 	param a
 	param b
@@ -67,4 +67,11 @@ L-5:
 	param t5
 	t6 = call test_16.hello
 	a = t6
+ArrayDeclaration :
+	t1 = a + 1
+	a =   t1
+	t2 = 10 * a
+	t3 = t2 * 4 // size of INT
+	t4 = allocate t3
+	q = t4
 
