@@ -33,6 +33,7 @@ string returnFunctionName = "";
 string className = "";
 int offset = 0;
 int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
+vector<string> arrinit;
 
 bool flag_verbose = false;
 void yyerror(const char *s)
@@ -95,8 +96,11 @@ Program:
 | CompilationUnit
 {
     root = new Node("Program");
+    cout<<"Program"<<endl;
     root->children.push_back($1);
     root->children.push_back(new Node("EOF", "EOF", -1));
+    cout<<"njnjn"<<endl;
+    if(!isDot)
     threeAC = $$->threeACCode;
 }
 
@@ -381,7 +385,7 @@ CompilationUnit : PackageDeclaration ImportDeclarations TypeDeclarations
 | PackageDeclaration
 {
     $$ = $1;
-    cout<<"--------------------------------"<<endl;
+    //cout<<"--------------------------------"<<endl;
 }
 | ImportDeclarations TypeDeclarations
 {
@@ -834,7 +838,6 @@ ClassBodyDeclaration : ClassMemberDeclaration
         vt.clear();
         vfs.clear();
         fsize = 0;
-        size = 0;
         isPrivate.clear();
     }
 }
@@ -887,6 +890,11 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
 VariableDeclaratorList : VariableDeclarator
 {
     $$ = $1;
+    // if(!isDot){
+    //     is(isarr){
+    //         arrinit.push_back()
+    //     }
+    // }
 }
 | VariableDeclaratorList s_comma VariableDeclarator
 {
@@ -907,9 +915,10 @@ VariableDeclarator : VariableDeclaratorId
     $$ = $1;
 }
 | VariableDeclaratorId o_assign VariableInitializer
-{
+{   
     if (!isDot)
     {
+        $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         if (widen(t, $3->type) != t)
         {
             yyerror("Type Mismatch in Variable Declarator");
@@ -920,8 +929,6 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
-
-        $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
@@ -933,10 +940,9 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Variable not declared");
             exit(0);
         }
-        cout<<"-----------------------------"<<(*s).size()<<" "<<arrdims.size()<<endl;
-        for (int i = 0; i < (*s).size()-1; i++)
-        {
-            (*s)[i + 1].dimsize = arrdims[i];
+        for (int i = 0; i < $3->size ; i++)
+        {   
+            (*s)[i + 1].dimsize = arrdims.size()>0 ? arrdims[i] : to_string(vs[i]);
         }
         arrdims.clear();
         vs.clear();
@@ -991,6 +997,7 @@ VariableDeclaratorId : Identifier
         $$ = new Node($1->id.c_str(), "VariableDeclaratorId", yylineno);
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
         $$->size = $1->size + 1;
+        ++size;
         isarr = true;
     }
     else
@@ -1003,10 +1010,14 @@ VariableDeclaratorId : Identifier
 VariableInitializer : Expression
 {
     $$ = $1;
+    if(!isDot)
+    $$->size = max(vs.size(),arrdims.size());
 }
 | ArrayInitializer
 {
     $$ = $1;
+    if(!isDot)
+    $$->size = max(vs.size(),arrdims.size());
 }
 
 MethodDeclaration : MethodHeader MethodBody
@@ -1851,7 +1862,6 @@ AbstractMethodDeclaration : MethodHeader s_semicolon
 ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_curly_bracket
 {
     $$ = new Node("ArrayInitializer");
-
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}", "Separator", yylineno));
@@ -1864,6 +1874,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = $2->size;
         ArrayArgumentDepth--;
+        $$->size = vs.size();
     }
 }
 | array_s_open_curly_bracket s_close_curly_bracket
@@ -1882,6 +1893,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = 0;
         ArrayArgumentDepth--;
+        $$->size = vs.size();
     }
 };
 array_s_open_curly_bracket : s_open_curly_bracket
@@ -1889,6 +1901,7 @@ array_s_open_curly_bracket : s_open_curly_bracket
     if (!isDot)
     {
         ArrayArgumentDepth++;
+        //cout<<ArrayArgumentDepth<<" "<<size<<endl;
         if (ArrayArgumentDepth > size)
         {
             yyerror("Excess Dimensions used");
@@ -4991,9 +5004,8 @@ int main(int argc, char **argv)
              << endl;
         return 0;
     }
-
     if (!isDot)
-    {
+    {   
         initializeSymTable(currentSymTableId);
         // yyin = fopen("System.java", "r");
         // yyparse();
