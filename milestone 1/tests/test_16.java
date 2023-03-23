@@ -18,5 +18,11 @@ public class test_16 {
                 }
                 break;
             }
+            // while(true){
+            //     if(true)
+            //         break;
+            //     if(false)
+            //         break;
+            // }
     }
 }
