@@ -966,6 +966,8 @@ VariableDeclaratorId : Identifier
         {
             vector<struct symEntry> *sentry = symTables[currentSymTableId].getSymEntry(s);
             (*sentry)[0].symid = class_to_symboltable[reftype];
+            if(!islocal)
+                offset += symTables[1].entries[reftype][0].offset;
         }
         $$->field = $1;
         $$->size = size;
