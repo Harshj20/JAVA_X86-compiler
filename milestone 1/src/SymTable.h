@@ -36,6 +36,7 @@ struct symEntry{
     bool isfunction = false;
     int symid = 0;
     bool isPrivate = false;
+    int offset = 0;
     symEntry(TYPE type, int lineno){
         this->type = type;
         this->lineno = lineno;

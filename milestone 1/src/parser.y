@@ -30,6 +30,8 @@ vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 // vector<string>$$->threeACCode;
 string returnFunctionName = "";
+int offset = 0;
+int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
 
 bool flag_verbose = false;
 void yyerror(const char *s)
@@ -545,6 +547,8 @@ Modifier : k_public
 ClassDeclaration : NormalClassDeclaration
 {
     $$ = $1;
+    symTables[currentSymTableId].entries[$1->id][0].offset = offset;
+    offset = 0;
 }
 | EnumDeclaration
 {
@@ -552,7 +556,7 @@ ClassDeclaration : NormalClassDeclaration
 }
 key_class_super : k_class Identifier Super
 {
-    $$ = new Node("abc", "key_class_super", yylineno);
+    $$ = new Node($2, "key_class_super", yylineno);
     $$->children.push_back(new Node("class", "Keyword", yylineno));
     $$->children.push_back(new Node($2, "Identifier", yylineno));
     $$->children.push_back($3);
@@ -576,7 +580,7 @@ key_class_super : k_class Identifier Super
 }
 key_class : k_class Identifier
 {
-    $$ = new Node("abc", "key_class", yylineno);
+    $$ = new Node($2, "key_class", yylineno);
     $$->children.push_back(new Node("class", "Keyword", yylineno));
     $$->children.push_back(new Node($2, "Identifier", yylineno));
     if (!isDot)
@@ -600,9 +604,11 @@ key_class : k_class Identifier
 
 NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($2->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $4->threeACCode.clear();
@@ -616,10 +622,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
     
 }
 | Modifiers key_class_super ClassBody
-{
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
-    {
+{   
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else{
+        $$ = new Node($2->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -633,9 +640,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | Modifiers key_class Interfaces ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($2->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $4->threeACCode.clear();
@@ -648,9 +657,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | Modifiers key_class ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($2->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -662,9 +673,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | key_class_super Interfaces ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($1->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -678,9 +691,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | key_class_super ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($1->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
@@ -692,9 +707,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | key_class Interfaces ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($1->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -707,9 +724,11 @@ NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
 }
 | key_class ClassBody
 {
-    $$ = new Node("NormalClassDeclaration");
-    if (!isDot)
+    if(isDot)
+        $$ = new Node("NormalClassDeclaration");
+    else
     {
+        $$ = new Node($1->id.c_str(), "NormalClassDeclaration", yylineno);
         currentSymTableId = 1;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
@@ -726,6 +745,7 @@ Super : k_extends ClassType
     $$->children.push_back(new Node("extends", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->symid = class_to_symboltable[$2->id];
+    offset += symTables[1].entries[$2->id][0].offset;
 }
 
 Interfaces : k_implements InterfaceTypeList
@@ -933,8 +953,11 @@ VariableDeclaratorId : Identifier
             exit(0);
         }
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-        if (!islocal)
+        if (!islocal){
             symTables[currentSymTableId].entries[s][0].isPrivate = (isPrivate == "private") ? true : false;
+            symTables[currentSymTableId].entries[s][0].offset = offset;
+            offset += offsetVal[t];
+        }
         for (int i = 0; i < size; i++)
         {
             symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
@@ -4690,14 +4713,14 @@ void symTab_csv(symtab *a)
     ofstream fout;
     string s = "symtab" + to_string(a->ID) + ".csv";
     fout.open(s);
-    fout << "Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID" << endl;
+    fout << "Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset" << endl;
     for (auto i = a->entries.begin(); i != a->entries.end(); i++)
     {
         for (auto j = i->second.begin(); j != i->second.end(); j++)
         {
             fout << i->first << ","
                  << "Identifier"
-                 << "," << enum_types[j->type] << "," << j->size << "," << j->lineno << "," << j->symid << endl;
+                 << "," << enum_types[j->type] << "," << j->size << "," << j->lineno << "," << j->symid << "," << j->offset << endl;
         }
     }
     fout.close();
