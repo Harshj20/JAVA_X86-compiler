@@ -1,1 +1,8 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
+a,Identifier,INT,0,17,0,0
+args,Identifier,STRING,0,16,0,0
+args,Identifier,STRING,1,16,0,0
+b,Identifier,INT,0,17,0,0
+c,Identifier,INT,0,17,0,0
+main,Identifier,INT,0,16,0,0
+main,Identifier,STRING,1,16,0,0

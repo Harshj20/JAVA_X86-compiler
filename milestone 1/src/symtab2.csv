@@ -1,9 +1,12 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-hello,Identifier,INT,0,6,0,0
-hello,Identifier,INT,0,6,0,0
-hello,Identifier,INT,0,6,0,0
-main,Identifier,INT,0,12,0,0
-main,Identifier,STRING,1,12,0,0
+hello,Identifier,INT,0,10,0,0
+hello,Identifier,INT,0,10,0,0
+hello,Identifier,INT,0,10,0,0
+main,Identifier,INT,0,16,0,0
+main,Identifier,STRING,1,16,0,0
+test_16,Identifier,VOID,0,6,0,0
+test_16,Identifier,INT,0,6,0,0
+test_16,Identifier,VOID,0,6,0,0
 x,Identifier,INT,0,2,0,0
 y,Identifier,CHAR,0,3,0,4
 z,Identifier,INT,0,4,0,5

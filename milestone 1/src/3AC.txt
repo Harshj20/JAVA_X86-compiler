@@ -1,3 +1,7 @@
+test_16.test_16:
+	param x
+	z = x
+	
 test_16.hello:
 	param a
 	param b
@@ -28,14 +32,14 @@ L-2:
 L-3:
 	a = 1
 L-4:
-L6:
+L7:
 	t1 = a < 3
 	if t1 goto L-12
 	goto L-5
 L-12:
 	t2 = a + b
 	b = t2
-L7:
+L8:
 	if true goto L-11
 	goto L-6
 L-11:
@@ -50,10 +54,10 @@ L-7:
 	goto L-6
 L-8:
 L-10:
-	goto L7
+	goto L8
 L-6:
 	goto L-5
-	goto L6
+	goto L7
 L-5:
 	t3 = 5 * 5
 	t4 = 2 + t3

@@ -813,10 +813,12 @@ ClassBodyDeclarations : ClassBodyDeclaration
 ClassBodyDeclaration : ClassMemberDeclaration
 {
     $$ = $1;
+
 }
 | StaticInitializer
 {
     $$ = $1;
+    isPrivate.clear();
 }
 | ConstructorDeclaration
 {
@@ -832,6 +834,7 @@ ClassBodyDeclaration : ClassMemberDeclaration
         vt.clear();
         vfs.clear();
         fsize = 0;
+        isPrivate.clear();
     }
 }
 
@@ -1350,6 +1353,11 @@ ConstructorDeclaration :
     else
     {
         $$ = new Node($2->id.c_str(), "ConstructorDeclaration", $2->lineno);
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+        $$->threeACCode.push_back("");
+        $2->threeACCode.clear();
+        $4->threeACCode.clear();
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -1360,8 +1368,14 @@ ConstructorDeclaration :
 {
     if (isDot)
         $$ = new Node("ConstructorDeclaration");
-    else
+    else{
         $$ = new Node($2->id.c_str(), "ConstructorDeclaration", $2->lineno);
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.push_back("");
+        $2->threeACCode.clear();
+        $3->threeACCode.clear();
+    }
     $$->children.push_back($1);
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -1370,8 +1384,14 @@ ConstructorDeclaration :
 {
     if (isDot)
         $$ = new Node("ConstructorDeclaration");
-    else
+    else{
         $$ = new Node($1->id.c_str(), "ConstructorDeclaration", $2->lineno);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.push_back("");
+        $1->threeACCode.clear();
+        $3->threeACCode.clear();
+    }
     $$->children.push_back($1);
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -1380,8 +1400,14 @@ ConstructorDeclaration :
 {
     if (isDot)
         $$ = new Node("ConstructorDeclaration");
-    else
+    else{
         $$ = new Node($1->id.c_str(), "ConstructorDeclaration", $2->lineno);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $$->threeACCode.push_back("");
+        $1->threeACCode.clear();
+        $2->threeACCode.clear();
+    }
     $$->children.push_back($1);
     $$->children.push_back($2);
 };
@@ -1398,12 +1424,28 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
     $$->children.push_back(new Node(")", "Separator", yylineno));
     if (!isDot)
     {
+        if(className != $1->id)
+        {
+            yyerror("Constructor name does not match class name");
+            exit(0);
+        }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
+            symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
+        vt.clear();
+        vfs.clear();
+        fsize = 0;
         islocal = false;
+        returnFunctionName = $1->id;
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
     }
 }
 | SimpleName S_open_paren s_close_paren
@@ -1418,12 +1460,26 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
     $$->children.push_back(new Node(")", "Separator", yylineno));
     if (!isDot)
     {
+        if(className != $1->id)
+        {
+            yyerror("Constructor name does not match class name");
+            exit(0);
+        }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
+            symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
+        vt.clear();
+        vfs.clear();
+        fsize = 0;
         islocal = false;
+        returnFunctionName = $1->id;
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
     }
 };
 
@@ -1436,7 +1492,10 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
 | s_open_curly_bracket BlockStatements s_close_curly_bracket
 {
     $$ = new Node("ConstructorBody");
-
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+    }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}", "Separator", yylineno));
@@ -1444,6 +1503,10 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
 | s_open_curly_bracket ExplicitConstructorInvocation s_close_curly_bracket
 {
     $$ = new Node("ConstructorBody");
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+    }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}", "Separator", yylineno));
@@ -1451,7 +1514,12 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
 | s_open_curly_bracket ExplicitConstructorInvocation BlockStatements s_close_curly_bracket
 {
     $$ = new Node("ConstructorBody");
-
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $3->threeACCode.clear();
+    }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -1465,6 +1533,11 @@ ExplicitConstructorInvocation : k_this s_open_paren ArgumentList s_close_paren s
     $$->children.push_back($3);
     $$->children.push_back(new Node(")", "Separator", yylineno));
     $$->children.push_back(new Node(";", "Separator", yylineno));
+    // if(!isDot){
+    //     $$->threeACCode.push_back("this." + returnFunctionName + ":");
+    //     $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+    //     $3->threeACCode.clear();
+    // }
 }
 | k_this s_open_paren s_close_paren s_semicolon
 {
