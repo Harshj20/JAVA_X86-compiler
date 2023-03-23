@@ -9,7 +9,7 @@ extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables;
 map<string, unsigned long long int> class_to_symboltable;
 vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL", "OBJECT"};
-set<TYPE> add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
+//set<TYPE> add_set = {INT, BIN, FLOAT, OCT, HEX_FLOAT, HEX, CHAR, LONG, DOUBLE};
 int currentSymTableId = 0;
 int symTablescount = 1;
 bool isDot = false, islocal = false;
@@ -96,10 +96,10 @@ Program:
 | CompilationUnit
 {
     root = new Node("Program");
-    cout<<"Program"<<endl;
+    //cout<<"Program"<<endl;
     root->children.push_back($1);
     root->children.push_back(new Node("EOF", "EOF", -1));
-    cout<<"njnjn"<<endl;
+    //cout<<"njnjn"<<endl;
     if(!isDot)
     threeAC = $$->threeACCode;
 }
@@ -310,6 +310,10 @@ SimpleName : Identifier
         else
         {
             $$->symid = t1;
+            if (!symTables[t1].entries[lex][0].isfunction && symTables[t1].entries[lex].size()>1)
+            {
+                isarr = true;
+            }
         }
         // cout<<"Type is ---------------"<<$$->type<<endl;
         $$->size = symTables[t1].entries[lex].size() - 1;
@@ -392,7 +396,7 @@ CompilationUnit : PackageDeclaration ImportDeclarations TypeDeclarations
     $$ = new Node("CompilationUnit");
     $$->children.push_back($1);
     $$->children.push_back($2);
-    cout<<"------------"<<endl;
+    //cout<<"------------"<<endl;
 }
 | TypeDeclarations
 {
@@ -892,11 +896,6 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
 VariableDeclaratorList : VariableDeclarator
 {
     $$ = $1;
-    // if(!isDot){
-    //     is(isarr){
-    //         arrinit.push_back()
-    //     }
-    // }
 }
 | VariableDeclaratorList s_comma VariableDeclarator
 {
@@ -927,13 +926,27 @@ VariableDeclarator : VariableDeclaratorId
             exit(0);
         }
         if ($3->size != $1->size)
-        {
+        {   
+            cout << $3->size << " " << $1->size << endl;
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
+            if(isarr && arrinit.size()>0){
+                // arrinit.push_back($3->field);
+                // $3->field = "";
+                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
+                $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[0]);
+                for(int i=1;i<arrinit.size();i++){
+                    // $$->threeACCode.push_back("\t*t" + to_string(tcounter) + " = " + arrinit[i]);
+                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]));
+                     $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[i]);
+                    // cout<<arrinit[i]<<endl;
+                }
+                arrinit.clear();
+            }
         }
         $3->threeACCode.clear();
         vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
@@ -942,9 +955,11 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Variable not declared");
             exit(0);
         }
-        for (int i = 0; i < $3->size ; i++)
-        {   
-            (*s)[i + 1].dimsize = arrdims.size()>0 ? arrdims[i] : to_string(vs[i]);
+        for(int i=0;i<vs.size();i++){
+            (*s)[i+1].dimsize = to_string(vs[i]);
+        }
+        for(int i=0;i<arrdims.size();i++){
+            (*s)[i+1].dimsize = arrdims[i];
         }
         arrdims.clear();
         vs.clear();
@@ -977,7 +992,7 @@ VariableDeclaratorId : Identifier
         }
         for (int i = 0; i < size; i++)
         {
-            cout<<" size of "<<$1<<" "<<size<<endl;
+            //cout<<" size of "<<$1<<" "<<size<<endl;
             symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
         }
         if (t == OBJECT)
@@ -1012,14 +1027,22 @@ VariableDeclaratorId : Identifier
 VariableInitializer : Expression
 {
     $$ = $1;
-    if(!isDot)
-    $$->size = max(vs.size(),arrdims.size());
+    // if(!isDot){
+    //     $$->size = max(vs.size(),arrdims.size());
+    // }
 }
 | ArrayInitializer
 {
     $$ = $1;
-    if(!isDot)
-    $$->size = max(vs.size(),arrdims.size());
+    if(!isDot){
+        $$->size = max(vs.size(),arrdims.size());
+        if(ArrayArgumentDepth==0){
+            arrinit.push_back($$->field);
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]));
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate t" + to_string(tcounter-1));
+            $$->field = "t" + to_string(tcounter);
+        }
+    }
 }
 
 MethodDeclaration : MethodHeader MethodBody
@@ -1877,6 +1900,8 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         vs[ArrayArgumentDepth - 1] = $2->size;
         ArrayArgumentDepth--;
         $$->size = vs.size();
+        $$->field = arrinit.back();
+        arrinit.pop_back();
     }
 }
 | array_s_open_curly_bracket s_close_curly_bracket
@@ -1917,10 +1942,15 @@ VariableInitializerList : VariableInitializer
 {
     $$ = $1;
     $$->size = 1;
-    if (!isDot && widen($1->type, t) != t)
-    {
-        yyerror("Type mismatch in VariableIntializer");
-        exit(0);
+    if (!isDot )
+    {   
+        if(widen($1->type,t)!=t){
+            yyerror("Type mismatch in VariableIntializer");
+            exit(0);
+        }
+        if(isarr){
+            arrinit.push_back($1->field);
+        }
     }
 }
 | VariableInitializerList s_comma VariableInitializer
@@ -1930,10 +1960,15 @@ VariableInitializerList : VariableInitializer
     $$->children.push_back(new Node(",", "Separator", yylineno));
     $$->children.push_back($3);
     $$->size = $1->size + 1;
-    if (!isDot && widen($3->type, t) != t)
-    {
-        yyerror("Type mismatch in VariableIntializer");
-        exit(0);
+    if (!isDot)
+    {   
+        if(widen($3->type, t) != t){
+            yyerror("Type mismatch in VariableIntializer");
+            exit(0);
+        }
+        if(isarr){
+            arrinit.push_back($3->field);
+        }
     }
 };
 
@@ -2940,7 +2975,6 @@ EnhancedForStatement : k_for invoke_paren LocalVariableDeclaration o_colon Expre
     $$->children.push_back($7);
     if (!isDot)
     {
-
         currentSymTableId = symTables[currentSymTableId].parentID;
         loopscope.pop_back();
         loopscope.pop_back();
@@ -3073,7 +3107,6 @@ ThrowStatement : k_throw s_semicolon
 }
 
 SynchronizedStatement :
-
     k_synchronized s_open_paren Expression s_close_paren Block
 {
     $$ = new Node("SynchronizedStatement");
@@ -3141,6 +3174,9 @@ Finally : k_finally Block
 Primary : PrimaryNoNewArray
 {
     $$ = $1;
+    if(!isarr){
+        arrdims.clear();
+    }
 }
 | ArrayCreationExpression
 {
@@ -3240,7 +3276,7 @@ PrimaryNoNewArray : int_Literal
 {
     $$ = $1;
 }
-| ArrayAccess { $$ = $1; };
+| ArrayAccess { $$ = $1;};
 
 ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
 {
@@ -3348,6 +3384,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             exit(0);
         }
         $$->size = arrdims.size();
+        //arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
             $$->threeACCode.push_back("ArrayDeclaration :" );
@@ -3410,7 +3447,8 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             exit(0);
         }
         $$->size = arrdims.size();
-        $$->field = "t" + to_string(tcounter++);;
+        //arrdims.clear();
+        $$->field = "t" + to_string(tcounter++);
         if(islocal){
             $$->threeACCode.push_back("ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
@@ -3435,6 +3473,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             exit(0);
         }
         $$->size = arrdims.size();
+        //arrdims.clear();
     }
 }
 | k_new Name Dims ArrayInitializer
@@ -3473,6 +3512,7 @@ DimExprs : DimExpr
        $2->threeACCode.clear();
        $$->field = "t" + to_string(tcounter++);
        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $2->field);
+       //arrdims.push_back($2->field);
     }
 };
 
@@ -3486,11 +3526,9 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array index must be of type int");
             exit(0);
         }
-        if (isarr)
-        {
-            arrdims.push_back($2->field);
-        }
         $$->field = $2->field;
+        arrdims.push_back($2->field);
+        cout<<arrdims.size()<<endl;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
     }
@@ -3754,6 +3792,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         if((*a).size() == 2){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
+            isarr = false;
         }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
@@ -3787,6 +3826,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->type = (*a)[0].type;
         arrdims.push_back($3->field);
         $$->size = (*a).size() - arrdims.size() - 1;
+        cout<< (*a).size() << " " << arrdims.size() << " " << $$->size << endl;
         $$->symid = $1->symid;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -3806,6 +3846,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         if((*a).size()-1 == arrdims.size()){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
+            isarr = false;
         }
     }
     $$->children.push_back($1);
@@ -4216,7 +4257,7 @@ AdditiveExpression : MultiplicativeExpression
         }
         $$->type = widen($1->type, $3->type);
         if ($1->size != 0 || $3->size != 0)
-        {
+        {   
             yyerror("Arrays not allowed");
             exit(0);
         }
@@ -4791,10 +4832,7 @@ LeftHandSide : Name
 | ArrayAccess
 {
     $$ = $1;
-    size = 0;
-    vs.clear();
     arrdims.clear();
-    fsize = 0;
 };
 
 AssignmentOperator : o_assign
