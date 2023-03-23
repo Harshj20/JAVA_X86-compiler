@@ -1,3 +1,2 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-Addition,Identifier,CLASS,0,3,0,4
-test_0,Identifier,CLASS,0,25,0,8
+test_16,Identifier,CLASS,0,1,0,9

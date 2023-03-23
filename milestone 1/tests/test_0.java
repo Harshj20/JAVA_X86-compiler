@@ -23,6 +23,8 @@ class Addition {
 // Class 2
 //Helper class
 class test_0 {
+    Addition l = new Addition();
+    int sum;
  
     // Main driver method
     public static void main()

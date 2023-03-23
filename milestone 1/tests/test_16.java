@@ -1,5 +1,14 @@
 public class test_16 {
     int x = 0;
+    char y = 'c';
+    int z = 0;
+
+    public int hello(int a, int b){
+        int x = 0;
+        char y = 'c';
+        int z = 0;
+        return 0;
+    }
     public static void main(String[] args) {
             int a = 0, b, c;
             b = a++;
@@ -18,6 +27,7 @@ public class test_16 {
                 }
                 break;
             }
+            a = hello(2+5*5, a++);
             // while(true){
             //     if(true)
             //         break;

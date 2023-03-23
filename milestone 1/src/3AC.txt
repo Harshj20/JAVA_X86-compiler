@@ -1,10 +1,66 @@
-	a = 
-L3:
-	sum = 
-	c = 
-	l = 
-L5:
-	add = 
-	s = 
-	s = 
-	a = a
+test_16.hello:
+	param a
+	param b
+	x = 0
+	y = 'c'
+	z = 0
+	Return 0
+
+test_16.main:
+	param args
+	a = 0
+	t1 = a
+	a = t1 + 1
+	b = t1
+	t1 = a > 1
+	if t1 goto L-1
+	t2 = a + 1
+	t3 = t2
+	goto L-2
+L-1:
+	t3 = c
+L-2:
+	b = t3
+	a = b
+	t1 = a < b
+	if t1 goto L-3
+	goto L-4
+L-3:
+	a = 1
+L-4:
+L6:
+	t1 = a < 3
+	if t1 goto L-12
+	goto L-5
+L-12:
+	t2 = a + b
+	b = t2
+L7:
+	if true goto L-11
+	goto L-6
+L-11:
+	t1 = b == 5
+	if t1 goto L-9
+	goto L-10
+L-9:
+	t2 = a == 3
+	if t2 goto L-7
+	goto L-8
+L-7:
+	goto L-6
+L-8:
+L-10:
+	goto L7
+L-6:
+	goto L-5
+	goto L6
+L-5:
+	t3 = 5 * 5
+	t4 = 2 + t3
+	param t4
+	t5 = a
+	a = t5 + 1
+	param t5
+	t6 = call test_16.hello
+	a = t6
+
