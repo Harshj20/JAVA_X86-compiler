@@ -2,7 +2,6 @@
 #include <bits/stdc++.h>
 #include "Node.h"
 #include "SymTable.h"
-    // #include "ThreeAC.h"
 using namespace std;
 extern int yylex();
 extern int yylineno;
@@ -34,6 +33,9 @@ string returnFunctionName = "";
 string className = "";
 int offset = 0;
 int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
+vector<string> arrinit;
+string old_field = "";
+
 
 bool flag_verbose = false;
 void yyerror(const char *s)
@@ -96,9 +98,12 @@ Program:
 | CompilationUnit
 {
     root = new Node("Program");
+    cout<<"Program"<<endl;
     root->children.push_back($1);
     root->children.push_back(new Node("EOF", "EOF", -1));
-    // threeAC = $$->threeACCode;
+    cout<<"njnjn"<<endl;
+    if(!isDot)
+    threeAC = $$->threeACCode;
 }
 
 // -------------------------------- Production 4 -----------------------
@@ -382,7 +387,7 @@ CompilationUnit : PackageDeclaration ImportDeclarations TypeDeclarations
 | PackageDeclaration
 {
     $$ = $1;
-    cout<<"--------------------------------"<<endl;
+    //cout<<"--------------------------------"<<endl;
 }
 | ImportDeclarations TypeDeclarations
 {
@@ -889,6 +894,11 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
 VariableDeclaratorList : VariableDeclarator
 {
     $$ = $1;
+    // if(!isDot){
+    //     is(isarr){
+    //         arrinit.push_back()
+    //     }
+    // }
 }
 | VariableDeclaratorList s_comma VariableDeclarator
 {
@@ -909,43 +919,39 @@ VariableDeclarator : VariableDeclaratorId
     $$ = $1;
 }
 | VariableDeclaratorId o_assign VariableInitializer
-{
+{   
     if (!isDot)
     {
-        // if(t != $3->type){
-        //     cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
-        //     cout<<"Type Mismatch in Variable Declarator"<<endl;
-        //     exit(0);
-        // }
+        $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         if (widen(t, $3->type) != t)
         {
             yyerror("Type Mismatch in Variable Declarator");
             exit(0);
         }
-        if ($3->size != $1->size)
+        cout<<"size of "<<$1->id<<" "<<$1->size<<" vs is "<<vs.size()<<" arrdims is "<<arrdims.size()<<endl;
+        if (max(vs.size(), arrdims.size()) != $1->size)
         {
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
-
-        $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
         }
         $3->threeACCode.clear();
-        // cout<<$$->threeACCode[0]<<endl;
         vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
         if (!s)
         {
             yyerror("Variable not declared");
             exit(0);
         }
-        cout<<"-----------------------------"<<(*s).size()<<" "<<arrdims.size()<<endl;
-        for (int i = 0; i < (*s).size()-1; i++)
-        {
+        for (int i = 0; i < vs.size() ; i++)
+        {   
+            (*s)[i + 1].dimsize = to_string(vs[i]);
+        }
+        for (int i = 0; i < arrdims.size() ; i++)
+        {   
             (*s)[i + 1].dimsize = arrdims[i];
-            // cout<<arrdims[i]<<endl;
         }
         arrdims.clear();
         vs.clear();
@@ -1003,6 +1009,7 @@ VariableDeclaratorId : Identifier
         $$ = new Node($1->id.c_str(), "VariableDeclaratorId", yylineno);
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
         $$->size = $1->size + 1;
+        ++size;
         isarr = true;
     }
     else
@@ -1015,10 +1022,17 @@ VariableDeclaratorId : Identifier
 VariableInitializer : Expression
 {
     $$ = $1;
+    // if(!isDot)
+    // // $$->size = max(vs.size(),arrdims.size());
+    // cout<<vs.size()<<" "<<arrdims.size()<<endl;
 }
 | ArrayInitializer
 {
     $$ = $1;
+    // if(!isDot)
+    // // $$->size = max(vs.size(),arrdims.size());
+    // cout<<vs.size()<<" "<<arrdims.size()<<endl;
+
 }
 
 MethodDeclaration : MethodHeader MethodBody
@@ -1863,7 +1877,6 @@ AbstractMethodDeclaration : MethodHeader s_semicolon
 ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_curly_bracket
 {
     $$ = new Node("ArrayInitializer");
-
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node("}", "Separator", yylineno));
@@ -1876,6 +1889,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = $2->size;
         ArrayArgumentDepth--;
+        $$->size = vs.size();
     }
 }
 | array_s_open_curly_bracket s_close_curly_bracket
@@ -1894,6 +1908,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = 0;
         ArrayArgumentDepth--;
+        $$->size = vs.size();
     }
 };
 array_s_open_curly_bracket : s_open_curly_bracket
@@ -1901,6 +1916,7 @@ array_s_open_curly_bracket : s_open_curly_bracket
     if (!isDot)
     {
         ArrayArgumentDepth++;
+        //cout<<ArrayArgumentDepth<<" "<<size<<endl;
         if (ArrayArgumentDepth > size)
         {
             yyerror("Excess Dimensions used");
@@ -2375,13 +2391,10 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     if (!isDot)
     {
 
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
@@ -2404,13 +2417,10 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     $$->children.push_back($7);
     if (!isDot)
     {
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
@@ -2443,14 +2453,12 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of size 0");
             exit(0);
         }
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2484,7 +2492,6 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of size 0");
             exit(0);
         }
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
@@ -2515,12 +2522,10 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     {
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2545,7 +2550,6 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     {
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
@@ -2590,7 +2594,6 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2653,14 +2656,10 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     $$->children.push_back($6);
     if (!isDot)
     {
-
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
@@ -2683,13 +2682,10 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     $$->children.push_back($7);
     if (!isDot)
     {
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
@@ -2722,14 +2718,12 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of size 0");
             exit(0);
         }
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2762,7 +2756,6 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of size 0");
             exit(0);
         }
-        // $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
@@ -2793,12 +2786,10 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     {
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2823,7 +2814,6 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     {
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
@@ -2868,7 +2858,6 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
-        // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3165,6 +3154,7 @@ Finally : k_finally Block
 Primary : PrimaryNoNewArray
 {
     $$ = $1;
+    arrdims.clear();
 }
 | ArrayCreationExpression
 {
@@ -3510,10 +3500,10 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array index must be of type int");
             exit(0);
         }
-        if (isarr)
-        {
+        // if (isarr)
+        // {
             arrdims.push_back($2->field);
-        }
+        // }
         $$->field = $2->field;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
@@ -3741,6 +3731,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$ = new Node("ArrayAccess");
     else
     {
+        // arrdims.clear();
         $$ = new Node($1->id.c_str(), "ArrayAccess", yylineno);
         if (widen($3->type, LONG) != LONG)
         {
@@ -3762,7 +3753,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->type = (*a)[0].type;
         $$->size = (*a).size() - 1 - arrdims.size();
         $$->symid = $1->symid;
-        // cout << "Size is " << arrdims.size() << " " << (*a).size() << endl;
+        cout << "-----------------------------Size is " << arrdims.size() << " " << (*a).size() << endl;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3812,7 +3803,8 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         arrdims.push_back($3->field);
         $$->size = (*a).size() - arrdims.size() - 1;
         $$->symid = $1->symid;
-        // cout << "Size is " << arrdims.size() << " " << (*a).size() << " " << $$->size << endl;
+                cout << "-----------------------------Size is " << arrdims.size() << " " << (*a).size() << endl;
+
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3821,11 +3813,9 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
                  $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + (*a)[i].dimsize);
                  $3->field = $$->field;
             }
-            cout<<"entring if"<<endl;
         }
         else{
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field);
-            // cout<<"entring else"<<endl;
         }
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3844,6 +3834,8 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
 PostFixExpression : Primary
 {
     $$ = $1;
+    cout<<"size of "<<$1->id<<" = "<<$$->size<<endl;
+    // arrdims.clear();
 }
 | Name
 {
@@ -4166,7 +4158,24 @@ MultiplicativeExpression : UnaryExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $3->field);
+        if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *int " + $3->field);
+        }
+        if($$->type == FLOAT || $$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " *float " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *float " + old_field);
+            } 
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("*", "Separator", yylineno));
@@ -4193,7 +4202,24 @@ MultiplicativeExpression : UnaryExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " / " + $3->field);
+       if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " /int " + $3->field);
+        }
+        if($$->type == FLOAT || $$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " /float " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " /float " + old_field);
+            } 
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("/", "Separator", yylineno));
@@ -4220,7 +4246,25 @@ MultiplicativeExpression : UnaryExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " % " + $3->field);
+        if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " %int " + $3->field);
+        }
+        if($$->type == FLOAT || $$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " %float " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " %float " + old_field);
+            } 
+        }
+        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " % " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("%", "Separator", yylineno));
@@ -4252,7 +4296,25 @@ AdditiveExpression : MultiplicativeExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $3->field);
+        if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " +int " + $3->field);
+        }
+        if($$->type == FLOAT || $$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " +float " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " +float " + old_field);
+            } 
+        }
+        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("+", "Separator", yylineno));
@@ -4265,7 +4327,7 @@ AdditiveExpression : MultiplicativeExpression
     {
         if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("Addition can only be applied to int");
+            yyerror("Subtraction can only be applied to int");
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
@@ -4279,7 +4341,25 @@ AdditiveExpression : MultiplicativeExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " - " + $3->field);
+        if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -int " + $3->field);
+        }
+        if($$->type == FLOAT || $$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -float " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -float " + old_field);
+            } 
+        }
+        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " - " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("-", "Separator", yylineno));
@@ -4818,10 +4898,6 @@ LeftHandSide : Name
 | ArrayAccess
 {
     $$ = $1;
-    size = 0;
-    vs.clear();
-    arrdims.clear();
-    fsize = 0;
 };
 
 AssignmentOperator : o_assign
@@ -5033,9 +5109,8 @@ int main(int argc, char **argv)
              << endl;
         return 0;
     }
-
     if (!isDot)
-    {
+    {   
         initializeSymTable(currentSymTableId);
         // yyin = fopen("System.java", "r");
         // yyparse();
