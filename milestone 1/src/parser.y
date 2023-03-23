@@ -940,7 +940,7 @@ VariableDeclarator : VariableDeclaratorId
             exit(0);
         }
         cout<<"-----------------------------"<<(*s).size()<<" "<<arrdims.size()<<endl;
-        for (int i = 0; i < arrdims.size(); i++)
+        for (int i = 0; i < (*s).size()-1; i++)
         {
             (*s)[i + 1].dimsize = arrdims[i];
             // cout<<arrdims[i]<<endl;
@@ -976,6 +976,7 @@ VariableDeclaratorId : Identifier
         }
         for (int i = 0; i < size; i++)
         {
+            cout<<" size of "<<$1<<" "<<size<<endl;
             symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
         }
         if (t == OBJECT)
