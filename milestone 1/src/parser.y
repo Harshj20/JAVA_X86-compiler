@@ -29,7 +29,7 @@ string isPrivate = "";
 vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 // vector<string>$$->threeACCode;
-string returnFunctionName = "";
+string returnFunctionName = "", name = "";
 int offset = 0;
 int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
 
@@ -915,10 +915,11 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
+
         $$ = new Node($1->id.c_str(), "VariableDeclarator", yylineno);
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-        $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
         $3->threeACCode.clear();
+        $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
         // cout<<$$->threeACCode[0]<<endl;
         vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
         if (!s)
@@ -3238,10 +3239,17 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
     {
         if (t != $2->type)
         {
-            yyerror("Type mismatch in arrayCreationExpression rhs");
+            yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
         $$->size = vs.size();
+        $$->field = "t" + to_string(tcounter++);;
+        if(islocal){
+            $$->threeACCode.push_back("\t ArrayDeclaration :" );
+            $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            $3->threeACCode.clear();
+            $$->threeACCode.push_back("\t" + $$->field " = allocate " + $3->field);
+        }
     }
 }
 | k_new PrimitiveType Dims ArrayInitializer
@@ -3343,6 +3351,13 @@ DimExprs : DimExpr
     $$ = new Node("DimExprs");
     $$->children.push_back($1);
     $$->children.push_back($2);
+    if (!isDot)
+    {
+       $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+       $1->threeACCode.clear();
+       $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+       $2->threeACCode.clear();
+    }
 };
 
 DimExpr : s_open_square_bracket Expression s_close_square_bracket
@@ -3359,6 +3374,8 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
         {
             vs.push_back(vs.size() + 1);
         }
+        $$->field = $2->field;
+        $$->threeACCode.push_back("[" + $2->field + "]");
     }
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back($2);
