@@ -2070,11 +2070,11 @@ IfThenStatement : if_invoke_paren Expression s_close_paren Statement
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $4->threeACCode.clear();
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
+        $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
     }
 }
@@ -2101,11 +2101,11 @@ IfThenElseStatement : if_invoke_paren Expression s_close_paren StatementNoShortI
         $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $6->threeACCode.clear();
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $6->threeACCode.clear();
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
+        $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
     }
 };
@@ -2132,11 +2132,11 @@ IfThenElseStatementNoShortIf : if_invoke_paren Expression s_close_paren Statemen
         $$->threeACCode.push_back("\tif " + $2->field + " goto L" + to_string(lcounter));
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $6->threeACCode.clear();
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $4->threeACCode.clear();
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
+        $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
     }
 };
@@ -2147,6 +2147,8 @@ invoke_paren : s_open_paren
     {
         initializeSymTable(currentSymTableId);
         loopscope.push_back(currentSymTableId);
+        loopscope.push_back(lcounter);
+        lcounter--;
     }
 }
 
@@ -2169,14 +2171,15 @@ WhileStatement : k_while invoke_paren Expression s_close_paren Statement
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $5->threeACCode.clear();
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 };
@@ -2200,15 +2203,16 @@ WhileStatementNoShortIf : k_while invoke_paren Expression s_close_paren Statemen
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("\tif " + $3->field + " goto " + "L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $5->threeACCode.clear();
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        loopscope.pop_back();
+        loopscope.pop_back();  
+        loopscope.pop_back();  
     }
 };
 
@@ -2234,14 +2238,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2262,14 +2267,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2300,15 +2306,17 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
         loopscope.pop_back();
+        loopscope.pop_back();
+
     }
 }
 | k_for invoke_paren s_semicolon Expression s_semicolon ForUpdate s_close_paren Statement
@@ -2339,14 +2347,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2367,14 +2376,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2396,14 +2406,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2435,14 +2446,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2475,14 +2487,15 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2504,14 +2517,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         //$$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2532,14 +2546,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2570,14 +2585,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2609,14 +2625,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $4->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2637,14 +2654,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2666,14 +2684,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         // $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2705,14 +2724,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
         // $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2745,14 +2765,15 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $$->threeACCode.push_back("\tif " + $5->field + " goto L" + to_string(lcounter));
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $9->threeACCode.begin(), $9->threeACCode.end());
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
-        lcounter -= 2;
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2771,6 +2792,7 @@ EnhancedForStatementNoShortIf : k_for invoke_paren LocalVariableDeclaration o_co
     if (!isDot)
     {
         currentSymTableId = symTables[currentSymTableId].parentID;
+        loopscope.pop_back();
         loopscope.pop_back();
     }
 }
@@ -2804,6 +2826,7 @@ EnhancedForStatement : k_for invoke_paren LocalVariableDeclaration o_colon Expre
 
         currentSymTableId = symTables[currentSymTableId].parentID;
         loopscope.pop_back();
+        loopscope.pop_back();
     }
 }
 
@@ -2828,13 +2851,7 @@ BreakStatement : k_break s_semicolon
             yyerror("Break statement outside loop");
             exit(0);
         }
-        int x = currentSymTableId, c = -1;
-        while (x != loopscope.back())
-        {
-            x = symTables[x].parentID;
-            c -= 2;
-        }
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter + c));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
     }
 }
 | k_break Identifier s_semicolon
@@ -2857,7 +2874,7 @@ ContinueStatement : k_continue s_semicolon
             yyerror("Continue statement outside loop");
             exit(0);
         }
-        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope[loopscope.size()-2]));
     }
 }
 | k_continue Identifier s_semicolon
@@ -4494,12 +4511,12 @@ ConditionalExpression : ConditionalOrExpression
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $5->threeACCode.clear();
         $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $5->field);
-        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter - 1));
+        $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $3->field);
-        $$->threeACCode.push_back("L" + to_string(lcounter - 1) + ":");
+        $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
         $$->size = $3->size;
         $$->field = "t" + to_string(tcounter++);

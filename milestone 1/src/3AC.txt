@@ -22,28 +22,28 @@ L-3:
 L-4:
 L5:
 	t1 = a < 3
-	if t1 goto L-11
-	goto L-12
-L-11:
+	if t1 goto L-12
+	goto L-5
+L-12:
 	t2 = a + b
 	b = t2
 L6:
-	if true goto L-9
+	if true goto L-11
+	goto L-6
+L-11:
+	t1 = b == 5
+	if t1 goto L-9
 	goto L-10
 L-9:
-	t1 = b == 5
-	if t1 goto L-7
+	t2 = a == 3
+	if t2 goto L-7
 	goto L-8
 L-7:
-	t2 = a == 3
-	if t2 goto L-5
 	goto L-6
-L-5:
-	goto L-10
-L-6:
 L-8:
-	goto L6
 L-10:
-	goto L-12
+	goto L6
+L-6:
+	goto L-5
 	goto L5
-L-12:
+L-5:
