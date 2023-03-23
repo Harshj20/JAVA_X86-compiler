@@ -98,7 +98,7 @@ Program:
     root = new Node("Program");
     root->children.push_back($1);
     root->children.push_back(new Node("EOF", "EOF", -1));
-    threeAC = $$->threeACCode;
+    // threeAC = $$->threeACCode;
 }
 
 // -------------------------------- Production 4 -----------------------
@@ -549,9 +549,11 @@ Modifier : k_public
 ClassDeclaration : NormalClassDeclaration
 {
     $$ = $1;
-    symTables[currentSymTableId].entries[$1->id][0].offset = offset;
-    offset = 0;
-    className.clear();
+    if(!isDot){
+        symTables[currentSymTableId].entries[$1->id][0].offset = offset;
+        offset = 0;
+        className.clear();
+    }
 }
 | EnumDeclaration
 {
@@ -985,6 +987,9 @@ VariableDeclaratorId : Identifier
             (*sentry)[0].symid = class_to_symboltable[reftype];
             if(!islocal)
                 offset += symTables[1].entries[reftype][0].offset;
+            else{
+
+            }
         }
         $$->field = $1;
         $$->size = size;
