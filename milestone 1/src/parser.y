@@ -939,12 +939,14 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Variable not declared");
             exit(0);
         }
+        cout<<"-----------------------------"<<(*s).size()<<" "<<arrdims.size()<<endl;
         for (int i = 0; i < arrdims.size(); i++)
         {
             (*s)[i + 1].dimsize = arrdims[i];
+            // cout<<arrdims[i]<<endl;
         }
         arrdims.clear();
-        vs.clear()
+        vs.clear();
     }
     else
     {
@@ -3760,18 +3762,22 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->field = "t" + to_string(tcounter++);
         if(arrdims.size()!=(*a).size()-1){
             for (int i = arrdims.size() + 1; i < (*a).size(); i++){
-                 $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string((*a)[arrdims.size()].size));
+                 $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + (*a)[i].dimsize);
                  $3->field = $$->field;
             }
         }
         else{
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field);
         }
-         $$->threeACCode.push_back("\t" + $$->field + " = *(" + $1->id + " + " + $$->field + ")");
+        if((*a).size() == 2){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
+            $$->field = "*" + $$->field;
+        }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back($3);
     $$->children.push_back(new Node("]", "Separator", yylineno));
+    }
 }
 | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
 {
@@ -3797,26 +3803,31 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             exit(0);
         }
         $$->type = (*a)[0].type;
+        arrdims.push_back($3->field);
         $$->size = (*a).size() - arrdims.size() - 1;
         $$->symid = $1->symid;
         // cout << "Size is " << arrdims.size() << " " << (*a).size() << " " << $$->size << endl;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
-        arrdims.push_back($3->field);
         if(arrdims.size()!=(*a).size()-1){
             for (int i = arrdims.size() + 1; i < (*a).size(); i++){
-                 $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string((*a)[arrdims.size()].size));
+                 $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + (*a)[i].dimsize);
                  $3->field = $$->field;
             }
+            cout<<"entring if"<<endl;
         }
         else{
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field);
+            // cout<<"entring else"<<endl;
         }
-        $$->threeACCode.push_back($$->field + " = " + $1->field + " + " + $$->field); 
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = *(" + $1->id + " + " + $$->field + ")");
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
+        if((*a).size()-1 == arrdims.size()){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
+            $$->field = "*" + $$->field;
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
@@ -4771,6 +4782,7 @@ Assignment : LeftHandSide AssignmentOperator Expression
         $$->type = $1->type;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         if ($2->field.size() > 1)
         {
@@ -4802,7 +4814,7 @@ LeftHandSide : Name
     $$ = $1;
     size = 0;
     vs.clear();
-    arrdims.clear()
+    arrdims.clear();
     fsize = 0;
 };
 
