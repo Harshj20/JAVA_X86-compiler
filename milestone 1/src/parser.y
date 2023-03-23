@@ -552,9 +552,11 @@ Modifier : k_public
 ClassDeclaration : NormalClassDeclaration
 {
     $$ = $1;
-    symTables[currentSymTableId].entries[$1->id][0].offset = offset;
-    offset = 0;
-    className.clear();
+    if(!isDot){
+        symTables[currentSymTableId].entries[$1->id][0].offset = offset;
+        offset = 0;
+        className.clear();
+    }
 }
 | EnumDeclaration
 {

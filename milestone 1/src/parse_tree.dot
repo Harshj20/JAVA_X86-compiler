@@ -1,0 +1,27 @@
+digraph PARSE_TREE {
+  node0 [label="\nProgram"];
+  node0 -> node1;
+  node1 [label="\nNormalClassDeclaration"];
+  node1 -> node2;
+  node2 [label="Keyword\npublic"];
+  node1 -> node3;
+  node3 [label="Keyword\nclass"];
+  node1 -> node4;
+  node4 [label="Identifier\ntest_16"];
+  node1 -> node5;
+  node5 [label="\nClassBody"];
+  node5 -> node6;
+  node6 [label="Separator\n{"];
+  node5 -> node7;
+  node7 [label="\nFieldDeclaration"];
+  node7 -> node8;
+  node8 [label="Keyword\nint"];
+  node7 -> node9;
+  node9 [label="Identifier\nx"];
+  node7 -> node10;
+  node10 [label="Separator\n;"];
+  node5 -> node11;
+  node11 [label="Separator\n}"];
+  node0 -> node12;
+  node12 [label="EOF\nEOF"];
+}
