@@ -5206,8 +5206,8 @@ int main(int argc, char **argv)
     if (!isDot)
     {   
         initializeSymTable(currentSymTableId);
-        // yyin = fopen("System.java", "r");
-        // yyparse();
+        yyin = fopen("System.java", "r");
+        yyparse();
         yylineno = 1;
     }
 
