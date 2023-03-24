@@ -17,7 +17,7 @@ TYPE t = VOID;
 int size = 0;
 int fsize = 0;
 vector<int> vs;  // vector to store max size of dimensions of array
-vector<string> arrdims;  // vector to store max size of dimensions of array
+// vector<string> arrdims;  // vector to store max size of dimensions of array
 vector<int> vfs; // vector to store dimensions of function arguments
 bool isarr = false;
 int ArrayArgumentDepth = 0;
@@ -949,10 +949,10 @@ VariableDeclarator : VariableDeclaratorId
         for(int i=0;i<vs.size();i++){
             (*s)[i+1].dimsize = to_string(vs[i]);
         }
-        for(int i=0;i<arrdims.size();i++){
-            (*s)[i+1].dimsize = arrdims[i];
+        for(int i=0;i< $3->arrdims.size();i++){
+            (*s)[i+1].dimsize = $3->arrdims[i];
         }
-        arrdims.clear();
+        $3->arrdims.clear();
         vs.clear();
     }
     else
@@ -1025,7 +1025,6 @@ VariableInitializer : Expression
 {
     $$ = $1;
     if(!isDot){
-        $$->size = max(vs.size(),arrdims.size());
         if(ArrayArgumentDepth==0){
             arrinit.push_back($$->field);
             $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]));
@@ -3145,9 +3144,9 @@ Finally : k_finally Block
 Primary : PrimaryNoNewArray
 {
     $$ = $1;
-    if(!isarr){
-        arrdims.clear();
-    }
+    // if(!isarr){
+    //     arrdims.clear();
+    // }
 }
 | ArrayCreationExpression
 {
@@ -3352,7 +3351,9 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = arrdims.size();
+        $$->size = $3->arrdims.size();
+        $$->arrdims = $3->arrdims;
+        $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
             $$->threeACCode.push_back("ArrayDeclaration :" );
@@ -3397,7 +3398,11 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = arrdims.size();
+        $$->size = $3->arrdims.size() + $4->arrdims.size();
+        $$->arrdims = $3->arrdims;
+        $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
+        $3->arrdims.clear();
+        $4->arrdims.clear();
     }
 }
 | k_new Name DimExprs
@@ -3414,7 +3419,9 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = arrdims.size();
+        $$->size = $3->arrdims.size();
+        $$->arrdims = $3->arrdims;
+        $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
             $$->threeACCode.push_back("ArrayDeclaration :" );
@@ -3439,7 +3446,11 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = arrdims.size();
+        $$->size = $3->arrdims.size() + $4->arrdims.size();
+        $$->arrdims = $3->arrdims;
+        $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
+        $3->arrdims.clear();
+        $4->arrdims.clear();
     }
 }
 | k_new Name Dims ArrayInitializer
@@ -3478,6 +3489,10 @@ DimExprs : DimExpr
        $2->threeACCode.clear();
        $$->field = "t" + to_string(tcounter++);
        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $2->field);
+       $$->arrdims.insert($$->arrdims.end(), $1->arrdims.begin(), $1->arrdims.end());
+       $1->arrdims.clear();
+       $$->arrdims.insert($$->arrdims.end(), $2->arrdims.begin(), $2->arrdims.end());
+       $2->arrdims.clear();
     }
 };
 
@@ -3492,8 +3507,8 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
             exit(0);
         }
         $$->field = $2->field;
-        arrdims.push_back($2->field);
-        cout<<arrdims.size()<<endl;
+        $$->arrdims.push_back($2->field);
+        cout<<$$->arrdims.size()<<endl;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
     }
@@ -3509,7 +3524,7 @@ Dims : s_open_square_bracket s_close_square_bracket
     $$->children.push_back(new Node("]", "Separator", yylineno));
     if (isarr)
     {
-        arrdims.push_back("0");
+        $$->arrdims.push_back("0");
     }
 }
 | Dims s_open_square_bracket s_close_square_bracket
@@ -3519,7 +3534,7 @@ Dims : s_open_square_bracket s_close_square_bracket
     $$->children.push_back(new Node("[", "Separator", yylineno));
     if (isarr)
     {
-        arrdims.push_back("0");
+        $$->arrdims.push_back("0");
     }
 };
 
@@ -3724,22 +3739,23 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array index must be of type int");
             exit(0);
         }
-        arrdims.push_back($3->field);
-        if (arrdims.size() > (*a).size() - 1 || (*a)[0].isfunction)
+        $$->arrdims.push_back($3->field);
+        $3->arrdims.clear();
+        if ($$->arrdims.size() > (*a).size() - 1 || (*a)[0].isfunction)
         {
             yyerror("Array dimension mismatch");
             exit(0);
         }
         cout<<"Harsh "<<size<< " "<<(*a).size()<<endl;
         $$->type = (*a)[0].type;
-        $$->size = (*a).size() - 1 - arrdims.size();
+        $$->size = (*a).size() - 1 - $$->arrdims.size();
         $$->symid = $1->symid;
-        cout << "-----------------------------Size is " << arrdims.size() << " " << (*a).size() << endl;
+        cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
-        if(arrdims.size()!=(*a).size()-1){
-            for (int i = arrdims.size() + 1; i < (*a).size(); i++){
+        if($$->arrdims.size()!=(*a).size()-1){
+            for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                  $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + (*a)[i].dimsize);
                  $3->field = $$->field;
             }
@@ -3774,25 +3790,28 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array index must be of type int");
             exit(0);
         }
-        arrdims.push_back($3->field);
+        $$->arrdims = $1->arrdims;
+        $$->arrdims.push_back($3->field);
+        $3->arrdims.clear();
+        $1->arrdims.clear();
         vector<struct symEntry> *a = symTables[$1->symid].getSymEntry($1->id);
-        cout<<"harsh jain "<<arrdims.size()<<" "<<(*a).size()<<endl;
-        if ((*a).size() - 1 < arrdims.size() || (*a)[0].isfunction)
+        cout<<"harsh jain "<<$$->arrdims.size()<<" "<<(*a).size()<<endl;
+        if ((*a).size() - 1 < $$->arrdims.size() || (*a)[0].isfunction)
         {
             yyerror("Array dimension mismatch");
             exit(0);
         }
         $$->type = (*a)[0].type;
-        $$->size = (*a).size() - arrdims.size() - 1;
-        cout<< (*a).size() << " " << arrdims.size() << " " << $$->size << endl;
+        $$->size = (*a).size() - $$->arrdims.size() - 1;
+        cout<< (*a).size() << " " << $$->arrdims.size() << " " << $$->size << endl;
         $$->symid = $1->symid;
-                cout << "-----------------------------Size is " << arrdims.size() << " " << (*a).size() << endl;
+                cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
 
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
-        if(arrdims.size()!=(*a).size()-1){
-            for (int i = arrdims.size() + 1; i < (*a).size(); i++){
+        if($$->arrdims.size()!=(*a).size()-1){
+            for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                  $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + (*a)[i].dimsize);
                  $3->field = $$->field;
             }
@@ -3803,7 +3822,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
-        if((*a).size()-1 == arrdims.size()){
+        if((*a).size()-1 == $$->arrdims.size()){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
@@ -4862,7 +4881,9 @@ Assignment : LeftHandSide AssignmentOperator Expression
         }
         tcounter = 1;
         $$->field = $1->field;
-        arrdims.clear();
+        $$->size = $1->size;
+        $3->arrdims.clear();
+        $1->arrdims.clear();
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -4880,7 +4901,6 @@ LeftHandSide : Name
 | ArrayAccess
 {
     $$ = $1;
-    arrdims.clear();
 };
 
 AssignmentOperator : o_assign
