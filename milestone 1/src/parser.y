@@ -294,14 +294,16 @@ SimpleName : Identifier
             yyerror(s1.c_str());
             exit(0);
         }
-        if (symTables[t1].entries[lex][0].isStatic != isStatic && t1 != currentSymTableId)
-        {
-            cout<<symTables[t1].entries[lex][0].isStatic<<" "<<isStatic<<endl;
-            cout<<lex<<endl;
-            string s1 = "Static non-Static clash ";
-            yyerror(s1.c_str());
-            exit(0);
-        }
+
+        // if (symTables[t1].entries[lex][0].isStatic != isStatic && t1 != currentSymTableId)
+        // {
+        //     cout<<symTables[t1].entries[lex][0].isStatic<<" "<<isStatic<<endl;
+        //     cout<<lex<<endl;
+        //     cout<<t1<<" "<<currentSymTableId<<endl;
+        //     string s1 = "Static non-Static clash ";
+        //     yyerror(s1.c_str());
+        //     exit(0);
+        // }
         $$ = new Node($1, "Identifier", symTables[t1].entries[lex][0].type, yylineno);
 
         if ($$->type == OBJECT)
@@ -355,12 +357,12 @@ QualifiedName : Name s_dot Identifier
             yyerror(s1.c_str());
             exit(0);
         }
-        if (symTables[$1->symid].entries[s][0].isStatic != isStatic)
-        {
-            string s1 = "Static non-Static clash ";
-            yyerror(s1.c_str());
-            exit(0);
-        }
+        // if (symTables[$1->symid].entries[s][0].isStatic != isStatic)
+        // {
+        //     string s1 = "Static non-Static clash ";
+        //     yyerror(s1.c_str());
+        //     exit(0);
+        // }
         $$->type = symTables[$1->symid].entries[s][0].type;
         if ($$->type == OBJECT)
         {
@@ -3822,7 +3824,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array dimension mismatch");
             exit(0);
         }
-        cout<<"Harsh "<<size<< " "<<(*a).size()<<endl;
+        // cout<<"Harsh "<<size<< " "<<(*a).size()<<endl;
         $$->type = (*a)[0].type;
         $$->size = (*a).size() - 1 - $$->arrdims.size();
         $$->symid = $1->symid;
@@ -3839,10 +3841,10 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         else{
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field);
         }
-        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-        $1->threeACCode.clear();
+        // $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        // $1->threeACCode.clear();
         if((*a).size() == 2){
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " * " + to_string(offsetVal[$1->type]) + "// offset vals for " + enum_types[$1->type]);
+            // $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " * " + to_string(offsetVal[$1->type]) + "// offset vals for " + enum_types[$1->type]);
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
@@ -3900,14 +3902,16 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         }
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field);
         if((*a).size()-1 == $$->arrdims.size()){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " * " + to_string(offsetVal[$1->type]) + "// offset vals for " + enum_types[$1->type]);
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
-        else{
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
-        }
+        // else{
+        //     $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
+        // }
+        // $$->field = "*" + $$->field;
         // cout<<"-------------------------------------------"<<endl;
     }
     $$->children.push_back($1);

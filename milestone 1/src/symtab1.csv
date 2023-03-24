@@ -1,0 +1,5 @@
+Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
+Addition,Identifier,class,0,3,0,9
+PrintStream,Identifier,class,0,1,0,0
+System,Identifier,class,0,8,0,0
+test_0,Identifier,class,0,30,0,4

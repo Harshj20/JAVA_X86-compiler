@@ -1,4 +1,4 @@
-class PrintStream{
+static class PrintStream{
     public void println(String s){
         int x;
     }
