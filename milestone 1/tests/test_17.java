@@ -16,7 +16,7 @@ public class test_16 {
     public static void main(String[] args) {
             int a = 0, b, c;
             // b = a++;
-            // a = b = (a > 1)?c:(a+1);
+            a = b = (a > 1)?c:(a+1);
             // if(a < b){
             //     a = 1;
             // }
