@@ -8,7 +8,7 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables;
 map<string, unsigned long long int> class_to_symboltable;
-vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL", "OBJECT"};
+vector<string> enum_types = {"bin", "oct", "hex_float", "hex", "void", "function", "class", "interface", "enum", "union", "typedef", "unknown", "var", "_null", "byte", "short", "char", "int", "long", "float", "double", "string", "bool", "object"};
 int currentSymTableId = 0;
 int symTablescount = 1;
 bool isDot = false, islocal = false;
@@ -17,7 +17,6 @@ TYPE t = VOID;
 int size = 0;
 int fsize = 0;
 vector<int> vs;  // vector to store max size of dimensions of array
-// vector<string> arrdims;  // vector to store max size of dimensions of array
 vector<int> vfs; // vector to store dimensions of function arguments
 bool isarr = false;
 int ArrayArgumentDepth = 0;
@@ -50,7 +49,6 @@ void yyerror(const char *s)
 void initializeSymTable(int parentID)
 {
     symtab *a = new symtab(symTablescount, parentID);
-    //cout << "Symbol Table Created with Parent ID " << currentSymTableId << " and current ID " << symTablescount << endl;
     currentSymTableId = symTablescount;
     symTablescount++;
     symTables[currentSymTableId] = *a;
@@ -282,8 +280,6 @@ SimpleName : Identifier
         if (!t1)
         {
             string s1 = "Undeclared variable " + lex;
-            //cout << t1 << endl;
-            //cout << currentSymTableId << endl;
             yyerror(s1.c_str());
             exit(0);
         }
@@ -404,7 +400,6 @@ CompilationUnit : PackageDeclaration ImportDeclarations TypeDeclarations
 {
     $$ = $1;
 }
-//|
 | ImportDeclarations
 {
     $$ = $1;
@@ -430,10 +425,12 @@ TypeDeclarations : TypeDeclaration
     $$ = new Node("TypeDeclarations");
     $$->children.push_back($1);
     $$->children.push_back($2);
-    $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-    $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
-    $1->threeACCode.clear();
-    $2->threeACCode.clear();
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $1->threeACCode.clear();
+        $2->threeACCode.clear();
+    }   
 }
 
 PackageDeclaration : k_package Name s_semicolon
@@ -585,7 +582,6 @@ key_class_super : k_class Identifier Super
         else
         {
             symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
-            // cout << currentSymTableId << endl;
         }
         initializeSymTable($3->symid);
         symTables[currentSymTableId].name = s;
@@ -610,7 +606,6 @@ key_class : k_class Identifier
         else
         {
             symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
-            // cout << currentSymTableId << endl;
         }
         initializeSymTable(currentSymTableId);
         symTables[currentSymTableId].name = s;
@@ -762,8 +757,10 @@ Super : k_extends ClassType
     $$ = new Node("Super");
     $$->children.push_back(new Node("extends", "Keyword", yylineno));
     $$->children.push_back($2);
-    $$->symid = class_to_symboltable[$2->id];
-    offset += symTables[1].entries[$2->id][0].offset;
+    if(!isDot){
+        $$->symid = class_to_symboltable[$2->id];
+        offset += symTables[1].entries[$2->id][0].offset;
+    }
 }
 
 Interfaces : k_implements InterfaceTypeList
@@ -927,15 +924,13 @@ VariableDeclarator : VariableDeclaratorId
         }
         if ($3->size != $1->size)
         {   
-            // cout << $3->size << " " << $1->size << endl;
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
-        // cout<<"hello world"<<endl;
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
-                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[$1->type] + " " + $3->id);
+                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
                 $$->threeACCode.push_back("\t"+ $1->id + " = t" + to_string(tcounter));
             }
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
@@ -1013,6 +1008,7 @@ VariableDeclaratorId : Identifier
         }
         $$->field = $1;
         $$->size = size;
+        $$->type = t;
     }
 }
 | VariableDeclaratorId s_open_square_bracket s_close_square_bracket
@@ -1336,7 +1332,6 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($3);
     vt.push_back(t);
     vfs.push_back(size);
-    //cout << size << endl;
     fsize -= size;
     size = 0;
     isarr = false;
@@ -1998,11 +1993,13 @@ BlockStatements : BlockStatement
     $$ = new Node("BlockStatements");
     $$->children.push_back($1);
     $$->children.push_back($2);
-    $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-    $1->threeACCode.clear();
-    $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
-    $2->threeACCode.clear();
-    $$->field = $2->field;
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->field = $2->field;
+    }
 };
 
 BlockStatement : LocalVariableDeclarationStatement
@@ -2173,9 +2170,11 @@ ExpressionStatement : StatementExpression s_semicolon
     $$ = new Node("ExpressionStatement");
     $$->children.push_back($1);
     $$->children.push_back(new Node(";", "Separator", yylineno));
-    $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-    $1->threeACCode.clear();
-    $$->field = $1->field;
+    if(!isDot){
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->field = $1->field;
+    }
 };
 
 StatementExpression : Assignment
@@ -3069,8 +3068,6 @@ ReturnStatement : k_return s_semicolon
     }
     if (symTables[t1].entries[returnFunctionName][0].size != $2->size)
     {
-        //cout << $2->size << " " << symTables[t1].entries[returnFunctionName][0].size;
-        //cout << returnFunctionName << endl;
         yyerror("Return size of function does not match return statement");
         exit(0);
     }
@@ -3162,9 +3159,6 @@ Finally : k_finally Block
 Primary : PrimaryNoNewArray
 {
     $$ = $1;
-    // if(!isarr){
-    //     arrdims.clear();
-    // }
 }
 | ArrayCreationExpression
 {
@@ -3220,7 +3214,12 @@ PrimaryNoNewArray : int_Literal
         $$->field = "this";
     }
 }
-| Text_Block_Literal { $$ = new Node("TextBlock", "Literal", STRING, yylineno); }
+| Text_Block_Literal 
+{ 
+    $$ = new Node("TextBlock", "Literal", STRING, yylineno); 
+    if(!isDot)
+        $$->field = $1;
+}
 | char_Literal
 {
     $$ = new Node($1, "Literal", CHAR, yylineno);
@@ -3307,19 +3306,15 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             yyerror("ClassType mismatch");
             exit(0);
         }
-        //cout << "this symid : " << class_to_symboltable[$2->id] << endl;
         vector<struct symEntry> *a = symTables[class_to_symboltable[$2->id]].getSymEntry($2->id);
         if ((*a).size() != vfs.size() + 1 || !(*a)[0].isfunction)
         {
-            //cout << (*a).size() << " " << vfs.size() << endl;
             yyerror("Constructor not found");
             exit(0);
         }
         $$->type = (*a)[0].type;
-        //cout << vfs.size() << " " << vt.size() << endl;
         for (int i = 0; i < vfs.size(); i++)
         {
-            //cout << vt[i] << " " << (*a)[i + 1].type << endl;
             if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
             {
                 yyerror("Argument type mismatch");
@@ -3359,11 +3354,7 @@ ArgumentList : Expression
     $$->children.push_back($3);
     if (!isDot)
     {
-        //cout << $3->type << endl;
-        //cout << "vfs size: " << vfs.size() << endl;
-        //cout << "vt size: " << vt.size() << endl;
         vt.push_back($3->type);
-        //cout << vt[vt.size() - 1] << endl;
         vfs.push_back($3->size);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3544,7 +3535,6 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
         }
         $$->field = $2->field;
         $$->arrdims.push_back($2->field);
-        //cout<<$$->arrdims.size()<<endl;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
     }
@@ -3644,7 +3634,6 @@ MethodInvocation : Name s_open_paren s_close_paren
     if (!isDot)
     {
         vector<struct symEntry> *a = symTables[$1->symid].getSymEntry($1->id);
-        //cout << "this simid " << $1->id << endl;
         if ((*a).size() != vfs.size() + 1 || !(*a)[0].isfunction)
         {
             yyerror("Method not found");
@@ -3654,12 +3643,10 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
-        //cout << vfs.size() << " " << vt.size() << endl;
         for (int i = 0; i < vfs.size(); i++)
         {
-            //cout << vt[i] << " " << (*a)[i + 1].type << endl;
-            if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
-            {
+            if (widen(vt[i], (*a)[i + 1].type)!= (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
+            {   
                 yyerror("Argument type mismatch");
                 exit(0);
             }
@@ -5111,15 +5098,17 @@ void symTab_csv(symtab *a)
     ofstream fout;
     string s = "symtab" + to_string(a->ID) + ".csv";
     fout.open(s);
-    fout << "Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset" << endl;
+    fout << "Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset" << endl;
     for (auto i = a->entries.begin(); i != a->entries.end(); i++)
     {
-        for (auto j = i->second.begin(); j != i->second.end(); j++)
-        {
+        
+        /* for (auto j = i->second.begin(); j != i->second.end(); j++)
+        { */
+            auto j = (i->second); 
             fout << i->first << ","
                  << "Identifier"
-                 << "," << enum_types[j->type] << "," << j->size << "," << j->lineno << "," << j->symid << "," << j->offset << endl;
-        }
+                 << "," << enum_types[j[0].type] << "," << j[0].size << "," << (j.size()-1) <<","<<j[0].lineno << "," << j[0].offset << endl;
+        //}
     }
     fout.close();
 }
@@ -5128,11 +5117,8 @@ void generate_3AC()
 {
     ofstream fout;
     fout.open("3AC.txt");
-    // fout<<"op,arg1,arg2,res"<<endl;
     for (int i = 0; i < threeAC.size(); i++)
     {
-        /* if((i+1<threeAC.size() && threeAC[i][0]=='L' && threeAC[i+1][0]=='L') || (i==threeAC.size()-1 && threeAC[i][0]=='L'))
-            continue; */
         fout << threeAC[i] << endl;
     }
 }

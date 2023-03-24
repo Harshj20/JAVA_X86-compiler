@@ -29,11 +29,11 @@ class Addition {
 class GFG {
 
 	// Main driver method
-	public static void main(/*String[] args*/)
+	public static void main(String[] args)
 	{
 
 		// Creating object of class 1 inside main() method
-		//Addition add = new Addition();
+		Addition add = new Addition();
 
 		// Calling method of above class
 		// to add two integer
@@ -41,7 +41,7 @@ class GFG {
 		int s = Addition.addTwoInt(1, 2);
 
 		// Printing the sum of two numbers
-		/*System.out.println("Sum of two integer values :"
-						+ s);*/
+		System.out.println("Sum of two integer values :"
+						+ s);
 	}
 }
