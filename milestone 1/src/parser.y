@@ -25,6 +25,7 @@ string reftype = "";
 int tcounter = 1;
 int lcounter = -1;
 string isPrivate = "";
+bool isStatic = false;
 vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 string returnFunctionName = "";
@@ -293,6 +294,14 @@ SimpleName : Identifier
             yyerror(s1.c_str());
             exit(0);
         }
+        if (symTables[t1].entries[lex][0].isStatic != isStatic && t1 != currentSymTableId)
+        {
+            cout<<symTables[t1].entries[lex][0].isStatic<<" "<<isStatic<<endl;
+            cout<<lex<<endl;
+            string s1 = "Static non-Static clash ";
+            yyerror(s1.c_str());
+            exit(0);
+        }
         $$ = new Node($1, "Identifier", symTables[t1].entries[lex][0].type, yylineno);
 
         if ($$->type == OBJECT)
@@ -343,6 +352,12 @@ QualifiedName : Name s_dot Identifier
         if (symTables[$1->symid].entries[s][0].isPrivate)
         {
             string s1 = "Private variable " + s;
+            yyerror(s1.c_str());
+            exit(0);
+        }
+        if (symTables[$1->symid].entries[s][0].isStatic != isStatic)
+        {
+            string s1 = "Static non-Static clash ";
             yyerror(s1.c_str());
             exit(0);
         }
@@ -529,6 +544,11 @@ Modifier : k_public
 | k_static
 {
     $$ = new Node("static", "Keyword", yylineno);
+    if(isStatic){
+        yyerror("Two Statics not allowed");
+        exit(0);
+    }
+    isStatic = true;
 }
 | k_abstract
 {
@@ -593,6 +613,7 @@ key_class_super : k_class Identifier Super
         className = $2;
     }
     isPrivate.clear();
+    isStatic = false;
 }
 key_class : k_class Identifier
 {
@@ -618,6 +639,7 @@ key_class : k_class Identifier
         className = $2;
     }
     isPrivate.clear();
+    isStatic = false;
 }
 
 NormalClassDeclaration : Modifiers key_class_super Interfaces ClassBody
@@ -830,6 +852,7 @@ ClassBodyDeclaration : ClassMemberDeclaration
 {
     $$ = $1;
     isPrivate.clear();
+    isStatic = false;
 }
 | ConstructorDeclaration
 {
@@ -843,6 +866,7 @@ ClassBodyDeclaration : ClassMemberDeclaration
         vfs.clear();
         fsize = 0;
         isPrivate.clear();
+        isStatic = false;
         islocal = false;
     }
 }
@@ -851,11 +875,13 @@ ClassMemberDeclaration : FieldDeclaration
 {
     $$ = $1;
     isPrivate.clear();
+    isStatic = false;
 }
 | MethodDeclaration
 {
     $$ = $1;
     isPrivate.clear();
+    isStatic = false;
     islocal = false;
 }
 
@@ -875,6 +901,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
     fsize = 0;
     isarr = false;
     tcounter = 0;
+    cout<<"-----"<<isStatic<<endl;
 }
 | Type VariableDeclaratorList s_semicolon
 {
@@ -991,6 +1018,8 @@ VariableDeclaratorId : Identifier
             symTables[currentSymTableId].entries[s][0].isPrivate = (isPrivate == "private") ? true : false;
             symTables[currentSymTableId].entries[s][0].offset = offset;
             offset += offsetVal[t];
+            symTables[currentSymTableId].entries[s][0].isStatic = isStatic;
+            cout<<"------------------------ ----"<<s<<endl;
         }
         for (int i = 0; i < size; i++)
         {
@@ -1213,8 +1242,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         }
         symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1][0].isStatic = isStatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
@@ -1247,8 +1278,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         }
         symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1][0].isStatic = isStatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
@@ -1279,8 +1312,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isStatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -1464,8 +1499,10 @@ ConstructorDeclaration :
         }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isStatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -1500,8 +1537,10 @@ ConstructorDeclaration :
         }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isStatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -5236,8 +5275,8 @@ int main(int argc, char **argv)
     if (!isDot)
     {   
         initializeSymTable(currentSymTableId);
-        // yyin = fopen("System.java", "r");
-        // yyparse();
+        yyin = fopen("System.java", "r");
+        yyparse();
         yylineno = 1;
     }
 
