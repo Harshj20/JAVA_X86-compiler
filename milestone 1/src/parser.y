@@ -1476,6 +1476,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+        $$->threeACCode.push_back("\tpopparam this");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1511,6 +1512,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+        $$->threeACCode.push_back("\tpopparam this");
     }
 };
 
@@ -3279,6 +3281,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
             $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\tparam " + $$->field);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
     }
@@ -3326,6 +3329,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
             $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\tparam " + $$->field);
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
