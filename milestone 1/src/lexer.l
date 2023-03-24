@@ -208,6 +208,7 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
 <string>\\(["\"""'"\\ntrbsf]|[0-7]{1,2}|[0-3][0-7]{2}) yymore();
 <string>"\"" {
     BEGIN(INITIAL);
+    yylval.str=strdup(yytext);
     return string_Literal;
 }
 [a-zA-Z$_][a-zA-Z0-9$_]* { 
