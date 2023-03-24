@@ -10,7 +10,7 @@ class Addition {
     int z;
     // Method
     // To add two numbers
-    public Addition(int x, int y){
+    public static Addition(int x, int y){
         x = this.a[2][6];
         // this.a[2][3] = x;
     }
@@ -29,7 +29,7 @@ class Addition {
 //Helper class
 class test_0 {
     // Addition l = new Addition();
-    int sum;
+    static int sum;
  
     // Main driver method
     public static void main()
@@ -43,6 +43,8 @@ class test_0 {
         // using instance created
         int s = add.a[0][0];
         add.z = s;
+        int q[][][] = new int[10][11][12]; 
+        int a=0,b = q[4][5][q[1][2][3]] + a;
         // s = add.a[0][0];
         // String a = "Hello world";
         // int x, z[];
