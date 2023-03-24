@@ -1,33 +1,24 @@
-Addition.ctor:
-	popparam this
-	popparam x
-	popparam y
-	t3 = 6
-	t2 = 2 * 9
-	t1 = this
-	t1 = t1 + 0 // offset size of a
-	t2 = *t1 + t2
-	t3 = t3 * 4// offset vals for INT
-	t3 = t2 + t3
-	x = *t3
-
-test_0.main:
-ClassInstanceCreation :
-	t1 = 9 // size of Object
-	t2 = allocate t1
-	param t2
-	param 1
-	param 2
-	Call Addition.ctor
-	add = t2
-	t5 = 0
-	t4 = 0 * 9
-	t3 = add
-	t3 = t3 + 0 // offset vals for a
-	t5 = t5 * 4// offset vals for INT
-	t5 = t4 + t5
-	s = *t5
-	t6 = add
-	t6 = t6 + 5 // offset vals for z
-	*t6 = s
+TypeCoercion.main:
+	popparam args
+	intVar = 100
+	longVar = intVar
+	floatVar = longVar
+	doubleVar = longVar
+	if true goto L-1
+	goto L-2
+L-1:
+	x = 0
+	x = 0
+L-2:
+	f = 2
+	dVar = 3.141596
+	t1 = cast_to_LONG dVar
+	lVar = t1
+	t2 = cast_to_INT dVar
+	iVar = t2
+	t3 = intVar +int longVar
+	t4 = dVar *float floatVar
+	t5 = cast_to_float t3
+	t6 = t5 +float t4
+	exp = t7
 
