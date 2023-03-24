@@ -1,4 +1,0 @@
-Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-add,Identifier,OBJECT,0,38,2,0
-main,Identifier,VOID,0,34,0,0
-s,Identifier,INT,0,43,0,0

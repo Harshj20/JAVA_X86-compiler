@@ -18,9 +18,9 @@ class GFG {
 		// arr[1] = 20;
 
 		// // so on...
-		// arr[2] = 30;
-		// arr[3] = 40;
-		// arr[4] = 50;
+		arr[2] = 30;
+		arr[3] = 40;
+		arr[4] = 50;
 		arr[2]=45;
 
 		// accessing the elements of the specified array

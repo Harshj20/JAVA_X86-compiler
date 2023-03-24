@@ -313,8 +313,7 @@ SimpleName : Identifier
             }
         }
         $$->size = symTables[t1].entries[lex].size() - 1;
-        // cout<<"-------siz of "<< lex <<" = "<<$$->size<<endl;
-        $$->field = $$->id;
+        $$->field = $1;
     }
     else
     {
@@ -355,8 +354,17 @@ QualifiedName : Name s_dot Identifier
         else
         {
             $$->symid = $1->symid;
-        }
-        $$->size = symTables[$1->symid].entries[s].size() - 1;
+            if (!symTables[$1->symid].entries[s][0].isfunction && symTables[$1->symid].entries[s].size()>1)
+            {
+                isarr = true;
+            }
+        }  
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(symTables[$1->symid].entries[s][0].offset) + " // offset vals for " + $3);
+        $$->field = "*" + $$->field;  
     }
 }
 
@@ -931,7 +939,7 @@ VariableDeclarator : VariableDeclaratorId
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
                 $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[0]);
                 for(int i=1;i<arrinit.size();i++){
-                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]));
+                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]) + " // adding offset values for type: " + enum_types[t]);
                      $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[i]);
                 }
                 arrinit.clear();
@@ -1030,7 +1038,7 @@ VariableInitializer : Expression
     if(!isDot){
         if(ArrayArgumentDepth==0){
             arrinit.push_back($$->field);
-            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]));
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]) + " // offset vals for " + enum_types[t]);
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate t" + to_string(tcounter-1));
             $$->field = "t" + to_string(tcounter);
         }
@@ -3014,8 +3022,9 @@ ReturnStatement : k_return s_semicolon
     $$ = new Node("ReturnStatement");
     $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back(new Node(";", "Separator", yylineno));
+    if(!isDot){
     int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
-    if (!t1)
+        if (!t1)
     {
         yyerror("Function associated with this return statement not found");
         exit(0);
@@ -3030,7 +3039,6 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return size of function does not match return statement");
         exit(0);
     }
-    if(!isDot){
         $$->threeACCode.push_back("\tReturn");
     }
 }
@@ -3040,7 +3048,8 @@ ReturnStatement : k_return s_semicolon
     $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node(";", "Separator", yylineno));
-    int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
+    if(!isDot){
+        int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
     if (!t1)
     {
         yyerror("Function associated with this return statement not found");
@@ -3058,7 +3067,6 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return size of function does not match return statement");
         exit(0);
     }
-    if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tReturn " + $2->field);
@@ -3202,6 +3210,7 @@ PrimaryNoNewArray : int_Literal
             x = symTables[x].parentID;
         }
         $$->symid = symTables[x].parentID;
+        $$->field = "this";
     }
 }
 | Text_Block_Literal { $$ = new Node("TextBlock", "Literal", STRING, yylineno); }
@@ -3583,6 +3592,10 @@ FieldAccess : Primary s_dot Identifier
         $$->type = (*a)[0].type;
         $$->size = (*a).size() - 1;
         $$->symid = $1->symid;
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string((*a)[0].offset) + " // offset size of " + $3);
+        $$->field = "*" + $$->field;
     }
 }
 | k_super s_dot Identifier
@@ -3783,8 +3796,11 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         else{
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field);
         }
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
         if((*a).size() == 2){
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " * " + to_string(offsetVal[$1->type]) + "// offset vals for " + enum_types[$1->type]);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
     }
@@ -3815,7 +3831,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $3->arrdims.clear();
         $1->arrdims.clear();
         vector<struct symEntry> *a = symTables[$1->symid].getSymEntry($1->id);
-        cout<<"harsh jain "<<$$->arrdims.size()<<" "<<(*a).size()<<endl;
+        //cout<<"harsh jain "<<$$->arrdims.size()<<" "<<(*a).size()<<endl;
         if ((*a).size() - 1 < $$->arrdims.size() || (*a)[0].isfunction)
         {
             yyerror("Array dimension mismatch");
@@ -3823,7 +3839,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         }
         $$->type = (*a)[0].type;
         $$->size = (*a).size() - $$->arrdims.size() - 1;
-        cout<< (*a).size() << " " << $$->arrdims.size() << " " << $$->size << endl;
+        //cout<< (*a).size() << " " << $$->arrdims.size() << " " << $$->size << endl;
         $$->symid = $1->symid;
                 // cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
 
@@ -3841,10 +3857,13 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         }
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
         if((*a).size()-1 == $$->arrdims.size()){
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " * " + to_string(offsetVal[$1->type]) + "// offset vals for " + enum_types[$1->type]);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field);
             $$->field = "*" + $$->field;
+        }
+        else{
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $$->field); 
         }
         // cout<<"-------------------------------------------"<<endl;
     }
@@ -4103,8 +4122,13 @@ CastExpression : s_open_paren PrimitiveType s_close_paren UnaryExpression
             yyerror("Cast can only be applied to integer types");
             exit(0);
         }
+        $$->type = $2->type;
+        $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+        $4->threeACCode.clear();
+        $$->threeACCode.push_back("\t" + $$->field + " = cast_to_" + enum_types[$2->type] + " " + $4->field);
     }
-    $$->type = $2->type;
+    // $$->type = $2->type;
     $$->children.push_back(new Node("(", "Separator", yylineno));
     $$->children.push_back($2);
     $$->children.push_back(new Node(")", "Separator", yylineno));
@@ -4196,6 +4220,9 @@ MultiplicativeExpression : UnaryExpression
                 $$->field = "t" + to_string(tcounter++);
                 $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *float " + old_field);
             } 
+            if($1->type == FLOAT || $1->type == DOUBLE){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *float " + $3->field);
+            }
         }
     }
     $$->children.push_back($1);

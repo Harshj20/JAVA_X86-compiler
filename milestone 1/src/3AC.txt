@@ -1,29 +1,17 @@
-Addition.ctor:
-	popparam x
-	popparam y
-	x = 0
-
-Addition.addTwoInt:
-	popparam a
-	popparam b
-	t1 = 9 * 9
-	t1 =  + t1
-	sum = t1
-	c = 
-	Return a
-
-test_0.main:
-ClassInstanceCreation :
-	t2 = 9 // size of Object
-	t3 = allocate t2
-	t1 = 1 +int 2
-	param t1
-	param 2
-	Call Addition.ctor
-	add = t3
-	t4 = 1 +int 22
-	param t4
-	param 2
-	t5 = call Addition.addTwoInt
-	s = t5
+TypeCoercion.main:
+	popparam args
+	intVar = 100
+	longVar = intVar
+	floatVar = longVar
+	doubleVar = longVar
+	dVar = 3.141596
+	t1 = cast_to_LONG dVar
+	lVar = t1
+	t2 = cast_to_INT dVar
+	iVar = t2
+	t3 = intVar +int longVar
+	t4 = dVar *float floatVar
+	t5 = cast_to_float t3
+	t6 = t5 +float t4
+	exp = t7
 
