@@ -1445,7 +1445,7 @@ ConstructorDeclaration :
     $$->children.push_back($2);
 };
 
-ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_paren
+  SimpleName S_open_paren FormalParameterList s_close_paren
 {
     if (isDot)
         $$ = new Node("ConstructorDeclarator");
