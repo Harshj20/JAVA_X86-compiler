@@ -829,11 +829,8 @@ ClassBodyDeclaration : ClassMemberDeclaration
     if (!isDot)
     {
         currentSymTableId = symTables[currentSymTableId].parentID;
-        symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], $1->lineno, fsize, true);
-        for (int i = 1; i < vt.size(); i++)
-        {
-            symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[i], $1->lineno, vfs[i - 1]);
-        }
+        if(symTables[currentSymTableId].entries[$1->id.c_str()].empty())
+            symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], $1->lineno, fsize, true);
         vt.clear();
         vfs.clear();
         fsize = 0;
@@ -1315,7 +1312,7 @@ FormalParameter : Type VariableDeclaratorId
     size = 0;
     isarr = false;
     if(!isDot){
-        $$->threeACCode.push_back("\tparam " + $2->id);
+        $$->threeACCode.push_back("\tpopparam " + $2->id);
     }
 }
 | k_final Type VariableDeclaratorId
@@ -1470,7 +1467,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         vfs.clear();
         fsize = 0;
         returnFunctionName = $1->id;
-        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back(className + ".ctor" + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1505,7 +1502,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         vfs.clear();
         fsize = 0;
         returnFunctionName = $1->id;
-        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back(className + ".ctor" + ":");
     }
 };
 
@@ -3267,6 +3264,14 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             yyerror("ClassType mismatch");
             exit(0);
         }
+        $$->field = "t" + to_string(tcounter++);
+        if(islocal){
+            $$->threeACCode.push_back("ClassInstanceCreation :" );
+            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
+        }
     }
 }
 | k_new ClassType s_open_paren ArgumentList s_close_paren
@@ -3306,6 +3311,15 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->field = "t" + to_string(tcounter++);
+        if(islocal){
+            $$->threeACCode.push_back("ClassInstanceCreation :" );
+            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
+        }
     }
 };
 

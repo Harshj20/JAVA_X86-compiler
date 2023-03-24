@@ -1,0 +1,6 @@
+Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
+Addition,Identifier,VOID,0,13,0,0
+Addition,Identifier,INT,0,13,0,0
+Addition,Identifier,INT,0,13,0,0
+x,Identifier,INT,0,13,0,0
+y,Identifier,INT,0,13,0,0

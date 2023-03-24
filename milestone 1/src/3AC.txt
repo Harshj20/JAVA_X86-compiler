@@ -1,0 +1,29 @@
+Addition.ctor:
+	popparam x
+	popparam y
+	x = 0
+
+Addition.addTwoInt:
+	popparam a
+	popparam b
+	t1 = 9 * 9
+	t1 =  + t1
+	sum = t1
+	c = 
+	Return a
+
+test_0.main:
+ClassInstanceCreation :
+	t2 = 9 // size of Object
+	t3 = allocate t2
+	t1 = 1 +int 2
+	param t1
+	param 2
+	Call Addition.ctor
+	add = t3
+	t4 = 1 +int 22
+	param t4
+	param 2
+	t5 = call Addition.addTwoInt
+	s = t5
+
