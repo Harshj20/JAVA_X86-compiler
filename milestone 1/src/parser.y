@@ -926,6 +926,7 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
+        // cout<<"hello world"<<endl;
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
@@ -946,12 +947,16 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Variable not declared");
             exit(0);
         }
-        for(int i=0;i<vs.size();i++){
-            (*s)[i+1].dimsize = to_string(vs[i]);
-        }
-        for(int i=0;i< $3->arrdims.size();i++){
-            (*s)[i+1].dimsize = $3->arrdims[i];
-        }
+        if(vs.size() + 1 == (*s).size())
+            for(int i=0;i<vs.size();i++){
+                (*s)[i+1].dimsize = to_string(vs[i]);
+            }
+
+        if($3->arrdims.size() + 1 == (*s).size())
+            for(int i=0;i< $3->arrdims.size();i++){
+                (*s)[i+1].dimsize = $3->arrdims[i];
+            }
+        
         $3->arrdims.clear();
         vs.clear();
     }
@@ -962,6 +967,7 @@ VariableDeclarator : VariableDeclaratorId
     $$->children.push_back($1);
     $$->children.push_back(new Node("=", "Operator", yylineno));
     $$->children.push_back($3);
+    
 }
 
 VariableDeclaratorId : Identifier
@@ -3750,7 +3756,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->type = (*a)[0].type;
         $$->size = (*a).size() - 1 - $$->arrdims.size();
         $$->symid = $1->symid;
-        cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
+        // cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3767,11 +3773,11 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
+    }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back($3);
     $$->children.push_back(new Node("]", "Separator", yylineno));
-    }
 }
 | PrimaryNoNewArray s_open_square_bracket Expression s_close_square_bracket
 {
@@ -3805,7 +3811,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->size = (*a).size() - $$->arrdims.size() - 1;
         cout<< (*a).size() << " " << $$->arrdims.size() << " " << $$->size << endl;
         $$->symid = $1->symid;
-                cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
+                // cout << "-----------------------------Size is " << $$->arrdims.size() << " " << (*a).size() << endl;
 
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -3826,6 +3832,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->id + " + " + $$->field);
             $$->field = "*" + $$->field;
         }
+        // cout<<"-------------------------------------------"<<endl;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
