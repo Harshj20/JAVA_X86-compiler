@@ -1,2 +1,2 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-test_17,Identifier,CLASS,0,1,0,0
+GFG,Identifier,CLASS,0,5,0,0
