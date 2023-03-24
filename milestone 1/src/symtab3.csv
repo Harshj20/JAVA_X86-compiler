@@ -1,5 +1,6 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-println,Identifier,void,0,2,0,0
-println,Identifier,string,0,2,0,0
-s,Identifier,string,0,2,0,0
-x,Identifier,int,0,3,0,0
+Addition,Identifier,VOID,0,13,0,0
+Addition,Identifier,INT,0,13,0,0
+Addition,Identifier,INT,0,13,0,0
+x,Identifier,INT,0,13,0,0
+y,Identifier,INT,0,13,0,0
