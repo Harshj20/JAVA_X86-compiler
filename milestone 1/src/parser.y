@@ -8,7 +8,7 @@ extern int yylineno;
 extern FILE *yyin;
 extern map<unsigned long long int, symtab> symTables;
 map<string, unsigned long long int> class_to_symboltable;
-vector<string> enum_types = {"BIN", "OCT", "HEX_FLOAT", "HEX", "VOID", "FUNCTION", "CLASS", "INTERFACE", "ENUM", "UNION", "TYPEDEF", "UNKNOWN", "VAR", "_NULL", "BYTE", "SHORT", "CHAR", "INT", "LONG", "FLOAT", "DOUBLE", "STRING", "BOOL", "OBJECT"};
+vector<string> enum_types = {"bin", "oct", "hex_float", "hex", "void", "function", "class", "interface", "enum", "union", "typedef", "unknown", "var", "_null", "byte", "short", "char", "int", "long", "float", "double", "string", "bool", "object"};
 int currentSymTableId = 0;
 int symTablescount = 1;
 bool isDot = false, islocal = false;
@@ -4206,23 +4206,17 @@ MultiplicativeExpression : UnaryExpression
         if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *int " + $3->field);
         }
-        if($$->type == FLOAT || $$->type == DOUBLE){
-            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " *float " + $3->field);
-                
-            }
-            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *float " + old_field);
-            } 
-            if($1->type == FLOAT || $1->type == DOUBLE){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *float " + $3->field);
-            }
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " *" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " *" + enum_types[$$->type] + " "+ old_field);
         }
     }
     $$->children.push_back($1);
@@ -4253,20 +4247,17 @@ MultiplicativeExpression : UnaryExpression
        if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " /int " + $3->field);
         }
-        if($$->type == FLOAT || $$->type == DOUBLE){
-            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " /float " + $3->field);
-                
-            }
-            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " /float " + old_field);
-            } 
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " /" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " /" + enum_types[$$->type] + " "+ old_field);
         }
     }
     $$->children.push_back($1);
@@ -4297,22 +4288,18 @@ MultiplicativeExpression : UnaryExpression
         if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " %int " + $3->field);
         }
-        if($$->type == FLOAT || $$->type == DOUBLE){
-            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " %float " + $3->field);
-                
-            }
-            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " %float " + old_field);
-            } 
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " %" + enum_types[$$->type] + " " + $3->field);
         }
-        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " % " + $3->field);
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " %" + enum_types[$$->type] + " "+ old_field);
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("%", "Separator", yylineno));
@@ -4347,7 +4334,7 @@ AdditiveExpression : MultiplicativeExpression
         if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " +int " + $3->field);
         }
-        if($$->type == FLOAT || $$->type == DOUBLE){
+        if($$->type == FLOAT){
             if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
                 $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
                 old_field = $$->field;
@@ -4362,7 +4349,21 @@ AdditiveExpression : MultiplicativeExpression
                 $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " +float " + old_field);
             } 
         }
-        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " + " + $3->field);
+        if($$->type == DOUBLE){
+            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT || $1->type == FLOAT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_double " + $1->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " +double " + $3->field);
+                
+            }
+            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT || $3->type == FLOAT){
+                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_double " + $3->field);
+                old_field = $$->field;
+                $$->field = "t" + to_string(tcounter++);
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " +double " + old_field);
+            } 
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("+", "Separator", yylineno));
@@ -4392,22 +4393,18 @@ AdditiveExpression : MultiplicativeExpression
         if($$->type == LONG || $$->type == INT || $$->type == BYTE || $$->type == SHORT){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -int " + $3->field);
         }
-        if($$->type == FLOAT || $$->type == DOUBLE){
-            if($1->type == LONG || $1->type == INT || $1->type == BYTE || $1->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $1->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -float " + $3->field);
-                
-            }
-            if($3->type == LONG || $3->type == INT || $3->type == BYTE || $3->type == SHORT){
-                $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_float " + $3->field);
-                old_field = $$->field;
-                $$->field = "t" + to_string(tcounter++);
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -float " + old_field);
-            } 
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
         }
-        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " - " + $3->field);
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("-", "Separator", yylineno));
@@ -4511,9 +4508,9 @@ RelationalExpression : ShiftExpression
     $$->children.push_back($1);
     if (!isDot)
     {
-        if (widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("less than operator can only be applied to same common super type");
+            yyerror("Less than operator can only be applied to same common super type");
             exit(0);
         }
         if ($1->size != 0 || $3->size != 0)
@@ -4527,7 +4524,19 @@ RelationalExpression : ShiftExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " < " + $3->field);
+        if($1->type<$3->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$3->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " < " + $3->field);
+        }
+        if($3->type<$1->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$1->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " < " + old_field);
+        }
+        //$$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " < " + $3->field);
     }
     $$->children.push_back(new Node("<", "Separator", yylineno));
     $$->children.push_back($3);
@@ -4537,9 +4546,9 @@ RelationalExpression : ShiftExpression
     $$ = new Node("RelationalExpression");
     if (!isDot)
     {
-        if (widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("less than operator can only be applied to same common super type");
+            yyerror("Greater than operator can only be applied to same common super type");
             exit(0);
         }
         if ($1->size != 0 || $3->size != 0)
@@ -4553,6 +4562,18 @@ RelationalExpression : ShiftExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " > " + $3->field);
     }
     $$->children.push_back($1);
@@ -4564,9 +4585,9 @@ RelationalExpression : ShiftExpression
     $$ = new Node("RelationalExpression");
     if (!isDot)
     {
-        if (widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("less than operator can only be applied to same common super type");
+            yyerror("Less than or equals operator can only be applied to same common super type");
             exit(0);
         }
         if ($1->size != 0 || $3->size != 0)
@@ -4580,6 +4601,18 @@ RelationalExpression : ShiftExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " <= " + $3->field);
     }
     $$->children.push_back($1);
@@ -4591,9 +4624,9 @@ RelationalExpression : ShiftExpression
     $$ = new Node("RelationalExpression");
     if (!isDot)
     {
-        if (widen($1->type, $3->type) != $1->type || widen($3->type, $1->type) != $3->type)
+        if (widen($1->type, DOUBLE) != DOUBLE || widen($3->type, DOUBLE) != DOUBLE)
         {
-            yyerror("less than operator can only be applied to same common super type");
+            yyerror("Greater than or equals operator can only be applied to same common super type");
             exit(0);
         }
         if ($1->size != 0 || $3->size != 0)
@@ -4607,6 +4640,18 @@ RelationalExpression : ShiftExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " >= " + $3->field);
     }
     $$->children.push_back($1);
@@ -4646,6 +4691,18 @@ EqualityExpression : RelationalExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " == " + $3->field);
     }
     $$->children.push_back($1);
@@ -4673,6 +4730,18 @@ EqualityExpression : RelationalExpression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        if($1->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $1->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " -" + enum_types[$$->type] + " " + $3->field);
+        }
+        if($3->type<$$->type){
+            $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$$->type] + " " + $3->field);
+            old_field = $$->field;
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " -" + enum_types[$$->type] + " "+ old_field);
+        }
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " != " + $3->field);
     }
     $$->children.push_back($1);
