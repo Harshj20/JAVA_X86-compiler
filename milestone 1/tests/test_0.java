@@ -10,7 +10,7 @@ class Addition {
     int z;
     // // Method
     // // To add two numbers
-    public Addition(int x, int y){
+    static public Addition(int x, int y){
         x = this.a[2][6];
         // this.a[2][3] = x;
     }

@@ -1,5 +1,5 @@
 public class TypeCoercion {
-
+    
     static int f = 0;
     public static void main(String[] args) {
         int intVar = 100;
