@@ -24,6 +24,7 @@ string reftype = "";
 int tcounter = 1;
 int lcounter = -1;
 string isPrivate = "";
+bool isreturn =false;
 vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 string returnFunctionName = "";
@@ -32,8 +33,6 @@ int offset = 0;
 int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
 vector<string> arrinit;
 string old_field = "";
-
-
 bool flag_verbose = false;
 void yyerror(const char *s)
 {
@@ -213,15 +212,16 @@ InterfaceType : ClassOrInterfaceType
 ArrayType : PrimitiveType s_open_square_bracket s_close_square_bracket
 {
     $$ = new Node("ArrayType");
-    $$->type = $1->type;
-
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back(new Node("]", "Separator", yylineno));
-    $$->size++;
-    isarr = true;
-    ++size;
-    ++fsize;
+    if(!isDot){
+        $$->size++;
+        $$->type = $1->type;
+        isarr = true;
+        ++size;
+        ++fsize;
+    }
 }
 | Name s_open_square_bracket s_close_square_bracket
 {
@@ -236,28 +236,28 @@ ArrayType : PrimitiveType s_open_square_bracket s_close_square_bracket
             exit(0);
         }
         $$->type = (*symTables[currentSymTableId].getSymEntry($1->id))[0].type;
+        $$->size++;
+        isarr = true;
+        ++size;
+        ++fsize;
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back(new Node("]", "Separator", yylineno));
-
-    $$->size++;
-    isarr = true;
-    ++size;
-    ++fsize;
 }
 | ArrayType s_open_square_bracket s_close_square_bracket
 {
     $$ = new Node("ArrayType");
-
-    $$->type = $1->type;
     $$->children.push_back($1);
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back(new Node("]", "Separator", yylineno));
-    $$->size = $1->size + 1;
-    ++size;
-    isarr = true;
-    ++fsize;
+    if(!isDot){
+        $$->size = $1->size + 1;
+        ++size;
+        isarr = true;
+        ++fsize;
+        $$->type = $1->type;
+    }
 }
 
 // ------------------------------- Production 6 --------------------------
@@ -852,8 +852,10 @@ ClassMemberDeclaration : FieldDeclaration
 | MethodDeclaration
 {
     $$ = $1;
-    isPrivate.clear();
-    islocal = false;
+    if(!isDot){
+        isPrivate.clear();
+        islocal = false;
+    }
 }
 
 FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
@@ -866,12 +868,12 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        t = VOID;
+        size = 0;
+        fsize = 0;
+        isarr = false;
+        tcounter = 0;
     }
-    t = VOID;
-    size = 0;
-    fsize = 0;
-    isarr = false;
-    tcounter = 0;
 }
 | Type VariableDeclaratorList s_semicolon
 {
@@ -1060,6 +1062,8 @@ MethodDeclaration : MethodHeader MethodBody
         $1->threeACCode.clear();
         $2->threeACCode.clear();
         currentSymTableId = symTables[currentSymTableId].parentID;
+        //cout<<enum_types[t]<<endl;
+        t = VOID;
     }
 }
 
@@ -1076,8 +1080,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        //t = $2->type;
     }
-    t = $2->type;
 }
 | Modifiers Type MethodDeclarator
 {
@@ -1091,8 +1095,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        //t = $2->type;
     }
-    t = $2->type;
 }
 | Type MethodDeclarator Throws
 {
@@ -1106,8 +1110,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+        //t = $1->type;
     }
-    t = $1->type;
 }
 | Type MethodDeclarator
 {
@@ -1120,8 +1124,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+        //t = $1->type;
     }
-    t = $1->type;
 }
 | Modifiers k_void MethodDeclarator Throws
 {
@@ -1136,8 +1140,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        t = VOID;
     }
-    t = VOID;
 }
 | Modifiers k_void MethodDeclarator
 {
@@ -1151,8 +1155,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+        t = VOID;
     }
-    t = VOID;
 }
 | k_void MethodDeclarator Throws
 {
@@ -1166,8 +1170,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+        t = VOID;
     }
-    t = VOID;
 }
 | k_void MethodDeclarator
 {
@@ -1180,8 +1184,8 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+        t = VOID;
     }
-    t = VOID;
 }
 S_open_paren : s_open_paren
 {
@@ -1314,14 +1318,14 @@ FormalParameter : Type VariableDeclaratorId
     $$ = new Node("FormalParameter");
     $$->children.push_back($1);
     $$->children.push_back($2);
-    vt.push_back(t);
-    t = VOID;
-    vfs.push_back(size);
-    fsize -= size;
-    size = 0;
-    isarr = false;
     if(!isDot){
         $$->threeACCode.push_back("\tpopparam " + $2->id);
+        t = VOID;
+        vt.push_back($1->type);
+        vfs.push_back(size);
+        fsize -= size;
+        size = 0;
+        isarr = false;
     }
 }
 | k_final Type VariableDeclaratorId
@@ -1330,14 +1334,14 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back(new Node("final", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
-    vt.push_back(t);
-    vfs.push_back(size);
-    fsize -= size;
-    size = 0;
-    isarr = false;
-    t = VOID;
     if(!isDot){
         $$->threeACCode.push_back("\tpopparam " + $3->id);
+        vt.push_back($2->type);
+        vfs.push_back(size);
+        fsize -= size;
+        size = 0;
+        isarr = false;
+        t = VOID;
     }
 }
 
@@ -1363,6 +1367,13 @@ ClassTypeList : ClassType
 MethodBody : Block
 {
     $$ = $1;
+    if(!isDot){
+        if(symTables[currentSymTableId].entries[returnFunctionName][0].type != VOID && !isreturn){
+            yyerror("Function must return a value");
+            exit(0);
+        }
+        isreturn = false;
+    }
 }
 
 | s_semicolon
@@ -2019,10 +2030,11 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
+        isarr = false;
+        size = 0;
+        fsize = 0;
+        t = VOID;
     }
-    isarr = false;
-    size = 0;
-    fsize = 0;
 };
 
 LocalVariableDeclaration : k_final LocalVariableType VariableDeclaratorList
@@ -2054,7 +2066,6 @@ LocalVariableType : Type
 | k_var
 {
     $$ = new Node("var", "Keyword", VAR);
-
 }
 
 Statement : StatementWithoutTrailingSubstatement
@@ -3074,6 +3085,7 @@ ReturnStatement : k_return s_semicolon
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tReturn " + $2->field);
+        isreturn = true;
     }
 }
 
@@ -5143,7 +5155,7 @@ int main(int argc, char **argv)
     int input_index = 0;
     int output_index = 0;
     bool flag_help = false;
-    int t = 1;
+    int t1 = 1;
 
     for (int i = 1; i < argc; i++)
     {
@@ -5152,37 +5164,37 @@ int main(int argc, char **argv)
         {
             argv[i] = argv[i] + 9;
             output_index = i;
-            t++;
+            t1++;
             continue;
         }
         else if (arg.find("--input=") == 0)
         {
             argv[i] = argv[i] + 8;
             input_index = i;
-            t++;
+            t1++;
             continue;
         }
         else if (arg.find("--help") == 0)
         {
             flag_help = true;
-            t++;
+            t1++;
             continue;
         }
         else if (arg.find("--verbose") == 0)
         {
             flag_verbose = true;
-            t++;
+            t1++;
             continue;
         }
         else if (arg.find("--dot") == 0)
         {
             isDot = true;
-            t++;
+            t1++;
             continue;
         }
-        if (i == t && !input_index)
+        if (i == t1 && !input_index)
             input_index = i;
-        if (i == t + 1 && !output_index)
+        if (i == t1 + 1 && !output_index)
             output_index = i;
     }
 
