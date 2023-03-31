@@ -933,8 +933,9 @@ VariableDeclarator : VariableDeclaratorId
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
-                $$->threeACCode.push_back("\t"+ $1->id + " = t" + to_string(tcounter));
+                $$->threeACCode.push_back("\t"+ $1->id + " = t" + to_string(tcounter++));
             }
+            else
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
             if(isarr && arrinit.size()>0){
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
@@ -2034,6 +2035,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         size = 0;
         fsize = 0;
         t = VOID;
+        tcounter = 0;
     }
 };
 
@@ -2185,6 +2187,7 @@ ExpressionStatement : StatementExpression s_semicolon
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->field = $1->field;
+        tcounter = 0;
     }
 };
 
@@ -4901,14 +4904,14 @@ ConditionalExpression : ConditionalOrExpression
         $1->threeACCode.clear();
         if($3->type<$5->type){
             $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$5->type] + " " + $3->field);
-            old_field = $$->field;
-            $$->field = "t" + to_string(tcounter++);
+            $3->field = $$->field;
         }
         else if($5->type<$3->type){
             $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$3->type] + " " + $5->field);
-            old_field = $$->field;
-            $$->field = "t" + to_string(tcounter++);
+            $5->field = $$->field;
         }
+        old_field = $$->field;
+        $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\tif " + $1->field + " goto " + "L" + to_string(lcounter));
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $5->threeACCode.clear();
