@@ -15,8 +15,8 @@ public class TypeCoercion {
         // // System.out.println("Dummy print: " + (short) 3.14F);
 
         // double exp = intVar + longVar + dVar * floatVar + doubleVar;
-        // boolean x = intVar < floatVar;
-        // float c = x ? 1 : 2.2;
+        boolean x = intVar < floatVar;
+        float c = x ? 1 : 2.2;
         // float c = 1 - 2;
         // System.out.println("Exp: " + exp);
     }
