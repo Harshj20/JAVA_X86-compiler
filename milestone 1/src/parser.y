@@ -31,7 +31,7 @@ vector<int> loopscope; // to store the scope of loops
 string returnFunctionName = "";
 string className = "";
 int offset = 0;
-int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 1, 0};
+int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 8, 8};
 vector<string> arrinit;
 string old_field = "";
 bool flag_verbose = false;
@@ -950,6 +950,7 @@ VariableDeclarator : VariableDeclaratorId
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
+                cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
                 $$->threeACCode.push_back("\t"+ $1->id + " = t" + to_string(tcounter++));
             }
@@ -1252,7 +1253,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         fsize = 0;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.rbegin(), $3->threeACCode.rend());
         $3->threeACCode.clear();
     }
 }
@@ -1345,7 +1346,8 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($1);
     $$->children.push_back($2);
     if(!isDot){
-        $$->threeACCode.push_back("\tpopparam " + $2->id);
+        $$->threeACCode.push_back("\t" + $2->id + " = *(%sp)");
+        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[t]));
         t = VOID;
         vt.push_back($1->type);
         vfs.push_back(size);
@@ -1361,7 +1363,8 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($2);
     $$->children.push_back($3);
     if(!isDot){
-        $$->threeACCode.push_back("\tpopparam " + $3->id);
+        $$->threeACCode.push_back("\t" + $3->id + " = *(%sp)");
+        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[t]));
         vt.push_back($2->type);
         vfs.push_back(size);
         fsize -= size;
@@ -1513,8 +1516,10 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        $$->threeACCode.push_back("\tpopparam this");
-        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.rbegin(), $3->threeACCode.rend());
+        $$->threeACCode.push_back("\t%sp = %sp - 8");
+        $$->threeACCode.push_back("\tthis = *(%sp)");
+        //$$->threeACCode.push_back("\tthis = popparam " + to_string(offsetVal[OBJECT]));
         $3->threeACCode.clear();
     }
 }
@@ -1549,7 +1554,9 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        $$->threeACCode.push_back("\tpopparam this");
+        $$->threeACCode.push_back("\t%sp = %sp - 8");
+        $$->threeACCode.push_back("\tthis = *(%sp)");
+        //$$->threeACCode.push_back("\tthis = popparam " + to_string(offsetVal[OBJECT]));
     }
 };
 
@@ -3083,8 +3090,11 @@ ReturnStatement : k_return s_semicolon
     {
         yyerror("Return size of function does not match return statement");
         exit(0);
-    }
-        $$->threeACCode.push_back("\tReturn");
+    }   
+        $$->threeACCode.push_back("\t%sp = %sp - 8");
+        $$->threeACCode.push_back("\t%addr = *(%sp)");
+        //$$->threeACCode.push_back("\t%addr = popparam 8 // pop return address");
+        $$->threeACCode.push_back("\tgoto %addr");
     }
 }
 | k_return Expression s_semicolon
@@ -3112,7 +3122,12 @@ ReturnStatement : k_return s_semicolon
     }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\tReturn " + $2->field);
+        $$->threeACCode.push_back("\t%sp = %sp - 8");
+        $$->threeACCode.push_back("\t%addr = *(%sp)");
+        //$$->threeACCode.push_back("\t%addr = popparam 8 // pop return address");
+        $$->threeACCode.push_back("\t*(%sp) = " + $2->field + " // push return value");
+        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$2->type]));
+        $$->threeACCode.push_back("\tgoto %addr");
         isreturn = true;
     }
 }
@@ -3320,11 +3335,13 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             exit(0);
         }
         $$->field = "t" + to_string(tcounter++);
+        $$->type = OBJECT;
         if(islocal){
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\tparam t"+ to_string(tcounter));
+            $$->threeACCode.push_back("\t*(%sp) = t" + to_string(tcounter) + " // object reference");
+            $$->threeACCode.push_back("\t%sp = %sp + 8");
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
@@ -3364,13 +3381,15 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
         vt.clear();
         vfs.clear();
         $$->field = "t" + to_string(tcounter++);
+        $$->type = OBJECT;
         if(islocal){
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\tparam t"+ to_string(tcounter));
-            $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            $$->threeACCode.push_back("\t*(%sp) = t" + to_string(tcounter) + " // push object reference");
+            $$->threeACCode.push_back("\t%sp = %sp + 8");
+            $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
     }
@@ -3383,7 +3402,8 @@ ArgumentList : Expression
     {
         vt.push_back($1->type);
         vfs.push_back($1->size);
-        $$->threeACCode.push_back("\tparam " + $1->field);
+        $$->threeACCode.push_back("\t*(%sp) = " + $1->field + " // push argument");
+        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$1->type]));
     }
 }
 | ArgumentList s_comma Expression
@@ -3400,7 +3420,8 @@ ArgumentList : Expression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\tparam " + $3->field);
+        $$->threeACCode.push_back("\t*(%sp) = " + $3->field + " // push argument");
+        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$3->type]));
     }
 };
 
@@ -3666,7 +3687,14 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->type = (*a)[0].type;
         $$->size = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
-        $$->threeACCode.push_back("\t" + $$->field + " = call " + symTables[$1->symid].name + "." + $1->id);
+        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
+        $$->threeACCode.push_back("\t%sp = %sp + 8");
+        $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
+        if ($$->type != VOID){
+            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
+            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+        }
     }
 }
 | Name s_open_paren ArgumentList s_close_paren
@@ -3698,8 +3726,15 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
+        $$->threeACCode.push_back("\t%sp = %sp + 8");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-        $$->threeACCode.push_back("\t" + $$->field + " = call " + symTables[$1->symid].name + "." + $1->id);
+        $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
+        if($$->type != VOID){
+            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
+            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+        }
         $3->threeACCode.clear();
     }
 }
@@ -3728,7 +3763,14 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
         string s($3);
+        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
+        $$->threeACCode.push_back("\t%sp = %sp + 8");
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
+        if ($$->type != VOID){
+            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
+            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+        }
     }
 }
 | Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
@@ -3766,10 +3808,17 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
+        $$->threeACCode.push_back("\t%sp = %sp + 8");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+        $5->threeACCode.clear();
         string s($3);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
-        $5->threeACCode.clear();
+        if ($$->type != VOID){
+            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
+            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+        }
     }
 }
 | k_super s_dot Identifier s_open_paren s_close_paren

@@ -41,7 +41,7 @@ class GFG {
 		int s = Addition.addTwoInt(1, 2);
 
 		// Printing the sum of two numbers
-		System.out.println("Sum of two integer values :"
-						+ s);
+		System.out.println("Sum of two integer values :" 
+		+ s);
 	}
 }
