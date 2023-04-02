@@ -1,4 +1,8 @@
 public class SyntaxCheck {
+
+    static void printFunc(float val) {
+        System.out.println(val);
+    }
     public static void main(String[] args) {
         int a;
         a = 5;
@@ -10,17 +14,5 @@ public class SyntaxCheck {
 
         long val = 100L;
         printFunc(val);
-    }
-
-    static void printFunc(float val) {
-        System.out.println(val);
-    }
-
-    static void printFunc(int val) {
-        System.out.println(val);
-    }
-
-    static void printFunc(long val) {
-        System.out.println(val);
     }
 }

@@ -16,6 +16,7 @@ vector<TYPE> vt; // vector used for types
 TYPE t = VOID;
 int size = 0;
 int fsize = 0;
+// bool isStatic = false;
 vector<int> vs;  // vector to store max size of dimensions of array
 // vector<string> arrdims;  // vector to store max size of dimensions of array
 vector<int> vfs; // vector to store dimensions of function arguments
@@ -50,7 +51,7 @@ void yyerror(const char *s)
 void initializeSymTable(int parentID)
 {
     symtab *a = new symtab(symTablescount, parentID);
-    cout << "Symbol Table Created with Parent ID " << currentSymTableId << " and current ID " << symTablescount << endl;
+    //cout << "Symbol Table Created with Parent ID " << currentSymTableId << " and current ID " << symTablescount << endl;
     currentSymTableId = symTablescount;
     symTablescount++;
     symTables[currentSymTableId] = *a;
@@ -282,8 +283,8 @@ SimpleName : Identifier
         if (!t1)
         {
             string s1 = "Undeclared variable " + lex;
-            cout << t1 << endl;
-            cout << currentSymTableId << endl;
+            //cout << t1 << endl;
+            //cout << currentSymTableId << endl;
             yyerror(s1.c_str());
             exit(0);
         }
@@ -529,6 +530,11 @@ Modifier : k_public
 | k_static
 {
     $$ = new Node("static", "Keyword", yylineno);
+    // if(isStatic){
+    //     yyerror("Two modifiers not allowed");
+    //     exit(0);
+    // }
+    // isStatic = true;
 }
 | k_abstract
 {
@@ -585,7 +591,7 @@ key_class_super : k_class Identifier Super
         else
         {
             symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
-            cout << currentSymTableId << endl;
+            // cout << currentSymTableId << endl;
         }
         initializeSymTable($3->symid);
         symTables[currentSymTableId].name = s;
@@ -610,7 +616,7 @@ key_class : k_class Identifier
         else
         {
             symTables[currentSymTableId].insertSymEntry(s, CLASS, yylineno);
-            cout << currentSymTableId << endl;
+            // cout << currentSymTableId << endl;
         }
         initializeSymTable(currentSymTableId);
         symTables[currentSymTableId].name = s;
@@ -875,6 +881,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
     fsize = 0;
     isarr = false;
     tcounter = 0;
+    // isStatic = false;
 }
 | Type VariableDeclaratorList s_semicolon
 {
@@ -891,6 +898,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
     fsize = 0;
     isarr = false;
     tcounter = 1;
+    // isStatic = false;
 }
 
 VariableDeclaratorList : VariableDeclarator
@@ -927,13 +935,17 @@ VariableDeclarator : VariableDeclaratorId
         }
         if ($3->size != $1->size)
         {   
-            cout << $3->size << " " << $1->size << endl;
+            // cout << $3->size << " " << $1->size << endl;
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
         }
         // cout<<"hello world"<<endl;
         if(islocal){
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+            if(t > $3->type){
+                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[$1->type] + " " + $3->id);
+                $$->threeACCode.push_back("\t"+ $1->id + " = t" + to_string(tcounter));
+            }
             $$->threeACCode.push_back("\t"+ $1->id + " = " + $3->field);
             if(isarr && arrinit.size()>0){
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
@@ -982,13 +994,15 @@ VariableDeclaratorId : Identifier
     {
         string s($1);
         if (islocal ? symTables[currentSymTableId].lookup(s) : symTables[currentSymTableId].grand_lookup(s))
-        {
-            cout << "Variable " << s << " already declared in this scope" << endl;
+        {   
+            string s1 = "Variable " + s + " already declared in this scope";
+            yyerror(s1.c_str());
             exit(0);
         }
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
         if (!islocal){
             symTables[currentSymTableId].entries[s][0].isPrivate = (isPrivate == "private") ? true : false;
+            // symTables[currentSymTableId].entries[s][0].isStatic = isStatic;
             symTables[currentSymTableId].entries[s][0].offset = offset;
             offset += offsetVal[t];
         }
@@ -1215,6 +1229,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        // symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
@@ -1249,6 +1264,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        // symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
@@ -1281,6 +1297,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        // symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isStatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -1331,13 +1348,13 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($3);
     vt.push_back(t);
     vfs.push_back(size);
-    cout << size << endl;
+    //cout << size << endl;
     fsize -= size;
     size = 0;
     isarr = false;
     t = VOID;
     if(!isDot){
-        $$->threeACCode.push_back("\tparam " + $3->id);
+        $$->threeACCode.push_back("\tpopparam " + $3->id);
     }
 }
 
@@ -1476,7 +1493,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        
+        $$->threeACCode.push_back("\tpopparam this");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1512,6 +1529,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+        $$->threeACCode.push_back("\tpopparam this");
     }
 };
 
@@ -3063,8 +3081,8 @@ ReturnStatement : k_return s_semicolon
     }
     if (symTables[t1].entries[returnFunctionName][0].size != $2->size)
     {
-        cout << $2->size << " " << symTables[t1].entries[returnFunctionName][0].size;
-        cout << returnFunctionName << endl;
+        //cout << $2->size << " " << symTables[t1].entries[returnFunctionName][0].size;
+        //cout << returnFunctionName << endl;
         yyerror("Return size of function does not match return statement");
         exit(0);
     }
@@ -3279,6 +3297,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->threeACCode.push_back("\tparam t"+ to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
@@ -3300,19 +3319,19 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             yyerror("ClassType mismatch");
             exit(0);
         }
-        cout << "this symid : " << class_to_symboltable[$2->id] << endl;
+        //cout << "this symid : " << class_to_symboltable[$2->id] << endl;
         vector<struct symEntry> *a = symTables[class_to_symboltable[$2->id]].getSymEntry($2->id);
         if ((*a).size() != vfs.size() + 1 || !(*a)[0].isfunction)
         {
-            cout << (*a).size() << " " << vfs.size() << endl;
+            //cout << (*a).size() << " " << vfs.size() << endl;
             yyerror("Constructor not found");
             exit(0);
         }
         $$->type = (*a)[0].type;
-        cout << vfs.size() << " " << vt.size() << endl;
+        //cout << vfs.size() << " " << vt.size() << endl;
         for (int i = 0; i < vfs.size(); i++)
         {
-            cout << vt[i] << " " << (*a)[i + 1].type << endl;
+            //cout << vt[i] << " " << (*a)[i + 1].type << endl;
             if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
             {
                 yyerror("Argument type mismatch");
@@ -3326,6 +3345,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->threeACCode.push_back("\tparam t"+ to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
@@ -3338,8 +3358,6 @@ ArgumentList : Expression
     $$ = $1;
     if (!isDot)
     {
-        cout << "vfs size: " << vfs.size() << endl;
-        cout << "vt size: " << vt.size() << endl;
         vt.push_back($1->type);
         vfs.push_back($1->size);
         $$->threeACCode.push_back("\tparam " + $1->field);
@@ -3353,11 +3371,11 @@ ArgumentList : Expression
     $$->children.push_back($3);
     if (!isDot)
     {
-        cout << $3->type << endl;
-        cout << "vfs size: " << vfs.size() << endl;
-        cout << "vt size: " << vt.size() << endl;
+        //cout << $3->type << endl;
+        //cout << "vfs size: " << vfs.size() << endl;
+        //cout << "vt size: " << vt.size() << endl;
         vt.push_back($3->type);
-        cout << vt[vt.size() - 1] << endl;
+        //cout << vt[vt.size() - 1] << endl;
         vfs.push_back($3->size);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3538,7 +3556,7 @@ DimExpr : s_open_square_bracket Expression s_close_square_bracket
         }
         $$->field = $2->field;
         $$->arrdims.push_back($2->field);
-        cout<<$$->arrdims.size()<<endl;
+        //cout<<$$->arrdims.size()<<endl;
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
     }
@@ -3638,7 +3656,7 @@ MethodInvocation : Name s_open_paren s_close_paren
     if (!isDot)
     {
         vector<struct symEntry> *a = symTables[$1->symid].getSymEntry($1->id);
-        cout << "this simid " << $1->id << endl;
+        //cout << "this simid " << $1->id << endl;
         if ((*a).size() != vfs.size() + 1 || !(*a)[0].isfunction)
         {
             yyerror("Method not found");
@@ -3648,10 +3666,10 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
-        cout << vfs.size() << " " << vt.size() << endl;
+        //cout << vfs.size() << " " << vt.size() << endl;
         for (int i = 0; i < vfs.size(); i++)
         {
-            cout << vt[i] << " " << (*a)[i + 1].type << endl;
+            //cout << vt[i] << " " << (*a)[i + 1].type << endl;
             if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
             {
                 yyerror("Argument type mismatch");
@@ -4891,7 +4909,6 @@ Assignment : LeftHandSide AssignmentOperator Expression
             yyerror("Assignment Operation can only be applied to same type");
             exit(0);
         }
-        cout << $1->size << " " << $3->size << endl;
         if ($1->size != $3->size)
         {
             yyerror("Assignment Operation can only be applied to same size");
@@ -5147,8 +5164,8 @@ int main(int argc, char **argv)
     if (!isDot)
     {   
         initializeSymTable(currentSymTableId);
-        // yyin = fopen("System.java", "r");
-        // yyparse();
+        yyin = fopen("System.java", "r");
+        yyparse();
         yylineno = 1;
     }
 

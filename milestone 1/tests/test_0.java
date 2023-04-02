@@ -5,15 +5,15 @@ class Addition {
     // Initially taking sum as 0
     // as we have not started computation
     // static int sum = 0;
-    static int a[][] = new int[10][9];
-    char y;
-    int z;
-    // Method
-    // To add two numbers
-    public static Addition(int x, int y){
-        x = this.a[2][6];
-        // this.a[2][3] = x;
-    }
+    // static int a[][] = new int[10][9];
+    // char y;
+    // int z;
+    // // Method
+    // // To add two numbers
+    // public Addition(int x, int y){
+    //     x = this.a[2][6];
+    //     // this.a[2][3] = x;
+    // }
     // int addTwoInt(int a, int b)
     // {
  
@@ -36,19 +36,17 @@ class test_0 {
     {
  
         // Creating object of class 1 inside main() method
-        Addition add = new Addition(1, 2);
+        //Addition add = new Addition(1, 2);
  
         // Calling method of above class
         // to add two integer
         // using instance created
         int s = add.a[0][0];
         add.z = s;
-        int q[][][] = new int[10][11][12]; 
-        int a=0,b = q[4][5][q[1][2][3]] + a;
         // s = add.a[0][0];
         // String a = "Hello world";
         // int x, z[];
         // Printing the sum of two numbers
-        // System.out.println(a);
+        System.out.println("abc");
     }
 } 

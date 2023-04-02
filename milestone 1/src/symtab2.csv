@@ -1,9 +1,3 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-Addition,Identifier,VOID,0,13,0,0
-Addition,Identifier,INT,0,13,0,0
-Addition,Identifier,INT,0,13,0,0
-a,Identifier,INT,0,8,0,0
-a,Identifier,INT,0,8,0,0
-a,Identifier,INT,0,8,0,0
-y,Identifier,CHAR,0,9,0,4
-z,Identifier,INT,0,10,0,5
+println,Identifier,VOID,0,2,0,0
+println,Identifier,STRING,0,2,0,0

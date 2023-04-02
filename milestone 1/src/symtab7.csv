@@ -1,3 +1,2 @@
 Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-main,Identifier,void,0,35,0,0
-sum,Identifier,int,0,32,0,0
+main,Identifier,INT,0,32,0,0

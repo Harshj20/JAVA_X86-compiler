@@ -33,7 +33,7 @@ class GFG {
 	{
 
 		// Creating object of class 1 inside main() method
-		//Addition add = new Addition();
+		Addition add = new Addition();
 
 		// Calling method of above class
 		// to add two integer
