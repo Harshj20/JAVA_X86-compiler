@@ -15,7 +15,7 @@ class Addition {
 	// To add two numbers
 	public int addTwoInt(int a, int b)
 	{
-
+		int z = 1,y;
 		// Adding two integer value
 		sum = a + b;
 

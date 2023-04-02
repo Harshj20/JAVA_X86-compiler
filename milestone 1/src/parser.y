@@ -31,7 +31,7 @@ vector<int> loopscope; // to store the scope of loops
 string returnFunctionName = "";
 string className = "";
 int offset = 0;
-int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 1, 8, 8};
+int offsetVal[] = {4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 4, 8, 4, 8, 8, 1, 8};
 vector<string> arrinit;
 string old_field = "";
 bool flag_verbose = false;
@@ -948,6 +948,7 @@ VariableDeclarator : VariableDeclaratorId
             exit(0);
         }
         if(islocal){
+            $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
                 cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
@@ -966,6 +967,7 @@ VariableDeclarator : VariableDeclaratorId
                 arrinit.clear();
             }
         }
+        $1->threeACCode.clear();
         $3->threeACCode.clear();
         vector<struct symEntry> *s = symTables[currentSymTableId].getSymEntry($1->id);
         if (!s)
@@ -1014,6 +1016,10 @@ VariableDeclaratorId : Identifier
             symTables[currentSymTableId].entries[s][0].isStatic = isstatic;
             symTables[currentSymTableId].entries[s][0].offset = offset;
             offset += offsetVal[t];
+        }
+        else{
+            $$->threeACCode.push_back("\t*(%sp) = " + s);
+            $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[t]));
         }
         for (int i = 0; i < size; i++)
         {
