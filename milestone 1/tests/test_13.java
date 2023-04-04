@@ -17,10 +17,10 @@ class Addition {
 	{
 		int z = 1,y;
 		// Adding two integer value
-		sum = a + b;
+		y = a + b;
 
 		// Returning summation of two values
-		return sum;
+		return y;
 	}
 }
 

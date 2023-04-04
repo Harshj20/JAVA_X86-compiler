@@ -317,7 +317,8 @@ SimpleName : Identifier
             }
         }
         $$->size = symTables[t1].entries[lex].size() - 1;
-        $$->field = "*" + lex;
+        $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = (ebp + " + to_string(symTables[t1].entries[lex][0].offset) + ")");
+        $$->field = "*t" + to_string(tcounter++);
     }
     else
     {
@@ -1019,8 +1020,8 @@ VariableDeclaratorId : Identifier
             offset += offsetVal[t];
         }
         else{
-            $$->threeACCode.push_back("\t" + s + " = %sp" );
-            $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[t]));
+            $$->threeACCode.push_back("\tpush " + s);
+            symTables[currentSymTableId].entries[s][0].offset = localoffset;
             localoffset += offsetVal[t];
         }
         for (int i = 0; i < size; i++)
@@ -1037,7 +1038,7 @@ VariableDeclaratorId : Identifier
 
             }
         }
-        $$->field = "*" + s;
+        $$->field = "*(ebp + " + to_string(symTables[currentSymTableId].entries[s][0].offset) + ")";
         $$->size = size;
         $$->type = t;
     }
@@ -1050,6 +1051,7 @@ VariableDeclaratorId : Identifier
         $$ = new Node($1->id.c_str(), "VariableDeclaratorId", yylineno);
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
         $$->size = $1->size + 1;
+        $$->field = $1->field;
         ++size;
         isarr = true;
     }
@@ -1263,7 +1265,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         //localoffset = 0;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.rbegin(), $3->threeACCode.rend());
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
 }
@@ -1356,9 +1358,6 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($1);
     $$->children.push_back($2);
     if(!isDot){
-        //$$->threeACCode.push_back("\t" + $2->id + " = *(%sp)");
-        //$$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[t]));
-        $$->threeACCode.push_back("\t" + $2->id + " = %sp - " + to_string(localoffset));
         t = VOID;
         vt.push_back($1->type);
         vfs.push_back(size);
@@ -1374,9 +1373,6 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($2);
     $$->children.push_back($3);
     if(!isDot){
-        // $$->threeACCode.push_back("\t" + $3->id + " = *(%sp)");
-        // $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[t]));
-        $$->threeACCode.push_back("\t" + $3->id + " = %sp - " + to_string(localoffset));
         vt.push_back($2->type);
         vfs.push_back(size);
         fsize -= size;
@@ -1530,14 +1526,10 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         vt.clear();
         vfs.clear();
         fsize = 0;
-        //localoffset = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.rbegin(), $3->threeACCode.rend());
-        // $$->threeACCode.push_back("\t%sp = %sp - 8");
-        // $$->threeACCode.push_back("\tthis = *(%sp)");
-        $$->threeACCode.push_back("\tthis = %sp - " + to_string(offsetVal[OBJECT] + localoffset));
-        //$$->threeACCode.push_back("\tthis = popparam " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+        $$->threeACCode.push_back("\tpopparam this");
         $3->threeACCode.clear();
     }
 }
@@ -1572,11 +1564,9 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         fsize = 0;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        // $$->threeACCode.push_back("\t%sp = %sp - 8");
-        // $$->threeACCode.push_back("\tthis = *(%sp)");
-        $$->threeACCode.push_back("\tthis = %sp - " + to_string(offsetVal[OBJECT] + localoffset));
-        //$$->threeACCode.push_back("\tthis = popparam " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.push_back("\tpopparam this");
     }
+
 };
 
 ConstructorBody : s_open_curly_bracket s_close_curly_bracket
@@ -2308,7 +2298,7 @@ IfThenStatement : if_invoke_paren Expression s_close_paren Statement
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
         currentSymTableId = symTables[currentSymTableId].parentID;
@@ -2342,7 +2332,7 @@ IfThenElseStatement : if_invoke_paren Expression s_close_paren StatementNoShortI
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
@@ -2364,7 +2354,7 @@ invoke_else : k_else {
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         currentSymTableId = symTables[currentSymTableId].parentID;
         localoffset -= tempoffset;
         initializeSymTable(currentSymTableId);
@@ -2397,7 +2387,7 @@ IfThenElseStatementNoShortIf : if_invoke_paren Expression s_close_paren Statemen
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(lcounter-1));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
@@ -2449,7 +2439,7 @@ WhileStatement : k_while invoke_paren Expression s_close_paren Statement
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2487,7 +2477,7 @@ WhileStatementNoShortIf : k_while invoke_paren Expression s_close_paren Statemen
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2525,7 +2515,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2558,7 +2548,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2603,7 +2593,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2652,7 +2642,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2687,7 +2677,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2725,7 +2715,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2773,7 +2763,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2824,7 +2814,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2857,7 +2847,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2890,7 +2880,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2935,7 +2925,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -2984,7 +2974,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3019,7 +3009,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3057,7 +3047,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3105,7 +3095,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3156,7 +3146,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
             tempoffset += offsetVal[i->second[0].type];
         }
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
@@ -3249,7 +3239,7 @@ BreakStatement : k_break s_semicolon
             }
             x = symTables[x].parentID;
         }   
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
     }
 }
@@ -3282,7 +3272,7 @@ ContinueStatement : k_continue s_semicolon
                 break;
             x = symTables[x].parentID;
         }   
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(tempoffset));
+        $$->threeACCode.push_back("\tesp = esp - " + to_string(tempoffset));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope[loopscope.size()-2]));
     }
 }
@@ -3316,10 +3306,11 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return size of function does not match return statement");
         exit(0);
     }   
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(localoffset));
-        $$->threeACCode.push_back("\t%addr = *(%sp)");
-        //$$->threeACCode.push_back("\t%addr = popparam 8 // pop return address");
-        $$->threeACCode.push_back("\tgoto %addr");
+        $$->threeACCode.push_back("\tesp = ebp - 8");
+        $$->threeACCode.push_back("\tebp = *esp");
+        $$->threeACCode.push_back("\tesp = esp -8");
+        $$->threeACCode.push_back("\taddr = *esp //pop return address");
+        $$->threeACCode.push_back("\tgoto addr");
     }
 }
 | k_return Expression s_semicolon
@@ -3347,12 +3338,12 @@ ReturnStatement : k_return s_semicolon
     }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\t%sp = %sp - " + to_string(localoffset));
-        $$->threeACCode.push_back("\t%addr = *(%sp)");
-        //$$->threeACCode.push_back("\t%addr = popparam 8 // pop return address");
-        $$->threeACCode.push_back("\t*(%sp) = " + $2->field + " // push return value");
-        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$2->type]));
-        $$->threeACCode.push_back("\tgoto %addr");
+        $$->threeACCode.push_back("\tesp = ebp - 8");
+        $$->threeACCode.push_back("\tebp = *esp");
+        $$->threeACCode.push_back("\tesp = esp - 8");
+        $$->threeACCode.push_back("\taddr = *esp //pop return address");
+        $$->threeACCode.push_back("\tpush " + $2->field);
+        $$->threeACCode.push_back("\tgoto addr");
         isreturn = true;
     }
 }
@@ -3565,8 +3556,10 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\t*(%sp) = t" + to_string(tcounter) + " // object reference");
-            $$->threeACCode.push_back("\t%sp = %sp + 8");
+            $$->threeACCode.push_back("\tpush addr //push return address" );
+            $$->threeACCode.push_back("\tpush ebp");
+            $$->threeACCode.push_back("\tebp = esp");
+            $$->threeACCode.push_back("\tpush t" + to_string(tcounter) + " // object reference");
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
@@ -3611,12 +3604,15 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\t*(%sp) = t" + to_string(tcounter) + " // push object reference");
-            $$->threeACCode.push_back("\t%sp = %sp + 8");
-            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\tpush addr //push return address" );
+            $$->threeACCode.push_back("\tpush ebp");
+            $$->threeACCode.push_back("\tebp = esp");
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
-            $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
             $4->threeACCode.clear();
+            $$->threeACCode.push_back("\tpush t" + to_string(tcounter) + " // push object reference");
+            $$->field = "t" + to_string(tcounter++);
+            $$->threeACCode.push_back("\tpush addr //push return address" );
+            $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
     }
 };
@@ -3628,8 +3624,7 @@ ArgumentList : Expression
     {
         vt.push_back($1->type);
         vfs.push_back($1->size);
-        $$->threeACCode.push_back("\t*(%sp) = " + $1->field + " // push argument");
-        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$1->type]));
+        $$->threeACCode.push_back("\tpush " + $1->field + " // push argument");
     }
 }
 | ArgumentList s_comma Expression
@@ -3646,8 +3641,7 @@ ArgumentList : Expression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\t*(%sp) = " + $3->field + " // push argument");
-        $$->threeACCode.push_back("\t%sp = %sp + " + to_string(offsetVal[$3->type]));
+        $$->threeACCode.push_back("\tpush " + $3->field + " // push argument");
     }
 };
 
@@ -3913,13 +3907,13 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->type = (*a)[0].type;
         $$->size = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
-        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
-        $$->threeACCode.push_back("\t%sp = %sp + 8");
+        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
-            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
         }
     }
 }
@@ -3952,14 +3946,14 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
-        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
-        $$->threeACCode.push_back("\t%sp = %sp + 8");
+        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         if($$->type != VOID){
-            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
-            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
         }
         $3->threeACCode.clear();
     }
@@ -3989,13 +3983,13 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->symid = (*a)[0].symid;
         $$->size = (*a)[0].size;
         string s($3);
-        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
-        $$->threeACCode.push_back("\t%sp = %sp + 8");
+        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
-            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
         }
     }
 }
@@ -4034,16 +4028,16 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         vt.clear();
         vfs.clear();
-        $$->threeACCode.push_back("\t*(%sp) = %addr // push return address");
-        $$->threeACCode.push_back("\t%sp = %sp + 8");
-        $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         $5->threeACCode.clear();
+        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
+        $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         string s($3);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t%sp = %sp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *(%sp)");
-            //$$->threeACCode.push_back("\t" + $$->field + " = popparam " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
         }
     }
 }
@@ -5264,9 +5258,9 @@ Assignment : LeftHandSide AssignmentOperator Expression
         }
         $$->type = $1->type;
         if($1->type > $3->type){
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + "cast_to_" + enum_types[$1->type] + " " + $3->field);
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + "cast_to_" + enum_types[$1->type] + " " + $3->field);
             $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
             $1->threeACCode.clear();
             if ($2->field.size() > 1)

@@ -1,0 +1,5 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+add,Identifier,object,0,0,36,8
+args,Identifier,string,0,1,32,0
+main,Identifier,void,0,1,32,0
+s,Identifier,int,0,0,41,16

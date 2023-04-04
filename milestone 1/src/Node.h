@@ -7,7 +7,7 @@ class Node {
 public:
     string id;
     unsigned int count=0;
-    string token="";
+    string token="";    
     vector<Node*> children;
     TYPE type = UNKNOWN;
     int lineno = -1;
