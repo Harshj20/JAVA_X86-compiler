@@ -15,7 +15,7 @@ class Addition {
 	// To add two numbers
 	public int addTwoInt(int a, int b)
 	{
-
+		int z = 1,y;
 		// Adding two integer value
 		sum = a + b;
 
@@ -29,7 +29,11 @@ class Addition {
 class GFG {
 
 	// Main driver method
-	public static void main(/*String[] args*/)
+
+	public static int demo(int a, int b){
+		return a + b;
+	}
+	public static void main(String[] args)
 	{
 
 		// Creating object of class 1 inside main() method
@@ -38,10 +42,12 @@ class GFG {
 		// Calling method of above class
 		// to add two integer
 		// using instance created
-		int s = Addition.addTwoInt(1, 2);
+		int s = add.addTwoInt(1, 2);
+		s = demo(1, 3);
+		s = add.sum;
 
 		// Printing the sum of two numbers
-		/*System.out.println("Sum of two integer values :"
-						+ s);*/
+		System.out.println("Sum of two integer values :" 
+		+ s);
 	}
 }

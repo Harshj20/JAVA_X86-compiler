@@ -10,7 +10,7 @@ class Test
 	{
 		this.a = a;
 		this.b = b;
-		int c = (((a++)+3)%1e9+(int)(3.0))||(b--)^(a&b);
+		int c = (((a++)+3)+(int)(3.0));
 		int d= 2+3*4;
 		int e= 5-4+3;
 	}

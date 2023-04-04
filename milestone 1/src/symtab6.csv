@@ -1,6 +1,0 @@
-Lexeme,Tokens,Type,ArrayDimSize,LineNo,ScopeID,offset
-a,Identifier,INT,0,16,0,0
-addTwoInt,Identifier,INT,0,16,0,0
-addTwoInt,Identifier,INT,0,16,0,0
-addTwoInt,Identifier,INT,0,16,0,0
-b,Identifier,INT,0,16,0,0

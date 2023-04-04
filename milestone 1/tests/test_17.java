@@ -34,8 +34,13 @@ public class test_16 {
             // a = hello(2+5*5, a++);
 
             int q[][][] = new int[10][11][12]; 
+<<<<<<< HEAD
             int a=0,b = q[4][5][q[1][2][3]] + a;
             int qaa[] = {1,2,5,6,3};
+=======
+            b = q[4][5][q[2][2][3]];
+            // int q[] = {1,2,5,6,3};
+>>>>>>> 74c58c09f9ec938d97af0c0e1f85005b5947ceeb
             // int q = 5;
             // float r = 10.0;
             // float s = q * r;
