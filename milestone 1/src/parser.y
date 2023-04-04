@@ -14,7 +14,7 @@ int symTablescount = 1;
 bool isDot = false, islocal = false;
 vector<TYPE> vt; // vector used for types
 TYPE t = VOID;
-int size = 0;
+int sz = 0;
 int fsize = 0;
 int localoffset=0;
 vector<int> vs;  // vector to store max size of dimensions of array
@@ -218,10 +218,10 @@ ArrayType : PrimitiveType s_open_square_bracket s_close_square_bracket
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back(new Node("]", "Separator", yylineno));
     if(!isDot){
-        $$->size++;
+        $$->sz++;
         $$->type = $1->type;
         isarr = true;
-        ++size;
+        ++sz;
         ++fsize;
     }
 }
@@ -238,9 +238,9 @@ ArrayType : PrimitiveType s_open_square_bracket s_close_square_bracket
             exit(0);
         }
         $$->type = (*symTables[currentSymTableId].getSymEntry($1->id))[0].type;
-        $$->size++;
+        $$->sz++;
         isarr = true;
-        ++size;
+        ++sz;
         ++fsize;
     }
     $$->children.push_back($1);
@@ -254,8 +254,8 @@ ArrayType : PrimitiveType s_open_square_bracket s_close_square_bracket
     $$->children.push_back(new Node("[", "Separator", yylineno));
     $$->children.push_back(new Node("]", "Separator", yylineno));
     if(!isDot){
-        $$->size = $1->size + 1;
-        ++size;
+        $$->sz = $1->sz + 1;
+        ++sz;
         isarr = true;
         ++fsize;
         $$->type = $1->type;
@@ -316,7 +316,7 @@ SimpleName : Identifier
                 isarr = true;
             }
         }
-        $$->size = symTables[t1].entries[lex].size() - 1;
+        $$->sz = symTables[t1].entries[lex].size() - 1;
         if(!symTables[t1].name.empty()){
             if(!symTables[t1].entries[lex][0].isfunction)
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = this + " + to_string(symTables[t1].entries[lex][0].offset));
@@ -898,7 +898,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         t = VOID;
-        size = 0;
+        sz = 0;
         fsize = 0;
         isarr = false;
         tcounter = 0;
@@ -916,7 +916,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
         $2->threeACCode.clear();
     }
     t = VOID;
-    size = 0;
+    sz = 0;
     fsize = 0;
     isarr = false;
     tcounter = 1;
@@ -955,7 +955,7 @@ VariableDeclarator : VariableDeclaratorId
             yyerror("Type Mismatch in Variable Declarator");
             exit(0);
         }
-        if ($3->size != $1->size)
+        if ($3->sz != $1->sz)
         {   
             yyerror("Size Mismatch in Variable Declarator");
             exit(0);
@@ -964,7 +964,7 @@ VariableDeclarator : VariableDeclaratorId
             $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
-                cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
+                //cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
                 $$->threeACCode.push_back("\t"+ $1->field + " = t" + to_string(tcounter++));
             }
@@ -1035,9 +1035,9 @@ VariableDeclaratorId : Identifier
             symTables[currentSymTableId].entries[s][0].offset = localoffset;
             localoffset += offsetVal[t];
         }
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < sz; i++)
         {
-            symTables[currentSymTableId].insertSymEntry(s, t, yylineno, size);
+            symTables[currentSymTableId].insertSymEntry(s, t, yylineno, sz);
         }
         if (t == OBJECT)
         {
@@ -1050,7 +1050,7 @@ VariableDeclaratorId : Identifier
             }
         }
         $$->field = "*(ebp + " + to_string(symTables[currentSymTableId].entries[s][0].offset) + ")";
-        $$->size = size;
+        $$->sz = sz;
         $$->type = t;
     }
 }
@@ -1061,9 +1061,9 @@ VariableDeclaratorId : Identifier
         string s($1->id);
         $$ = new Node($1->id.c_str(), "VariableDeclaratorId", yylineno);
         symTables[currentSymTableId].insertSymEntry(s, t, yylineno);
-        $$->size = $1->size + 1;
+        $$->sz = $1->sz + 1;
         $$->field = $1->field;
-        ++size;
+        ++sz;
         isarr = true;
     }
     else
@@ -1238,7 +1238,7 @@ S_open_paren : s_open_paren
         initializeSymTable(currentSymTableId);
         symTables[currentSymTableId].isfunction = true;
         islocal = true;
-        size = 0;
+        sz = 0;
         isarr = 0;
     }
 }
@@ -1373,9 +1373,9 @@ FormalParameter : Type VariableDeclaratorId
     if(!isDot){
         t = VOID;
         vt.push_back($1->type);
-        vfs.push_back(size);
-        fsize -= size;
-        size = 0;
+        vfs.push_back(sz);
+        fsize -= sz;
+        sz = 0;
         isarr = false;
     }
 }
@@ -1387,9 +1387,9 @@ FormalParameter : Type VariableDeclaratorId
     $$->children.push_back($3);
     if(!isDot){
         vt.push_back($2->type);
-        vfs.push_back(size);
-        fsize -= size;
-        size = 0;
+        vfs.push_back(sz);
+        fsize -= sz;
+        sz = 0;
         isarr = false;
         t = VOID;
     }
@@ -1951,14 +1951,14 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
     $$->children.push_back(new Node("}", "Separator", yylineno));
     if (!isDot)
     {
-        if (vs[ArrayArgumentDepth - 1] && (vs[ArrayArgumentDepth - 1] != $2->size))
+        if (vs[ArrayArgumentDepth - 1] && (vs[ArrayArgumentDepth - 1] != $2->sz))
         {
             yyerror("Error in number of arguments for array");
             exit(0);
         }
-        vs[ArrayArgumentDepth - 1] = $2->size;
+        vs[ArrayArgumentDepth - 1] = $2->sz;
         ArrayArgumentDepth--;
-        $$->size = vs.size();
+        $$->sz = vs.size();
         $$->field = arrinit.back();
         arrinit.pop_back();
     }
@@ -1979,7 +1979,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = 0;
         ArrayArgumentDepth--;
-        $$->size = vs.size();
+        $$->sz = vs.size();
     }
 };
 array_s_open_curly_bracket : s_open_curly_bracket
@@ -1987,7 +1987,7 @@ array_s_open_curly_bracket : s_open_curly_bracket
     if (!isDot)
     {
         ArrayArgumentDepth++;
-        if (ArrayArgumentDepth > size)
+        if (ArrayArgumentDepth > sz)
         {
             yyerror("Excess Dimensions used");
             exit(0);
@@ -1999,7 +1999,7 @@ array_s_open_curly_bracket : s_open_curly_bracket
 VariableInitializerList : VariableInitializer
 {
     $$ = $1;
-    $$->size = 1;
+    $$->sz = 1;
     if (!isDot )
     {   
         if(widen($1->type,t)!=t){
@@ -2017,7 +2017,7 @@ VariableInitializerList : VariableInitializer
     $$->children.push_back($1);
     $$->children.push_back(new Node(",", "Separator", yylineno));
     $$->children.push_back($3);
-    $$->size = $1->size + 1;
+    $$->sz = $1->sz + 1;
     if (!isDot)
     {   
         if(widen($3->type, t) != t){
@@ -2086,7 +2086,7 @@ LocalVariableDeclarationStatement : LocalVariableDeclaration s_semicolon
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         isarr = false;
-        size = 0;
+        sz = 0;
         fsize = 0;
         t = VOID;
         tcounter = 0;
@@ -2589,7 +2589,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($4->size != 0)
+        if ($4->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -2636,7 +2636,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($4->size != 0)
+        if ($4->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -2757,7 +2757,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($5->size != 0)
+        if ($5->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -2806,7 +2806,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($5->size != 0)
+        if ($5->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -2921,7 +2921,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($4->size != 0)
+        if ($4->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -2968,7 +2968,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($4->size != 0)
+        if ($4->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -3089,7 +3089,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($5->size != 0)
+        if ($5->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -3138,7 +3138,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
             yyerror("Expression in for loop must be of type bool");
             exit(0);
         }
-        if ($5->size != 0)
+        if ($5->sz != 0)
         {
             yyerror("Expression in for loop must be of size 0");
             exit(0);
@@ -3314,7 +3314,7 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return type of function does not match return statement");
         exit(0);
     }
-    if (symTables[t1].entries[returnFunctionName][0].size != 0)
+    if (symTables[t1].entries[returnFunctionName][0].sz != 0)
     {
         yyerror("Return size of function does not match return statement");
         exit(0);
@@ -3344,7 +3344,7 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return type of function does not match return statement");
         exit(0);
     }
-    if (symTables[t1].entries[returnFunctionName][0].size != $2->size)
+    if (symTables[t1].entries[returnFunctionName][0].sz != $2->sz)
     {
         yyerror("Return size of function does not match return statement");
         exit(0);
@@ -3603,7 +3603,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
         $$->type = (*a)[0].type;
         for (int i = 0; i < vfs.size(); i++)
         {
-            if (widen(vt[i], (*a)[i + 1].type)!= (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
+            if (widen(vt[i], (*a)[i + 1].type)!= (*a)[i + 1].type || vfs[i] != (*a)[i + 1].sz)
             {   
                 yyerror("Argument type mismatch");
                 exit(0);
@@ -3636,7 +3636,7 @@ ArgumentList : Expression
     if (!isDot)
     {
         vt.push_back($1->type);
-        vfs.push_back($1->size);
+        vfs.push_back($1->sz);
         $$->threeACCode.push_back("\tpush " + $1->field + " // push argument");
     }
 }
@@ -3649,7 +3649,7 @@ ArgumentList : Expression
     if (!isDot)
     {
         vt.push_back($3->type);
-        vfs.push_back($3->size);
+        vfs.push_back($3->sz);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
@@ -3672,7 +3672,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = $3->arrdims.size();
+        $$->sz = $3->arrdims.size();
         $$->arrdims = $3->arrdims;
         $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3701,7 +3701,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in arrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = vs.size();
+        $$->sz = vs.size();
     }
 }
 | k_new PrimitiveType DimExprs Dims
@@ -3719,7 +3719,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = $3->arrdims.size() + $4->arrdims.size();
+        $$->sz = $3->arrdims.size() + $4->arrdims.size();
         $$->arrdims = $3->arrdims;
         $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
         $3->arrdims.clear();
@@ -3740,7 +3740,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = $3->arrdims.size();
+        $$->sz = $3->arrdims.size();
         $$->arrdims = $3->arrdims;
         $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3767,7 +3767,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = $3->arrdims.size() + $4->arrdims.size();
+        $$->sz = $3->arrdims.size() + $4->arrdims.size();
         $$->arrdims = $3->arrdims;
         $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
         $3->arrdims.clear();
@@ -3789,7 +3789,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
-        $$->size = vs.size();
+        $$->sz = vs.size();
     }
 };
 
@@ -3886,7 +3886,7 @@ FieldAccess : Primary s_dot Identifier
             exit(0);
         }
         $$->type = (*a)[0].type;
-        $$->size = (*a).size() - 1;
+        $$->sz = (*a).size() - 1;
         $$->symid = $1->symid;
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
@@ -3918,7 +3918,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         $$->symid = (*a)[0].symid;
         $$->type = (*a)[0].type;
-        $$->size = (*a)[0].size;
+        $$->sz = (*a)[0].sz;
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.begin(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -3953,11 +3953,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         $$->type = (*a)[0].type;
         $$->symid = (*a)[0].symid;
-        $$->size = (*a)[0].size;
+        $$->sz = (*a)[0].sz;
         $$->field = "t" + to_string(tcounter++);
         for (int i = 0; i < vfs.size(); i++)
         {
-            if (widen(vt[i], (*a)[i + 1].type)!= (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
+            if (widen(vt[i], (*a)[i + 1].type)!= (*a)[i + 1].type || vfs[i] != (*a)[i + 1].sz)
             {   
                 yyerror("Argument type mismatch");
                 exit(0);
@@ -4006,7 +4006,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         $$->type = (*a)[0].type;
         $$->symid = (*a)[0].symid;
-        $$->size = (*a)[0].size;
+        $$->sz = (*a)[0].sz;
         string s($3);
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\tpush addr // push return address");
@@ -4047,11 +4047,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         }
         $$->type = (*a)[0].type;
         $$->symid = (*a)[0].symid;
-        $$->size = (*a)[0].size;
+        $$->sz = (*a)[0].sz;
         $$->field = "t" + to_string(tcounter++);
         for (int i = 0; i < vfs.size(); i++)
         {
-            if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].size)
+            if (vt[i] != (*a)[i + 1].type || vfs[i] != (*a)[i + 1].sz)
             {
                 yyerror("Argument type mismatch");
                 exit(0);
@@ -4109,7 +4109,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             exit(0);
         }
         vector<struct symEntry> *a = symTables[$1->symid].getSymEntry($1->id);
-        if ($3->size != 0)
+        if ($3->sz != 0)
         {
             yyerror("Array index must be of type int");
             exit(0);
@@ -4122,7 +4122,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             exit(0);
         }
         $$->type = (*a)[0].type;
-        $$->size = (*a).size() - 1 - $$->arrdims.size();
+        $$->sz = (*a).size() - 1 - $$->arrdims.size();
         $$->symid = $1->symid;
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -4158,7 +4158,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             yyerror("Array index must be of type int");
             exit(0);
         }
-        if ($3->size != 0)
+        if ($3->sz != 0)
         {
             yyerror("Array index must be of type int");
             exit(0);
@@ -4174,7 +4174,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
             exit(0);
         }
         $$->type = (*a)[0].type;
-        $$->size = (*a).size() - $$->arrdims.size() - 1;
+        $$->sz = (*a).size() - $$->arrdims.size() - 1;
         $$->symid = $1->symid;
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
@@ -4227,7 +4227,7 @@ PostIncrementExpression : PostFixExpression o_increment
             yyerror("Post increment can only be applied to int");
             exit(0);
         }
-        if ($1->size != 0)
+        if ($1->sz != 0)
         {
             yyerror("Post increment can only be applied to int");
             exit(0);
@@ -4254,7 +4254,7 @@ PostDecrementExpression : PostFixExpression o_decrement
             yyerror("Post decrement can only be applied to int");
             exit(0);
         }
-        if ($1->size != 0)
+        if ($1->sz != 0)
         {
             yyerror("Post decrement can only be applied to int");
             exit(0);
@@ -4287,7 +4287,7 @@ UnaryExpression : PreIncrementExpression
             yyerror("Unary plus can only be applied to int");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4310,7 +4310,7 @@ UnaryExpression : PreIncrementExpression
             yyerror("Unary minus can only be applied to int");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4339,7 +4339,7 @@ PreIncrementExpression : o_increment UnaryExpression
             yyerror("Pre increment can only be applied to int");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4366,7 +4366,7 @@ PreDecrementExpression : o_decrement UnaryExpression
             yyerror("Pre decrement can only be applied to int");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4395,7 +4395,7 @@ UnaryExpressionNotPlusMinus : PostFixExpression
             yyerror("Bitwise complement can only be applied to int");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4419,7 +4419,7 @@ UnaryExpressionNotPlusMinus : PostFixExpression
             yyerror("Logical not can only be applied to BOOL");
             exit(0);
         }
-        if ($2->size != 0)
+        if ($2->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4519,7 +4519,7 @@ MultiplicativeExpression : UnaryExpression
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4566,7 +4566,7 @@ MultiplicativeExpression : UnaryExpression
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4610,7 +4610,7 @@ MultiplicativeExpression : UnaryExpression
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4660,7 +4660,7 @@ AdditiveExpression : MultiplicativeExpression
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {   
             yyerror("Arrays not allowed");
             exit(0);
@@ -4705,7 +4705,7 @@ AdditiveExpression : MultiplicativeExpression
             exit(0);
         }
         $$->type = widen($1->type, $3->type);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4755,7 +4755,7 @@ ShiftExpression : AdditiveExpression
             exit(0);
         }
         $$->type = widen($1->type, INT);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4782,7 +4782,7 @@ ShiftExpression : AdditiveExpression
             exit(0);
         }
         $$->type = widen($1->type, INT);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4810,7 +4810,7 @@ ShiftExpression : AdditiveExpression
         }
 
         $$->type = widen($1->type, INT);
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4842,7 +4842,7 @@ RelationalExpression : ShiftExpression
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4868,7 +4868,7 @@ RelationalExpression : ShiftExpression
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4895,7 +4895,7 @@ RelationalExpression : ShiftExpression
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4922,7 +4922,7 @@ RelationalExpression : ShiftExpression
             yyerror("less than operator can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -4961,7 +4961,7 @@ EqualityExpression : RelationalExpression
             yyerror("Equality can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != $3->size)
+        if ($1->sz != $3->sz)
         {
             yyerror("Equality can only be applied to same size");
             exit(0);
@@ -4988,7 +4988,7 @@ EqualityExpression : RelationalExpression
             yyerror("Equality can only be applied to same common super type");
             exit(0);
         }
-        if ($1->size != $3->size)
+        if ($1->sz != $3->sz)
         {
             yyerror("Size mismatch");
             exit(0);
@@ -5020,7 +5020,7 @@ AndExpression : EqualityExpression
             yyerror("Bitwise AND can only be applied to int");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -5052,7 +5052,7 @@ ExclusiveOrExpression : AndExpression
             yyerror("Bitwise XOR can only be applied to int");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -5084,7 +5084,7 @@ InclusiveOrExpression : ExclusiveOrExpression
             yyerror("Bitwise OR can only be applied to int");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -5116,7 +5116,7 @@ ConditionalAndExpression : InclusiveOrExpression
             yyerror("Only Bools allowed");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -5148,7 +5148,7 @@ ConditionalOrExpression : ConditionalAndExpression
             yyerror("Only Bools allowed");
             exit(0);
         }
-        if ($1->size != 0 || $3->size != 0)
+        if ($1->sz != 0 || $3->sz != 0)
         {
             yyerror("Arrays not allowed");
             exit(0);
@@ -5180,7 +5180,7 @@ ConditionalExpression : ConditionalOrExpression
             yyerror("Conditional Operation can only be applied to boolean");
             exit(0);
         }
-        if ($5->size != $3->size)
+        if ($5->sz != $3->sz)
         {
             yyerror("Conditional Operation can only be applied to same type");
             exit(0);
@@ -5214,7 +5214,7 @@ ConditionalExpression : ConditionalOrExpression
         $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $3->field);
         $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
-        $$->size = $3->size;
+        $$->sz = $3->sz;
         $$->field = "t" + to_string(tcounter++);
     }
     $$->children.push_back($1);
@@ -5243,7 +5243,7 @@ Assignment : LeftHandSide AssignmentOperator Expression
             yyerror("Assignment Operation can only be applied to same type");
             exit(0);
         }
-        if ($1->size != $3->size)
+        if ($1->sz != $3->sz)
         {
             yyerror("Assignment Operation can only be applied to same size");
             exit(0);
@@ -5282,7 +5282,7 @@ Assignment : LeftHandSide AssignmentOperator Expression
         }
         tcounter = 1;
         $$->field = $1->field;
-        $$->size = $1->size;
+        $$->sz = $1->sz;
         $3->arrdims.clear();
         $1->arrdims.clear();
     }
@@ -5413,7 +5413,7 @@ void symTab_csv(symtab *a)
             auto j = (i->second); 
             fout << i->first << ","
                  << "Identifier"
-                 << "," << enum_types[j[0].type] << "," << j[0].size << "," << (j.size()-1) <<","<<j[0].lineno << "," << j[0].offset << endl;
+                 << "," << enum_types[j[0].type] << "," << j[0].sz << "," << (j.size()-1) <<","<<j[0].lineno << "," << j[0].offset << endl;
         //}
     }
     fout.close();

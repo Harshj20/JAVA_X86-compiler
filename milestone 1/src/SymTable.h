@@ -32,7 +32,7 @@ enum TYPE{
 struct symEntry{
     TYPE type;
     int lineno;
-    int size = 0;
+    int sz = 0;
     bool isfunction = false;
     int symid = 0;
     bool isPrivate = false;
@@ -43,15 +43,15 @@ struct symEntry{
         this->type = type;
         this->lineno = lineno;
     }
-    symEntry(TYPE type, int lineno, int size){
+    symEntry(TYPE type, int lineno, int sz){
         this->type = type;
         this->lineno = lineno;
-        this->size = size;
+        this->sz = sz;
     }
-    symEntry(TYPE type, int lineno, int size, bool isfunction){
+    symEntry(TYPE type, int lineno, int sz, bool isfunction){
         this->type = type;
         this->lineno = lineno;
-        this->size = size;
+        this->sz = sz;
         this->isfunction = isfunction;
     }
 };
@@ -69,8 +69,8 @@ public:
     symtab(int id, int parentID);
 
     void insertSymEntry(string lex, TYPE t, int line);
-    void insertSymEntry(string lex, TYPE t, int line, int size);
-    void insertSymEntry(string lex, TYPE t, int line, int size, bool isfunction);
+    void insertSymEntry(string lex, TYPE t, int line, int sz);
+    void insertSymEntry(string lex, TYPE t, int line, int sz, bool isfunction);
 
     int lookup(string lex);
 

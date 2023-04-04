@@ -14,11 +14,11 @@ symtab::symtab(int id, int parentID) {
 void symtab::insertSymEntry(string lex, TYPE t, int line){
         this->entries[lex].push_back(*(new symEntry(t,line))); 
     }
-void symtab::insertSymEntry(string lex, TYPE t, int line, int size){
-        this->entries[lex].push_back(*(new symEntry(t,line, size))); 
+void symtab::insertSymEntry(string lex, TYPE t, int line, int sz){
+        this->entries[lex].push_back(*(new symEntry(t,line, sz))); 
     }
-void symtab::insertSymEntry(string lex, TYPE t, int line, int size, bool isfunction){
-        this->entries[lex].push_back(*(new symEntry(t,line,size,isfunction))); 
+void symtab::insertSymEntry(string lex, TYPE t, int line, int sz, bool isfunction){
+        this->entries[lex].push_back(*(new symEntry(t,line,sz,isfunction))); 
     }
 
 int symtab::lookup(string lex){
