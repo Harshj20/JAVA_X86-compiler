@@ -963,7 +963,6 @@ VariableDeclarator : VariableDeclaratorId
             $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
-                cout<<enum_types[t]<<" "<<enum_types[$3->type]<<endl;
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
                 $$->threeACCode.push_back("\t"+ $1->field + " = t" + to_string(tcounter++));
             }
@@ -1122,7 +1121,6 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        //t = $2->type;
     }
 }
 | Modifiers Type MethodDeclarator
@@ -1152,7 +1150,6 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        //t = $1->type;
     }
 }
 | Type MethodDeclarator
@@ -1166,7 +1163,6 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        //t = $1->type;
     }
 }
 | Modifiers k_void MethodDeclarator Throws
@@ -1420,6 +1416,13 @@ MethodBody : Block
             yyerror("Function must return a value");
             exit(0);
         }
+        if(symTables[currentSymTableId].entries[returnFunctionName][0].type == VOID){
+            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
+        }
         isreturn = false;
     }
 }
@@ -1451,6 +1454,7 @@ ConstructorDeclaration :
         $2->threeACCode.clear();
         $4->threeACCode.clear();
         localoffset = 0;
+        isstatic = 0;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -1469,6 +1473,7 @@ ConstructorDeclaration :
         $2->threeACCode.clear();
         $3->threeACCode.clear();
         localoffset = 0;
+        isstatic = 0;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -1486,6 +1491,7 @@ ConstructorDeclaration :
         $1->threeACCode.clear();
         $3->threeACCode.clear();
         localoffset = 0;
+        isstatic = 0;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -1503,6 +1509,7 @@ ConstructorDeclaration :
         $1->threeACCode.clear();
         $2->threeACCode.clear();
         localoffset = 0;
+        isstatic = 0;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -1527,8 +1534,10 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -1563,8 +1572,10 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         }
         symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
             symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
@@ -1592,6 +1603,12 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+        
+            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -1603,6 +1620,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
+         $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -1616,6 +1638,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $2->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
+         $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -1958,6 +1985,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         ArrayArgumentDepth--;
         $$->size = vs.size();
         $$->field = arrinit.back();
+        $$->type = t;
         arrinit.pop_back();
     }
 }
@@ -1977,6 +2005,7 @@ ArrayInitializer : array_s_open_curly_bracket VariableInitializerList s_close_cu
         }
         vs[ArrayArgumentDepth - 1] = 0;
         ArrayArgumentDepth--;
+        $$->type = t;
         $$->size = vs.size();
     }
 };
@@ -2007,6 +2036,7 @@ VariableInitializerList : VariableInitializer
         if(isarr){
             arrinit.push_back($1->field);
         }
+        $$->type = t;
     }
 }
 | VariableInitializerList s_comma VariableInitializer
@@ -2025,6 +2055,7 @@ VariableInitializerList : VariableInitializer
         if(isarr){
             arrinit.push_back($3->field);
         }
+        $$->type = t;
     }
 };
 
@@ -3605,7 +3636,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             {
                 yyerror("Argument type mismatch");
                 exit(0);
-            }$$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
+            }
         }
         vt.clear();
         vfs.clear();
@@ -3622,7 +3653,6 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $4->threeACCode.clear();
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter) + " // push object reference");
             $$->field = "t" + to_string(tcounter++);
-            $$->threeACCode.push_back("\tpush addr //push return address" );
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
     }
@@ -3659,7 +3689,6 @@ ArgumentList : Expression
 ArrayCreationExpression : k_new PrimitiveType DimExprs
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3672,6 +3701,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         }
         $$->size = $3->arrdims.size();
         $$->arrdims = $3->arrdims;
+        $$->type = $2->type;
         $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
@@ -3687,7 +3717,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
 | k_new PrimitiveType Dims ArrayInitializer
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3699,13 +3728,13 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in arrayCreationExpression rhs");
             exit(0);
         }
+        $$->type = $2->type;
         $$->size = vs.size();
     }
 }
 | k_new PrimitiveType DimExprs Dims
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3719,6 +3748,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         }
         $$->size = $3->arrdims.size() + $4->arrdims.size();
         $$->arrdims = $3->arrdims;
+        $$->type = $2->type;
         $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
         $3->arrdims.clear();
         $4->arrdims.clear();
@@ -3727,7 +3757,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
 | k_new Name DimExprs
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3741,6 +3770,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         $$->size = $3->arrdims.size();
         $$->arrdims = $3->arrdims;
         $3->arrdims.clear();
+        $$->type = $2->type;
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
             $$->threeACCode.push_back("ArrayDeclaration :" );
@@ -3753,7 +3783,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
 | k_new Name DimExprs Dims
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3767,6 +3796,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         }
         $$->size = $3->arrdims.size() + $4->arrdims.size();
         $$->arrdims = $3->arrdims;
+        $$->type = $2->type;
         $$->arrdims.insert($$->arrdims.end(), $4->arrdims.begin(), $4->arrdims.end());
         $3->arrdims.clear();
         $4->arrdims.clear();
@@ -3775,7 +3805,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
 | k_new Name Dims ArrayInitializer
 {
     $$ = new Node("ArrayCreationExpression");
-    $$->type = $2->type;
     $$->children.push_back(new Node("new", "Keyword", yylineno));
     $$->children.push_back($2);
     $$->children.push_back($3);
@@ -3787,6 +3816,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
             yyerror("Type mismatch in ArrayCreationExpression rhs");
             exit(0);
         }
+        $$->type = $2->type;
         $$->size = vs.size();
     }
 };
@@ -4129,7 +4159,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                 $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + (*a)[i].dimsize);
         }
-        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + "// offset vals for " + enum_types[$1->type]);
+        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + " // offset vals for " + enum_types[$1->type]);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == 2){
             $$->field = "*" + $$->field;
@@ -4181,7 +4211,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                 $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + (*a)[i].dimsize);
         }
-        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + "// offset vals for " + enum_types[$1->type]);
+        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + " // offset vals for " + enum_types[$1->type]);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == $$->arrdims.size() + 1){
             $$->field = "*" + $$->field;
@@ -5444,14 +5474,8 @@ void symTab_csv(symtab *a)
     fout << "Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset" << endl;
     for (auto i = a->entries.begin(); i != a->entries.end(); i++)
     {
-        
-        /* for (auto j = i->second.begin(); j != i->second.end(); j++)
-        { */
-            auto j = (i->second); 
-            fout << i->first << ","
-                 << "Identifier"
-                 << "," << enum_types[j[0].type] << "," << j[0].size << "," << (j.size()-1) <<","<<j[0].lineno << "," << j[0].offset << endl;
-        //}
+        auto j = (i->second); 
+        fout << i->first << ","<< "Identifier"<< "," << enum_types[j[0].type] << "," << j[0].size << "," << (j.size()-1) <<","<<j[0].lineno << "," << j[0].offset << endl;
     }
     fout.close();
 }
