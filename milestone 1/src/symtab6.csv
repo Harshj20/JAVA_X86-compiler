@@ -1,9 +1,0 @@
-Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
-args,Identifier,string,0,1,4,0
-c,Identifier,float,0,0,19,33
-floatVar,Identifier,float,0,0,7,28
-intVar,Identifier,int,0,0,5,8
-longVar,Identifier,long,0,0,6,12
-longVar2,Identifier,long,0,0,6,20
-main,Identifier,void,0,1,4,0
-x,Identifier,bool,0,0,18,32
