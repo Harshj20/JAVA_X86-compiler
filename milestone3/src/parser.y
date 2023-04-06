@@ -1416,7 +1416,7 @@ MethodBody : Block
             yyerror("Function must return a value");
             exit(0);
         }
-        if(symTables[currentSymTableId].entries[returnFunctionName][0].type == VOID){
+        if(!isreturn){
             $$->threeACCode.push_back("\tesp = ebp -8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
@@ -1430,6 +1430,16 @@ MethodBody : Block
 | s_semicolon
 {
     $$ = new Node(";", "Separator", yylineno);
+    if(!isDot){
+        if(!isreturn){
+            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
+        }
+        isreturn = false;
+    }
 }
 
 StaticInitializer : k_static Block
@@ -1596,6 +1606,16 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     $$ = new Node("ConstructorBody");
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back(new Node("}", "Separator", yylineno));
+    if(!isDot){
+        if(!isreturn){
+            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tebp = *esp");
+            $$->threeACCode.push_back("\tesp = esp - 8");
+            $$->threeACCode.push_back("\taddr = *esp");
+            $$->threeACCode.push_back("\tgoto addr");
+        }
+        isreturn = false;
+    }
 }
 | s_open_curly_bracket BlockStatements s_close_curly_bracket
 {
@@ -1603,12 +1623,14 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        
+        if(!isreturn){
             $$->threeACCode.push_back("\tesp = ebp -8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
             $$->threeACCode.push_back("\tgoto addr");
+        }
+        isreturn = false;
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -1620,11 +1642,14 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-         $$->threeACCode.push_back("\tesp = ebp -8");
+        if(!isreturn){
+            $$->threeACCode.push_back("\tesp = ebp -8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
             $$->threeACCode.push_back("\tgoto addr");
+        }
+        isreturn = false;
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -1638,11 +1663,14 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $2->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-         $$->threeACCode.push_back("\tesp = ebp -8");
+        if(!isreturn){
+            $$->threeACCode.push_back("\tesp = ebp -8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
             $$->threeACCode.push_back("\tgoto addr");
+        }
+        isreturn = false;
     }
     $$->children.push_back(new Node("{", "Separator", yylineno));
     $$->children.push_back($2);
@@ -3353,6 +3381,10 @@ ReturnStatement : k_return s_semicolon
         $$->threeACCode.push_back("\tesp = esp -8");
         $$->threeACCode.push_back("\taddr = *esp //pop return address");
         $$->threeACCode.push_back("\tgoto addr");
+        if(islocal){
+            if(!symTables[symTables[currentSymTableId].parentID].name.empty())
+                isreturn = true;
+        }
     }
 }
 | k_return Expression s_semicolon
@@ -3386,7 +3418,10 @@ ReturnStatement : k_return s_semicolon
         $$->threeACCode.push_back("\taddr = *esp //pop return address");
         $$->threeACCode.push_back("\tpush " + $2->field);
         $$->threeACCode.push_back("\tgoto addr");
-        isreturn = true;
+        if(islocal){
+            if(!symTables[symTables[currentSymTableId].parentID].name.empty())
+                isreturn = true;
+        }
     }
 }
 
