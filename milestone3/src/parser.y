@@ -5515,23 +5515,23 @@ void symTab_csv(symtab *a)
     fout.close();
 }
 
-void generate_3AC()
+void generate_3AC(string filename)
 {
     ofstream fout;
-    fout.open("3AC.txt");
+    fout.open(filename);
     for (int i = 0; i < threeAC.size(); i++)
     {
         fout << threeAC[i] << endl;
     }
 }
 
-void check_semantics()
+void check_semantics(string filename)
 {
     for (auto i = symTables.begin(); i != symTables.end(); i++)
     {
         symTab_csv(&i->second);
     }
-    generate_3AC();
+    generate_3AC(filename);
 }
 
 int main(int argc, char **argv)
@@ -5642,8 +5642,16 @@ int main(int argc, char **argv)
                 print_dot("parse_tree.dot");
         }
         else
-        {
-            check_semantics();
+        {   
+            if(output_index){
+                check_semantics(argv[output_index]);
+            }
+            else{
+                string file_name(argv[input_index]);
+                file_name = file_name.substr(file_name.find_last_of("/\\") + 1);
+                file_name =  "../tests/"+ file_name.substr(0, file_name.find_last_of(".")) + ".3ac";
+                check_semantics(file_name);
+            }
         }
     }
     else

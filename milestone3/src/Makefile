@@ -11,7 +11,7 @@ LEXER = lexer.l
 PARSER = parser.y
 SYMBOL_TABLE = SymTable.cpp
 # Object file
-OBJECT = myASTGenerator
+OBJECT = milestone3
 
 # Build rule for the object file
 $(OBJECT): $(LEXER) $(PARSER)
