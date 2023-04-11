@@ -322,7 +322,7 @@ SimpleName : Identifier
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = this + " + to_string(symTables[t1].entries[lex][0].offset));
         }
         else{
-            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = (ebp + " + to_string(symTables[t1].entries[lex][0].offset) + ")");
+            $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [ebp+" + to_string(symTables[t1].entries[lex][0].offset) + "]");
         }
         $$->field = "*t" + to_string(tcounter++);
     }
@@ -375,7 +375,7 @@ QualifiedName : Name s_dot Identifier
         $1->threeACCode.clear();
         if(!symTables[$1->symid].entries[s][0].isfunction){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(symTables[$1->symid].entries[s][0].offset) + " // offset vals for " + $3);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(symTables[$1->symid].entries[s][0].offset));
             $$->field = "*" + $$->field;  
         }
         else
@@ -972,7 +972,7 @@ VariableDeclarator : VariableDeclaratorId
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
                 $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[0]);
                 for(int i=1;i<arrinit.size();i++){
-                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]) + " // adding offset values for type: " + enum_types[t]);
+                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]));
                      $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[i]);
                 }
                 arrinit.clear();
@@ -1081,7 +1081,7 @@ VariableInitializer : Expression
     if(!isDot){
         if(ArrayArgumentDepth==0){
             arrinit.push_back($$->field);
-            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]) + " // offset vals for " + enum_types[t]);
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(arrinit.size()) + " * " + to_string(offsetVal[t]));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate t" + to_string(tcounter-1));
             $$->field = "t" + to_string(tcounter);
         }
@@ -1417,7 +1417,7 @@ MethodBody : Block
             exit(0);
         }
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -1432,7 +1432,7 @@ MethodBody : Block
     $$ = new Node(";", "Separator", yylineno);
     if(!isDot){
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -1608,7 +1608,7 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     $$->children.push_back(new Node("}", "Separator", yylineno));
     if(!isDot){
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -1624,7 +1624,7 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -1643,7 +1643,7 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -1664,7 +1664,7 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         if(!isreturn){
-            $$->threeACCode.push_back("\tesp = ebp -8");
+            $$->threeACCode.push_back("\tesp = ebp - 8");
             $$->threeACCode.push_back("\tebp = *esp");
             $$->threeACCode.push_back("\tesp = esp - 8");
             $$->threeACCode.push_back("\taddr = *esp");
@@ -3378,8 +3378,8 @@ ReturnStatement : k_return s_semicolon
     }   
         $$->threeACCode.push_back("\tesp = ebp - 8");
         $$->threeACCode.push_back("\tebp = *esp");
-        $$->threeACCode.push_back("\tesp = esp -8");
-        $$->threeACCode.push_back("\taddr = *esp //pop return address");
+        $$->threeACCode.push_back("\tesp = esp - 8");
+        $$->threeACCode.push_back("\taddr = *esp");
         $$->threeACCode.push_back("\tgoto addr");
         if(islocal){
             if(!symTables[symTables[currentSymTableId].parentID].name.empty())
@@ -3415,7 +3415,7 @@ ReturnStatement : k_return s_semicolon
         $$->threeACCode.push_back("\tesp = ebp - 8");
         $$->threeACCode.push_back("\tebp = *esp");
         $$->threeACCode.push_back("\tesp = esp - 8");
-        $$->threeACCode.push_back("\taddr = *esp //pop return address");
+        $$->threeACCode.push_back("\taddr = *esp");
         $$->threeACCode.push_back("\tpush " + $2->field);
         $$->threeACCode.push_back("\tgoto addr");
         if(islocal){
@@ -3630,13 +3630,13 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
         $$->field = "t" + to_string(tcounter++);
         $$->type = OBJECT;
         if(islocal){
-            $$->threeACCode.push_back("ClassInstanceCreation :" );
-            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
+            // $$->threeACCode.push_back("ClassInstanceCreation :" );
+            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\tpush addr //push return address" );
+            $$->threeACCode.push_back("\tpush addr" );
             $$->threeACCode.push_back("\tpush ebp");
             $$->threeACCode.push_back("\tebp = esp");
-            $$->threeACCode.push_back("\tpush t" + to_string(tcounter) + " // object reference");
+            $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
@@ -3678,15 +3678,15 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
         $$->field = "t" + to_string(tcounter++);
         $$->type = OBJECT;
         if(islocal){
-            $$->threeACCode.push_back("ClassInstanceCreation :" );
-            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset) + " // size of Object");
+            // $$->threeACCode.push_back("ClassInstanceCreation :" );
+            $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
-            $$->threeACCode.push_back("\tpush addr //push return address" );
+            $$->threeACCode.push_back("\tpush addr" );
             $$->threeACCode.push_back("\tpush ebp");
             $$->threeACCode.push_back("\tebp = esp");
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
             $4->threeACCode.clear();
-            $$->threeACCode.push_back("\tpush t" + to_string(tcounter) + " // push object reference");
+            $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tCall " + reftype + ".ctor");
         }
@@ -3700,7 +3700,7 @@ ArgumentList : Expression
     {
         vt.push_back($1->type);
         vfs.push_back($1->size);
-        $$->threeACCode.push_back("\tpush " + $1->field + " // push argument");
+        $$->threeACCode.push_back("\tpush " + $1->field);
     }
 }
 | ArgumentList s_comma Expression
@@ -3717,7 +3717,7 @@ ArgumentList : Expression
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        $$->threeACCode.push_back("\tpush " + $3->field + " // push argument");
+        $$->threeACCode.push_back("\tpush " + $3->field);
     }
 };
 
@@ -3740,10 +3740,10 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
-            $$->threeACCode.push_back("ArrayDeclaration :" );
+            // $$->threeACCode.push_back("ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string(offsetVal[t]) + " // size of " + enum_types[t]);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string(offsetVal[t]));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
             $$->field = "t" + to_string(tcounter++);
         }
@@ -3808,7 +3808,7 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         $$->type = $2->type;
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
-            $$->threeACCode.push_back("ArrayDeclaration :" );
+            // $$->threeACCode.push_back("ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
             $$->threeACCode.push_back("\t" + $$->field + " = allocate " + $3->field);
@@ -3953,7 +3953,7 @@ FieldAccess : Primary s_dot Identifier
         $$->symid = $1->symid;
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string((*a)[0].offset) + " // offset size of " + $3);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string((*a)[0].offset));
         $$->field = "*" + $$->field;
     }
 }
@@ -3985,7 +3985,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
-        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush addr");
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
@@ -3994,7 +3994,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         if ($$->type != VOID){
             $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp");
         }
     }
 }
@@ -4029,7 +4029,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         vfs.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
-        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush addr");
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
@@ -4039,7 +4039,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         if($$->type != VOID){
             $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp");
         }
         $3->threeACCode.clear();
     }
@@ -4070,7 +4070,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->size = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
         string s($3);
-        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush addr");
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
@@ -4079,7 +4079,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         if ($$->type != VOID){
             $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp");
         }
     }
 }
@@ -4120,7 +4120,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         vt.clear();
         vfs.clear();
         $5->threeACCode.clear();
-        $$->threeACCode.push_back("\tpush addr // push return address");
+        $$->threeACCode.push_back("\tpush addr");
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
@@ -4131,7 +4131,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         if ($$->type != VOID){
             $$->threeACCode.push_back("\tesp = esp - " + to_string(offsetVal[$$->type]));
-            $$->threeACCode.push_back("\t" + $$->field + " = *esp // pop return value");
+            $$->threeACCode.push_back("\t" + $$->field + " = *esp");
         }
     }
 }
@@ -4194,7 +4194,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                 $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + (*a)[i].dimsize);
         }
-        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + " // offset vals for " + enum_types[$1->type]);
+        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == 2){
             $$->field = "*" + $$->field;
@@ -4246,7 +4246,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         for (int i = $$->arrdims.size() + 1; i < (*a).size(); i++){
                 $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + (*a)[i].dimsize);
         }
-        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]) + + " // offset vals for " + enum_types[$1->type]);
+        $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == $$->arrdims.size() + 1){
             $$->field = "*" + $$->field;
@@ -4407,7 +4407,7 @@ PreIncrementExpression : o_increment UnaryExpression
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $2->field + " + 1");
         tcounter++;
-        $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter - 1));
+        $$->threeACCode.push_back("\t" + $2->field + " = " + "t" + to_string(tcounter - 1));
         $$->field = $2->field;
     }
     $$->children.push_back(new Node("++", "Separator", yylineno));
@@ -4433,7 +4433,7 @@ PreDecrementExpression : o_decrement UnaryExpression
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + $2->field + " - 1");
-        $$->threeACCode.push_back("\t" + $2->field + " = " + "  " + "t" + to_string(tcounter - 1));
+        $$->threeACCode.push_back("\t" + $2->field + " = " + "t" + to_string(tcounter - 1));
         $$->field = $2->field;
     }
     $$->children.push_back(new Node("--", "Separator", yylineno));
@@ -4463,7 +4463,7 @@ UnaryExpressionNotPlusMinus : PostFixExpression
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + " ~ " + $2->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + "~ " + $2->field);
     }
     $$->children.push_back(new Node("~", "Separator", yylineno));
     $$->children.push_back($2);
@@ -4487,7 +4487,7 @@ UnaryExpressionNotPlusMinus : PostFixExpression
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + " not " + $2->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = " + "not " + $2->field);
     }
     $$->children.push_back(new Node("!", "Separator", yylineno));
     $$->children.push_back($2);
