@@ -16,7 +16,8 @@ public:
     string field="";
     vector<string>threeACCode;
     vector<string> arrdims;
-
+    bool isfinal = false;
+    
     Node(const char* id) {
         string s(id);
         this->id=s;
