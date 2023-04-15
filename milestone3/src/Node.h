@@ -11,7 +11,7 @@ public:
     vector<Node*> children;
     TYPE type = UNKNOWN;
     int lineno = -1;
-    int size = 0;
+    int sz = 0;
     int symid=1;
     string field="";
     bool isfinal = false;
