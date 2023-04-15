@@ -14,7 +14,7 @@ void generate_quadraple(vector<string>&threeAC){
         while (ss >> word) {
             words.push_back(word);
         }
-        code_gen.push_back(words)
+        code_gen.push_back(words);
         words.clear();
     }
 }

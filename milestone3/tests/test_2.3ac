@@ -1,0 +1,41 @@
+gfg.foo:
+	push rbp
+	rbp = rsp
+	push $0
+	t0 = [rbp+16]
+	t1 = *t0 +int 1
+	*[rbp-8] = t1
+	t0 = [rbp-8]
+	rax = *t0
+	rsp = rbp
+	pop rbp
+	ret
+
+gfg.main:
+	push rbp
+	rbp = rsp
+	push $0
+	push 10
+	push this
+	call gfg.foo
+	rsp = rsp - 8
+	t2 = rax
+	t3 = cast_to_long MethodInvocation
+	*[rbp-8] = t3
+	push $0
+	t0 = [rbp-8]
+	t1 = cast_to_int *t0
+	t2 = t1 +int 20
+	*[rbp-16] = t2
+	t0 = [rbp+8]
+	t1 = *t0
+	t1 = t1 - 0
+	t3 = [rbp-16]
+	push *t3
+	push *t1
+	call PrintStream.println
+	rsp = rsp - 8
+	rsp = rbp
+	pop rbp
+	ret
+
