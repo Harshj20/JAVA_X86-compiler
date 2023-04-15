@@ -1300,14 +1300,8 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush rbp");
         $$->threeACCode.push_back("\trbp = rsp");
-=======
-        $$->threeACCode.push_back("\tpush ebp");
-        $$->threeACCode.push_back("\tebp = esp");
-        $$->threeACCode.push_back("\tpopparam this");
->>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1346,14 +1340,9 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-<<<<<<< HEAD
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
-=======
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.push_back("\tpopparam this");
->>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
     }
 }
 | MethodDeclarator s_open_square_bracket s_close_square_bracket
@@ -1648,14 +1637,9 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         isArgument = -1;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-<<<<<<< HEAD
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
-=======
         $$->threeACCode.push_back("\tpush ebp");
         $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.push_back("\tpopparam this");
->>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
     }
 
 };
@@ -2423,7 +2407,7 @@ IfThenStatement : if_invoke_paren Expression s_close_paren Statement
         $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
     }
 }
 
@@ -2463,7 +2447,7 @@ IfThenElseStatement : if_invoke_paren Expression s_close_paren StatementNoShortI
         $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
     }
 }
 
@@ -2477,7 +2461,7 @@ invoke_else : k_else {
         }
         $$->threeACCode.push_back("\trsp = rsp - " + to_string(tempoffset));
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         initializeSymTable(currentSymTableId);
     }
 }
@@ -2518,7 +2502,7 @@ IfThenElseStatementNoShortIf : if_invoke_paren Expression s_close_paren Statemen
         $$->threeACCode.push_back("L" + to_string(lcounter-1) + ":");
         lcounter -= 2;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
     }
 }
 
@@ -2565,7 +2549,7 @@ WhileStatement : k_while invoke_paren Expression s_close_paren Statement
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2603,7 +2587,7 @@ WhileStatementNoShortIf : k_while invoke_paren Expression s_close_paren Statemen
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();  
         loopscope.pop_back();  
     }
@@ -2641,7 +2625,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2674,7 +2658,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2719,7 +2703,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
 
@@ -2768,7 +2752,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2803,7 +2787,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2841,7 +2825,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2889,7 +2873,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2940,7 +2924,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -2973,7 +2957,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3006,7 +2990,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3051,7 +3035,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
 
@@ -3100,7 +3084,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3135,7 +3119,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3173,7 +3157,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3221,7 +3205,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
@@ -3272,7 +3256,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
         lcounter -= 1;
         currentSymTableId = symTables[currentSymTableId].parentID;
-        localoffset -= tempoffset;
+        localoffset -= isArgument * tempoffset;
         loopscope.pop_back();
         loopscope.pop_back();
     }
