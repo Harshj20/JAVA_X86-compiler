@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #include "Node.h"
 #include "SymTable.h"
+#include "codeGen.h"
 using namespace std;
 extern int yylex();
 extern int yylineno;
@@ -330,7 +331,7 @@ SimpleName : Identifier
             else
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [rbp" + to_string(temp) + "]");
         }
-        $$->field = "*t" + to_string(tcounter++);
+        $$->field = "(t" + to_string(tcounter++) + ")";
         $$->isfinal = symTables[t1].entries[lex][0].isfinal;
     }
     else
@@ -387,7 +388,7 @@ QualifiedName : Name s_dot Identifier
                 $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(temp));
             else
                 $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" - "+ to_string(-temp));
-            $$->field = "*" + $$->field;  
+            $$->field = "(" + $$->field + ")";  
         }
         else
             $$->field = $1->field;
@@ -1071,9 +1072,9 @@ VariableDeclaratorId : Identifier
         }
         int temp = symTables[currentSymTableId].entries[s][0].offset;
         if(temp > 0)
-            $$->field = "*[rbp+" + to_string(temp) + "]";
+            $$->field = "[rbp+" + to_string(temp) + "]";
         else
-            $$->field = "*[rbp" + to_string(temp) + "]";
+            $$->field = "[rbp" + to_string(temp) + "]";
         $$->size = size;
         $$->type = t;
     }
@@ -2611,7 +2612,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     if (!isDot)
     {
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
@@ -2644,7 +2645,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
     if (!isDot)
     {
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
@@ -2773,7 +2774,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
@@ -2809,7 +2810,7 @@ BasicForStatement : k_for invoke_paren s_semicolon s_semicolon s_close_paren Sta
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
@@ -2943,7 +2944,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     if (!isDot)
     {
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $6->threeACCode.begin(), $6->threeACCode.end());
@@ -2976,7 +2977,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
     if (!isDot)
     {
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
@@ -3105,7 +3106,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $7->threeACCode.begin(), $7->threeACCode.end());
@@ -3141,7 +3142,7 @@ BasicForStatementNoShortIf : k_for invoke_paren s_semicolon s_semicolon s_close_
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
-        $$->threeACCode.push_back("\tif true goto L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tif 1 goto L" + to_string(lcounter));
         $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
         $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $8->threeACCode.begin(), $8->threeACCode.end());
@@ -3982,7 +3983,7 @@ FieldAccess : Primary s_dot Identifier
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string((*a)[0].offset));
-        $$->field = "*" + $$->field;
+        $$->field = "(" + $$->field + ")";
     }
 }
 | k_super s_dot Identifier
@@ -4211,7 +4212,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == 2){
-            $$->field = "*" + $$->field;
+            $$->field = "(" + $$->field + ")";
         }
     }
     $$->children.push_back($1);
@@ -4263,7 +4264,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == $$->arrdims.size() + 1){
-            $$->field = "*" + $$->field;
+            $$->field = "(" + $$->field + ")";
         }
     }
     $$->children.push_back($1);
@@ -5568,6 +5569,7 @@ void check_semantics(string filename)
         symTab_csv(&i->second);
     }
     generate_3AC(filename);
+    generate_quadraple(threeAC);
 }
 
 int main(int argc, char **argv)

@@ -2,9 +2,9 @@
 //refer current class instance variables
 class Test
 {
-	public static int main(String[] args)
+	public static int main(int x)
 	{   
-        int z = 5;
+        int z = x;
         while(true){
             char p = 'a';
             if(10<12){

@@ -10,6 +10,7 @@ BFLAGS = -d -t -v
 LEXER = lexer.l
 PARSER = parser.y
 SYMBOL_TABLE = SymTable.cpp
+CODE_GEN = codeGen.cpp
 # Object file
 OBJECT = milestone3
 
@@ -18,12 +19,13 @@ $(OBJECT): $(LEXER) $(PARSER)
 	$(FLEX) $(LEXER)
 	$(BISON) $(BFLAGS) $(PARSER)
 	$(CC) -c $(SYMBOL_TABLE)
-	$(CC) SymTable.o lex.yy.c parser.tab.c -o $(OBJECT)
-	rm -f lex.yy.c parser.tab.c parser.tab.h parser.output SymTable.o
+	$(CC) -c $(CODE_GEN)
+	$(CC) SymTable.o lex.yy.c parser.tab.c codeGen.o -o $(OBJECT)
+	rm -f lex.yy.c parser.tab.c parser.tab.h parser.output SymTable.o codeGen.o
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt
+	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt *.3ac
 
 
 	
