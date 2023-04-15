@@ -28,6 +28,7 @@ int lcounter = -1;
 string isPrivate = "";
 bool isreturn =false;
 bool isstatic = false;
+bool isfinal = false;
 vector<string> threeAC;
 vector<int> loopscope; // to store the scope of loops
 string returnFunctionName = "";
@@ -330,6 +331,7 @@ SimpleName : Identifier
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [rbp" + to_string(temp) + "]");
         }
         $$->field = "*t" + to_string(tcounter++);
+        $$->isfinal = symTables[t1].entries[lex][0].isfinal;
     }
     else
     {
@@ -389,6 +391,7 @@ QualifiedName : Name s_dot Identifier
         }
         else
             $$->field = $1->field;
+        $$->isfinal = symTables[$1->symid].entries[s][0].isfinal;
     }
 }
 
@@ -569,6 +572,13 @@ Modifier : k_public
 | k_final
 {
     $$ = new Node("final", "Keyword", yylineno);
+    if(!isDot){
+        if(isfinal){
+            yyerror("Two modifiers not allowed");
+            exit(0);
+        }
+        isfinal = true;
+    }
 }
 | k_native
 {
@@ -911,6 +921,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
         isarr = false;
         tcounter = 0;
         isstatic = false;
+        isfinal = false;
     }
 }
 | Type VariableDeclaratorList s_semicolon
@@ -929,6 +940,7 @@ FieldDeclaration : Modifiers Type VariableDeclaratorList s_semicolon
     isarr = false;
     tcounter = 1;
     isstatic = false;
+    isfinal = false;
 }
 
 VariableDeclaratorList : VariableDeclarator
@@ -1034,6 +1046,7 @@ VariableDeclaratorId : Identifier
         if (!islocal){
             symTables[currentSymTableId].entries[s][0].isPrivate = (isPrivate == "private") ? true : false;
             symTables[currentSymTableId].entries[s][0].isStatic = isstatic;
+            symTables[currentSymTableId].entries[s][0].isfinal = isfinal;
             symTables[currentSymTableId].entries[s][0].offset = offset;
             offset += offsetVal[t];
         }
@@ -1287,8 +1300,14 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush rbp");
         $$->threeACCode.push_back("\trbp = rsp");
+=======
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
+        $$->threeACCode.push_back("\tpopparam this");
+>>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1327,8 +1346,14 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush rbp");
         $$->threeACCode.push_back("\trbp = rsp");
+=======
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
+        $$->threeACCode.push_back("\tpopparam this");
+>>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
     }
 }
 | MethodDeclarator s_open_square_bracket s_close_square_bracket
@@ -1359,6 +1384,9 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
         returnFunctionName = $1->id;
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
     }
 }
 
@@ -1577,6 +1605,8 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         isArgument = -1;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("\tpush rbp");
         $$->threeACCode.push_back("\trbp = rsp");
@@ -1618,8 +1648,14 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         isArgument = -1;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush rbp");
         $$->threeACCode.push_back("\trbp = rsp");
+=======
+        $$->threeACCode.push_back("\tpush ebp");
+        $$->threeACCode.push_back("\tebp = esp");
+        $$->threeACCode.push_back("\tpopparam this");
+>>>>>>> 2d77dc2bd1495121aae9db4a7b5aa7b509b4f895
     }
 
 };
@@ -4117,9 +4153,6 @@ MethodInvocation : Name s_open_paren s_close_paren
         vt.clear();
         vfs.clear();
         $5->threeACCode.clear();
-        $$->threeACCode.push_back("\tpush addr");
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         string s($3);
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
@@ -4288,6 +4321,10 @@ PostIncrementExpression : PostFixExpression o_increment
             yyerror("Post increment can only be applied to int");
             exit(0);
         }
+        if($1->isfinal){
+            cout << "Cannot reset a final variable" << endl;
+            exit(0);
+        }
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -4313,6 +4350,10 @@ PostDecrementExpression : PostFixExpression o_decrement
         if ($1->size != 0)
         {
             yyerror("Post decrement can only be applied to int");
+            exit(0);
+        }
+        if($1->isfinal){
+            cout << "Cannot reset a final variable" << endl;
             exit(0);
         }
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
@@ -4400,6 +4441,11 @@ PreIncrementExpression : o_increment UnaryExpression
             yyerror("Arrays not allowed");
             exit(0);
         }
+        if($2->isfinal)
+        {
+            yyerror("Cannot increment a final variable");
+            exit(0);
+        }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $2->field + " + 1");
@@ -4425,6 +4471,11 @@ PreDecrementExpression : o_decrement UnaryExpression
         if ($2->size != 0)
         {
             yyerror("Arrays not allowed");
+            exit(0);
+        }
+        if($2->isfinal)
+        {
+            yyerror("Cannot decrement a final variable");
             exit(0);
         }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
@@ -5345,6 +5396,10 @@ Assignment : LeftHandSide AssignmentOperator Expression
         if ($1->size != $3->size)
         {
             yyerror("Assignment Operation can only be applied to same size");
+            exit(0);
+        }
+        if($1->isfinal){
+            yyerror("Cannot re-assign a final variable");
             exit(0);
         }
         $$->type = $1->type;

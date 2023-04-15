@@ -36,7 +36,7 @@ class test_0 {
     {
  
         // Creating object of class 1 inside main() method
-        Addition add = new Addition('1', 2);
+        Addition add = new Addition(1, 2);
  
         // Calling method of above class
         // to add two integer
