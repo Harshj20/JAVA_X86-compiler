@@ -1,0 +1,7 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+Addition,Identifier,void,0,2,13,0
+a,Identifier,int,0,2,8,4
+addTwoInt,Identifier,int,0,2,17,0
+sum,Identifier,int,0,0,7,0
+y,Identifier,char,0,0,9,8
+z,Identifier,int,0,0,10,9

@@ -1,0 +1,104 @@
+Addition.ctor:
+	push ebp
+	ebp = esp
+	popparam this
+	t3 = this
+	t3 = t3 + 4
+	t4 = *t3
+	t5 = 2
+	t5 = t5 * 9
+	t5 = t5 * 4
+	t4 = t4 + t5
+	t6 = t4
+	t7 = 6
+	t7 = t7 * 4
+	t6 = t6 + t7
+	t2 = [ebp+0]
+	*t2 = *t6
+	esp = ebp - 8
+	ebp = *esp
+	esp = esp - 8
+	addr = *esp
+	goto addr
+
+Addition.addTwoInt:
+	push ebp
+	ebp = esp
+	popparam this
+	push sum
+	t0 = this
+	t0 = t0 + 4
+	t1 = *t0
+	t2 = 9
+	t2 = t2 * 9
+	t2 = t2 * 4
+	t1 = t1 + t2
+	*(ebp + 8) = t1
+	t0 = [ebp+0]
+	esp = ebp - 8
+	ebp = *esp
+	esp = esp - 8
+	addr = *esp
+	push *t0
+	goto addr
+
+test_0.main:
+	push ebp
+	ebp = esp
+	popparam this
+	push add
+	t3 = 13
+	t4 = allocate t3
+	push '1'
+	push 2
+	push t4
+	Call Addition.ctor
+	*(ebp + 0) = t4
+	push s
+	t0 = [ebp+0]
+	t1 = *t0
+	t1 = t1 + 4
+	t2 = *t1
+	t3 = 0
+	t3 = t3 * 9
+	t3 = t3 * 4
+	t2 = t2 + t3
+	t4 = t2
+	t5 = 0
+	t5 = t5 * 4
+	t4 = t4 + t5
+	*(ebp + 8) = *t4
+	t2 = [ebp+8]
+	t0 = [ebp+0]
+	t1 = *t0
+	t1 = t1 + 9
+	*t1 = *t2
+	t1 = [ebp+0]
+	t2 = *t1
+	t2 = t2 + 4
+	t3 = *t2
+	t4 = 0
+	t4 = t4 * 9
+	t4 = t4 * 4
+	t3 = t3 + t4
+	t5 = t3
+	t6 = 0
+	t6 = t6 * 4
+	t5 = t5 + t6
+	t0 = [ebp+8]
+	*t0 = *t5
+	push a
+	*(ebp + 12) = "Hello world"
+	push x
+	t0 = [ebp+8]
+	t1 = *t0
+	t1 = t1 + 0
+	push "abc"
+	push *t1
+	call PrintStream.println
+	esp = ebp - 8
+	ebp = *esp
+	esp = esp - 8
+	addr = *esp
+	goto addr
+
