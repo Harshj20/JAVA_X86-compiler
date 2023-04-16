@@ -25,7 +25,7 @@ $(OBJECT): $(LEXER) $(PARSER)
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt *.3ac
+	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt *.3ac *.s
 
 
 	

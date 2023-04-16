@@ -3900,7 +3900,7 @@ DimExprs : DimExpr
        $1->threeACCode.clear();
        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
        $2->threeACCode.clear();
-       $$->field = "t" + to_string(tcounter++);
+       $$->field = "t" + to_string(tcounter);
        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " * " + $2->field);
        $$->arrdims.insert($$->arrdims.end(), $1->arrdims.begin(), $1->arrdims.end());
        $1->arrdims.clear();

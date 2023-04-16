@@ -2,16 +2,12 @@
 #include "codeGen.h"
 using namespace std;
 // vector<vector<string>> code_gen;
+map <string, string> reg_map;
 
-string ebp_offset_to_string(const std::string& s) {
+string ebp_offset_to_string(const string &s) {
     int offset = std::stoi(s.substr(4, s.size() - 5)); // extract the integer value from the string
-    if (offset >= 0) {
-        return std::to_string(offset) + "(%ebp)"; // format the new string for positive offset
-    } else {
-        return std::to_string(offset) + "(%ebp)"; // format the new string for negative offset
-    }
+    return to_string(offset) + "(%rbp)";
 }
-
 
 void generate_quadraple(vector<string> &threeAC){
     ofstream fout;
@@ -41,38 +37,28 @@ void generate_quadraple(vector<string> &threeAC){
         }
         else if(words.size() == 5){
             if(words[3][0] == '+'){
-                fout << "\tadd\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmov\t" << words[0] << ", " << words[4] << endl;
+                fout << "\taddq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << words[0] << ", " << words[4] << endl;
             }
             else if(words[3][0] == '-'){
-                fout << "\tsub\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmov\t" << words[0] << ", " << words[4] << endl;
+                fout << "\tsubq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << words[0] << ", " << words[4] << endl;
             }
             else if(words[3][0] == '*'){
-                fout << "\timul\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmov\t" << words[0] << ", " << words[4] << endl;
+                fout << "\timulq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << words[0] << ", " << words[4] << endl;
             }
             else if(words[3][0] == '/'){
-                fout << "\tmov\t" << "%eax, " << words[2] << endl;
-                fout << "\tmov\t" << "%ebx, " << words[4] << endl;
-                fout << "\tcdq" << endl;
-                fout << "\tidiv\t" << "%ebx" << endl;
-                fout << "\tmov\t" << words[0] << ", " << "%eax" << endl;
+                fout << "\tmovq\t" << words[2] << ", %rax" << endl;
+                fout << "\tcqo" << endl;
+                fout << "\tidivq\t" << words[4] << endl;
+                fout << "\tmovq\t" << words[0] << ", %rax" << endl;
             }
             else if(words[3][0] == '%'){
-                fout << "\tmov\t" << "%eax, " << words[2] << endl;
-                fout << "\tmov\t" << "%ebx, " << words[4] << endl;
-                fout << "\tcdq" << endl;
-                fout << "\tidiv\t" << "%ebx" << endl;
-                fout << "\tmov\t" << words[0] << ", " << "%edx" << endl;
-            }
-            else if(words[3] == "=="){
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tje\t" << words[0] << endl;
-            }
-            else if(words[3] == "!="){
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tjne\t" << words[0] << endl;
+                fout << "\tmovq\t" << words[2] << ", %rax" << endl;
+                fout << "\tcqo" << endl;
+                fout << "\tidivq\t" << words[4] << endl;
+                fout << "\tmovq\t" << words[0] << ", %rdx" << endl;
             }
         }
         else{
