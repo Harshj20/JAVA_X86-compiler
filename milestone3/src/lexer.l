@@ -12,9 +12,11 @@
 
 line_terminators \n|\r|\r\n
 
-Integer 0|[1-9][lL]?|[1-9][0-9_]*[0-9]+[lL]?
+Integer 0|[1-9]|[1-9][0-9_]*[0-9]+
 
-deci_floats [0-9]*"."[0-9]+|[0-9]+"."[0-9]*|[0-9][0-9_]*[0-9]+"."[0-9]*|[0-9]*"."[0-9][0-9_]*[0-9]+[fFdD]|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+
+long 0[lL]|[1-9][0-9_]*[0-9]+[lL]
+
+decimal ([0-9]*"."[0-9]+|[0-9]+"."[0-9]*|[0-9][0-9_]*[0-9]+"."[0-9]*|[0-9]*"."[0-9][0-9_]*[0-9]+|[+-][0-9][0-9_]*[0-9]+"."[0-9][0-9_]*[0-9]+)
 
 hex_floats 0[xX][0-9a-fA-F]*"."[0-9a-fA-F]+|0[xX][0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F]*|0[xX][0-9a-fA-F]*"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+"."[0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]+
 
@@ -158,15 +160,24 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
     yylval.str=strdup(yytext);
     return int_Literal; 
     }
-
-{deci_floats}[fFdD]?      { 
+{long}  {
     yylval.str=strdup(yytext);
-    return deci_flo_Literal; 
+    return long_Literal;
     }
+}
 
-{deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]?|{deci_floats}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]? {
+{decimal}[fF]     { 
     yylval.str=strdup(yytext);
-    return deci_flo_Literal;
+    return deci_float_Literal; 
+    }
+{decimal}[dD]?     { 
+    yylval.str=strdup(yytext);
+    return deci_double_Literal;
+}
+
+{decimal}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]?|{decimal}[eE][+-]?{Integer}[fFdD]?|{Integer}[eE][+-]?{Integer}[fFdD]? {
+    yylval.str=strdup(yytext);
+    return deci_double_Literal;
     }
 
 0[xX][0-9a-fA-F]|0[xX][0-9a-fA-F][0-9a-fA-F_]*[0-9a-fA-F]   {   

@@ -77,7 +77,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %token o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow 
 
-%token<str> Identifier int_Literal bin_Literal deci_flo_Literal oct_Literal hex_flo_Literal string_Literal hex_Literal Text_Block_Literal char_Literal true_Literal false_Literal null_Literal
+%token<str> Identifier int_Literal bin_Literal deci_float_Literal oct_Literal hex_flo_Literal string_Literal hex_Literal Text_Block_Literal char_Literal true_Literal false_Literal null_Literal long_Literal deci_double_Literal
 
 %token<str> s_open_paren s_close_paren s_open_curly_bracket s_close_curly_bracket s_open_square_bracket s_close_square_bracket s_semicolon s_comma s_dot s_varargs s_double_colon
 
@@ -3550,14 +3550,25 @@ PrimaryNoNewArray : int_Literal
     $$ = new Node($1, "Literal", INT, yylineno);
     $$->field = $$->id;
 }
+| long_Literal
+{
+    $$ = new Node($1, "Literal", LONG, yylineno);
+    $$->field = $$->id;
+}
+
 | bin_Literal
 {
     $$ = new Node($1, "Literal", BIN, yylineno);
     $$->field = $$->id;
 }
-| deci_flo_Literal
+| deci_float_Literal
 {
     $$ = new Node($1, "Literal", FLOAT, yylineno);
+    $$->field = $$->id;
+}
+| deci_double_Literal
+{
+    $$ = new Node($1, "Literal", DOUBLE, yylineno);
     $$->field = $$->id;
 }
 | oct_Literal

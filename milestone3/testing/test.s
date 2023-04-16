@@ -1,5 +1,4 @@
 foo:
-.LFB0:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	push    $0
@@ -9,17 +8,12 @@ foo:
 	movq	%rbp, %rsp
 	popq	%rbp
 	ret
-.LFE0:
-	.size	foo, .-foo
-	.section	.rodata
 .LC0:
 	.string	"%d\n"
 	.text
 	.globl	main
 	.type	main, @function
 main:
-.LFB1:
-	endbr64
 	pushq	%rbp
 	movq	%rsp, %rbp
 	push 	$0
