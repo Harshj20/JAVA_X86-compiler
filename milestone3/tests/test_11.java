@@ -16,7 +16,7 @@ public class test_16 {
     public static void main(String[] args) {
             int a = 0, b, c;
             // b = a++;
-            a = b = (a > 1)?c:(a+1);
+            //a = b = (a > 1)?c:(a+1);
             // if(a < b){
             //     a = 1;
             // }
@@ -33,11 +33,10 @@ public class test_16 {
             // }
             // a = hello(2+5*5, a++);
 
-            int q[][][] = new int[10][11][12]; 
-            b = q[4][5][q[2][2][3]];
-            a = 11;
-            c = a + 1;
-            b = a + c;
+            // int q[][][] = new int[10][11][12]; 
+            // b = q[4][5][q[2][2][3]];
+            a = 1 + 1;
+            //b = a + c;
             // int q[] = {1,2,5,6,3};
             // int q = 5;
             // float r = 10.0;

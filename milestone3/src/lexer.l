@@ -164,8 +164,6 @@ CONTEXTUAL_WORD "exports"|"module"|"non-sealed"|"open"|"opens"|"permits"|"provid
     yylval.str=strdup(yytext);
     return long_Literal;
     }
-}
-
 {decimal}[fF]     { 
     yylval.str=strdup(yytext);
     return deci_float_Literal; 

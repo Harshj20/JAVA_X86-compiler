@@ -8,22 +8,22 @@ class Test
 	// Parameterized constructor
 	static Test(int a, int b)
 	{
-		this.a = a;
-		this.b = b;
-		int c = (((a++)+3)+(int)(3.0));
+		//this.a = a;
+		//this.b = b;
+		//int c = (((a++)+3)+(int)(3.0));
 		int d= 2+3*4;
-		int e= 5-4+3;
+		int e= d*2 + d*3;
 	}
 
-	static void display()
-	{
-		//Displaying value of variables a and b
-		System.out.println("a = " + a + " b = " + b);
-	}
+	// static void display()
+	// {
+	// 	//Displaying value of variables a and b
+	// 	System.out.println("a = " + a + " b = " + b);
+	// }
 
-	public static void main(String[] args)
-	{
-		Test object = new Test(10, 20);
-		object.display();
-	}
+	// public static void main(String[] args)
+	// {
+	// 	Test object = new Test(10, 20);
+	// 	object.display();
+	// }
 }

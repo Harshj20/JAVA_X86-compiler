@@ -4,7 +4,7 @@ int foo(int x){
     return c;
 }
 int main(){
-    long c = foo(10);
+    int c = foo(10);
     int d = c + 20;
     printf("%d\n", d);
     return 0;
