@@ -1305,6 +1305,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         localoffset = 0;
         isArgument = -1;
         returnFunctionName = $1;
+<<<<<<< HEAD
         if(symTables[symTables[currentSymTableId].parentID].name == entryClass && returnFunctionName == "main"){
             $$->threeACCode.push_back("main:");
             isMain = true;
@@ -1312,6 +1313,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         else
             $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
         $$->threeACCode.push_back("\tpush\t%rbp");
+=======
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back("\tpush %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\t%rbp = %rsp");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
@@ -1350,6 +1355,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         localoffset = 0;
         isArgument = -1;
         returnFunctionName = $1;
+<<<<<<< HEAD
         if(symTables[symTables[currentSymTableId].parentID].name == entryClass && returnFunctionName == "main"){
             $$->threeACCode.push_back("main:");
             isMain = true;
@@ -1357,6 +1363,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         else
             $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
         $$->threeACCode.push_back("\tpush\t%rbp");
+=======
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back("\tpush %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 }
@@ -1388,6 +1398,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
         returnFunctionName = $1->id;
+<<<<<<< HEAD
         if(symTables[symTables[currentSymTableId].parentID].name == entryClass && returnFunctionName == "main"){
             $$->threeACCode.push_back("main:");
             isMain = true;
@@ -1395,6 +1406,10 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         else
             $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
         $$->threeACCode.push_back("\tpush\t%rbp");
+=======
+        $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
+        $$->threeACCode.push_back("\tpush %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 }
@@ -1476,7 +1491,11 @@ MethodBody : Block
         }
         if(!isreturn){
             $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1489,7 +1508,11 @@ MethodBody : Block
     if(!isDot){
         if(!isreturn){
             $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1615,7 +1638,11 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush\t%rbp");
+=======
+        $$->threeACCode.push_back("\tpush %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\t%rbp = %rsp");
         $3->threeACCode.clear();
     }
@@ -1655,7 +1682,11 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         isArgument = -1;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpush\t%rbp");
+=======
+        $$->threeACCode.push_back("\tpush %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 
@@ -1669,7 +1700,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     if(!isDot){
         if(!isreturn){
             $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1683,7 +1718,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $2->threeACCode.clear();
         if(!isreturn){
            $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1700,7 +1739,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $2->threeACCode.clear();
         if(!isreturn){
             $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1719,7 +1762,11 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $3->threeACCode.clear();
         if(!isreturn){
             $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
             $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+            $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -3429,7 +3476,11 @@ ReturnStatement : k_return s_semicolon
         exit(0);
     }   
         $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+        $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\tret");
         if(islocal){
             if(!symTables[symTables[currentSymTableId].parentID].name.empty())
@@ -3464,7 +3515,11 @@ ReturnStatement : k_return s_semicolon
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\trax = " + $2->field);
         $$->threeACCode.push_back("\t%rsp = %rbp");
+<<<<<<< HEAD
         $$->threeACCode.push_back("\tpopq\t%rbp");
+=======
+        $$->threeACCode.push_back("\tpop %rbp");
+>>>>>>> 477d781473442eb261aeef9b873c7b4c8e2c54a8
         $$->threeACCode.push_back("\tret");
         if(islocal){
             if(!symTables[symTables[currentSymTableId].parentID].name.empty())

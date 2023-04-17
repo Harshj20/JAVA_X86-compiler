@@ -7,6 +7,7 @@ set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r
 
 string ebp_offset_to_string(const string &s) {
     int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
+    int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
     return to_string(offset) + "(%rbp)";
 }
 
@@ -28,7 +29,7 @@ bool isReg(const string &s){
     return false;
 }
 bool istemp(const string &s) {
-    if(s[0] == 't' || (s[0] == '(' && s[1] == 't'))
+    if((s[0] == 't' && s[1] != 'h')|| (s[0] == '(' && s[1] == 't'))
         return true;
     return false;
 }
@@ -103,6 +104,12 @@ void generate_quadraple(vector<string> &threeAC){
             else if(istemp(words[2])){
                 reg_set.insert(reg_map[extract(words[2])]);
                 words[2] = updatetemp(true, words[2]);
+            }
+        }
+        else if(words.size() == 2){
+            if(istemp(words[0])){
+                reg_map[extract(words[0])] = *reg_set.begin();
+                reg_set.erase(reg_set.begin());
             }
         }
         else if(words.size()==5){
@@ -191,6 +198,9 @@ void generate_quadraple(vector<string> &threeAC){
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
+        }
+        else if(words.size() == 2){
+            fout << "\t" << words[0] << "\t" << words[1] << endl;
         }
         else{
             fout << i << endl;
