@@ -39,6 +39,19 @@ string updatetemp(const string &s) {
 void generate_quadraple(vector<string> &threeAC){
     ofstream fout;
     fout.open("code.s");
+    fout << ".LC0:" << endl;
+	fout << "\t.string  \"%d\\n\"" << endl;
+    fout << "PrintStream.println:" << endl;
+    fout << "\tpushq	%rbp" << endl;
+    fout << "\tmovq	%rsp, %rbp" << endl;
+    fout << "\tmovq	-8(%rbp), %rsi" << endl;
+	fout << "\tleaq	.LC0(%rip), %rdi" << endl;
+	fout << "\tmovq	$0, %rax" << endl;
+	fout << "\tcall	printf@PLT" << endl;
+	fout << "\tmovq	$0, %rax" << endl;
+    fout << "\tmovq	%rbp, %rsp" << endl;
+    fout << "\tpopq	%rbp" << endl;
+    fout << "\tret" << endl;
     for(auto i : threeAC){
         if(i.empty())
             continue;

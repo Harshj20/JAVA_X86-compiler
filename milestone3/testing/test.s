@@ -1,10 +1,10 @@
 foo:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	sub 	%rsp, 4
-	movl	12(%rbp), %eax
-	addl	$1, %eax
-	movl	%eax, -4(%rbp)
+	push    $0
+	movq	16(%rbp), %rax
+	addq	$1, %rax
+	movq	%rax, -8(%rbp)
 	movq	%rbp, %rsp
 	popq	%rbp
 	ret
@@ -16,19 +16,18 @@ foo:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	sub 	%rsp, 4
-	sub 	%rsp, 4
-	sub 	%rsp, 4
-	movl 	$10, -12(%rbp)
+	push 	$0
+	push	$0
+	push    $10
 	call	foo
 	cltq
-	addq	$4, %rsp
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
-	addl	$20, %eax
-	movl	%eax, -8(%rbp)
-	movl	-8(%rbp), %eax
-	movq	%rax, %rsi
+	addq	$8, %rsp
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
+	addq	$20, %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	movq	-8(%rbp), %rsi
 	leaq	.LC0(%rip), %rdi
 	movq	$0, %rax
 	call	printf@PLT
@@ -36,3 +35,4 @@ main:
 	movq	%rbp, %rsp
 	popq	%rbp
 	ret
+	

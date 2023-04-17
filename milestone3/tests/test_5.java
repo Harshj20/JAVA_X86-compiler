@@ -13,6 +13,7 @@ class Test
 		//int c = (((a++)+3)+(int)(3.0));
 		int d= 2+3*4;
 		int e= d*2 + d*3;
+		System.out.println(e);
 	}
 
 	// static void display()
