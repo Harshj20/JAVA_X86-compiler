@@ -7,7 +7,6 @@ set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r
 
 string ebp_offset_to_string(const string &s) {
     int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
-    int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
     return to_string(offset) + "(%rbp)";
 }
 
