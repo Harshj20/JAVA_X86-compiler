@@ -27,6 +27,11 @@ class test_5
 		// test_5(2, 3);
 		int d= 2+3*4 ;
 		int e= d*2 + d*3;
+		// if(e > 20){
+		// 	e = 5;
+		// }
+		// else
+		// 	e = 10;
 		System.println(e);
 	}
 }

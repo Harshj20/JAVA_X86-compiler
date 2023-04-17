@@ -75,19 +75,15 @@ void generate_quadraple(vector<string> &threeAC){
         while (ss >> word) {
             if(word[0] == '[')
                 words.push_back(ebp_offset_to_string(word));
+            else if(is_integer(word))
+                words.push_back("$" + word);
             else
                 words.push_back(word);
         }
         if(words.size() == 2){
             if(words[0][0] == 'p'){
-                cout<<words[0] << " "<< words[1]<<endl;
                 if(istemp(words[1])){
-                    cout<<words[1]<<endl;
                     words[1] = updatetemp(true, words[1]);
-                    cout<<words[1]<<endl;
-                }
-                else if(!isReg(words[1])){
-                    words[1] = "$" + words[1];
                 }
             }
         }
@@ -134,21 +130,18 @@ void generate_quadraple(vector<string> &threeAC){
                 if(words[0] != words[2]){
                     reg_map[extract(words[0])] = reg_map[extract(words[2])];
                     words[2] = updatetemp(true, words[2]);
-                    words[4] = "$" + words[4];
                 }
             }
             else if(istemp(words[4])){
                 if(words[0] != words[4]){
                     reg_map[extract(words[0])] = reg_map[extract(words[4])];
                     words[4] = updatetemp(true, words[4]);
-                    words[2] = "$" + words[2];
                     swap(words[2],words[4]);
                 }
             }
-            else{
-                fout << "\tmovq\t" << "$" + words[2] << ", " << *reg_set.begin() << endl;
+            else if(istemp(words[0])){
+                fout << "\tmovq\t" << words[2] << ", " << *reg_set.begin() << endl;
                 reg_map[extract(words[0])] = *reg_set.begin();
-                words[4] = "$" + words[4];
                 words[2] = reg_map[extract(words[0])];
                 reg_set.erase(reg_set.begin());
             }
