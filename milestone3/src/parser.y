@@ -326,13 +326,16 @@ SimpleName : Identifier
         if(!symTables[t1].entries[lex][0].isfunction &&  !class_to_symboltable[lex]){
             if(!symTables[t1].name.empty()){
                     $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = this + " + to_string(symTables[t1].entries[lex][0].offset));
+                    // $$->field = "t" + to_string(tcounter++);
             }
             else{
                 int temp = symTables[t1].entries[lex][0].offset;
                 if(temp > 0)
                     $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+" + to_string(temp) + "]");
+                    // $$->field = "[%rbp+" + to_string(temp) + "]";
                 else
                     $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp" + to_string(temp) + "]");
+                    // $$->field = "[%rbp" + to_string(temp) + "]";
             }
         }
         $$->field = "t" + to_string(tcounter++);
@@ -5027,12 +5030,13 @@ RelationalExpression : ShiftExpression
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\t" + $$->field + " = " + old_field + " <= " + $3->field);
         }
-        if($3->type<$1->type){
+        else if($3->type<$1->type){
             $$->threeACCode.push_back("\t" + $$->field + " = " + "cast_to_" + enum_types[$1->type] + " " + $3->field);
             old_field = $$->field;
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " <= " + old_field);
         }
+        else $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field + " <= " + $3->field);
     }
     $$->children.push_back($1);
     $$->children.push_back(new Node("<=", "Separator", yylineno));

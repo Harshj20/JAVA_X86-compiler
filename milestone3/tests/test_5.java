@@ -34,12 +34,16 @@ class test_5
 		int e= d*2 + d*3;
 		//int z = foo(2,e);
 		//boolean z = 4 > 3;
-		int x = 3%2;
+		int x = 1;
+		e = (2 <= 20)? 5 : 10;
+		while(x < 5){
+			x = x+1;
+		}
 		if(e==70){
 			System.println(x);
 		}
 		else{
-			System.println(e);
+			System.println(x+e);
 		}
 		// if(e > 20){
 		// 	e = 5;

@@ -63,12 +63,12 @@ void generate_quadraple(vector<string> &threeAC){
     fout << "\tmovq\t%rbp, %rsp" << endl;
     fout << "\tpopq\t%rbp" << endl;
     fout << "\tret\n" << endl;
-    for(auto i : threeAC){
-        if(i.empty()){
+    for(int i = 0; i != threeAC.size(); i++){
+        if(threeAC[i].empty()){
             fout<<endl;
             continue;
         }
-        stringstream ss(i);
+        stringstream ss(threeAC[i]);
         vector<string> words;
 
         string word;
@@ -83,6 +83,29 @@ void generate_quadraple(vector<string> &threeAC){
             }
             else
                 words.push_back(word);
+        }
+        if(words.size() == 3 && istemp(words[0]) && !isReg(words[2]) && !istemp(words[2]) && words[2][0] != '$'){
+            stringstream ss(threeAC[i+1]);
+            vector<string> words2;
+
+            string word;
+            while (ss >> word) {
+                if(word[0] == '[')
+                    words2.push_back(ebp_offset_to_string(word));
+                else if(is_integer(word))
+                    words2.push_back("$" + word);
+                else if(word[0] == 'L' && word[1] == '-'){
+                    word[1] = '.';
+                    words2.push_back(word);
+                }
+                else
+                    words2.push_back(word);
+            }
+            if(words2[0] == words[0]){
+                words2[0] = words[2];
+                i++;
+                words = words2;
+            }
         }
         if(words.size() == 2){
             if(words[0][0] == 'p'){
@@ -334,7 +357,7 @@ void generate_quadraple(vector<string> &threeAC){
             fout << words[0] << endl;
         }
         else{
-            fout << i << endl;
+            fout << threeAC[i] << endl;
         }
         // for(int i = 0; i < words.size(); i++){
         //     fout << words[i] << " ";
