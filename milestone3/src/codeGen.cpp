@@ -77,6 +77,10 @@ void generate_quadraple(vector<string> &threeAC){
                 words.push_back(ebp_offset_to_string(word));
             else if(is_integer(word))
                 words.push_back("$" + word);
+            else if(word[0] == 'L' && word[1] == '-'){
+                word[1] = '.';
+                words.push_back(word);
+            }
             else
                 words.push_back(word);
         }
@@ -154,7 +158,7 @@ void generate_quadraple(vector<string> &threeAC){
 
         if(words[0] == "if"){
             fout << "\ttest\t" << words[1] <<", " << words[1]<<endl;
-            fout << "\tjz\t" << words[3] << endl;
+            fout << "\tjnz\t" << words[3] << endl;
         }
         else if(words[0] == "goto"){
             fout << "\tjmp\t" << words[1] << endl; 
@@ -179,71 +183,159 @@ void generate_quadraple(vector<string> &threeAC){
                 fout << "\tmovq\t" << words[2] << ", " << words[0] << endl;
             }
             else if(words[3][0] == '/') {
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rbx" << endl;
+                    words[4] = "%rbx";
+                }
                 fout << "\tmovq\t" << words[2] << ", %rax" << endl;
                 fout << "\tcqto\t" << endl;
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rax" << ", " << words[0] << endl;
             }
             else if(words[3][0] == '%') {
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rbx" << endl;
+                    words[4] = "%rbx";
+                }
                 fout << "\tmovq\t" << words[2] << ", %rax" << endl;
                 fout << "\tcqto\t" << endl;
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
-            else if(words[3][0] == '<') {
-                if(!isReg(words[4])){
-                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
-                    words[4] = "%rdx";
-                }
+            else if(words[3] == ">"){
                 if(!isReg(words[2])){
                     fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
                     words[2] = "%rcx";
                 }
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tsetg\t%al" << endl;
-                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
-            }
-            else if(words[3][0] == '>') {
                 if(!isReg(words[4])){
                     fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
                     words[4] = "%rdx";
-                }
-                if(!isReg(words[2])){
-                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
-                    words[2] = "%rcx";
                 }
                 fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
                 fout << "\tsetl\t%al" << endl;
                 fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
             }
-            else if(words[3][0] == '=') {
+            else if(words[3] == "<"){
+                if (!isReg(words[2]))
+                {
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if (!isReg(words[4]))
+                {
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetg\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3] == "<="){
+                if (!isReg(words[2]))
+                {
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if (!isReg(words[4]))
+                {
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetge\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3] == ">="){
+                if (!isReg(words[2]))
+                {
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if (!isReg(words[4]))
+                {
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetle\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3] == "!="){
+                if (!isReg(words[2]))
+                {
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if (!isReg(words[4]))
+                {
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetne\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3] == "=="){
+                if (!isReg(words[2]))
+                {
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if (!isReg(words[4]))
+                {
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
                 fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
                 fout << "\tsete\t%al" << endl;
                 fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
             }
-            else if(words[3][0] == '!') {
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tsetne\t%al" << endl;
-                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            else if(words[3][0] == '&'){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tandq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
-            else if(words[3][0] == '&') {
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tsetne\t%al" << endl;
-                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            else if(words[3][0] == '|'){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\torq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
-            else if(words[3][0] == '|') {
-                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tsetne\t%al" << endl;
-                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            else if(words[3][0] == '^'){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\txorq\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
         }
         else if(words.size() == 2){
             fout << "\t" << words[0] << "\t" << words[1] << endl;
         }
+        else if (words.size() == 1){
+            fout << words[0] << endl;
+        }
         else{
             fout << i << endl;
         }
-
         // for(int i = 0; i < words.size(); i++){
         //     fout << words[i] << " ";
         // }
