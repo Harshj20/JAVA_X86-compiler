@@ -80,7 +80,6 @@ void generate_quadraple(vector<string> &threeAC){
             else if(word[0] == 'L' && word[1] == '-'){
                 word[1] = '.';
                 words.push_back(word);
-                cout<< word<<endl;
             }
             else
                 words.push_back(word);
