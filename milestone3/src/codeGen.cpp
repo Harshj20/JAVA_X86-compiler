@@ -190,6 +190,52 @@ void generate_quadraple(vector<string> &threeAC){
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
+            else if(words[3][0] == '<') {
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetg\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3][0] == '>') {
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetl\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3][0] == '=') {
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsete\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3][0] == '!') {
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetne\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3][0] == '&') {
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetne\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
+            else if(words[3][0] == '|') {
+                fout << "\tcmp\t" << words[2] << ", " << words[4] << endl;
+                fout << "\tsetne\t%al" << endl;
+                fout << "\tmovzbq\t" << "%al, " << words[0] << endl;
+            }
         }
         else if(words.size() == 2){
             fout << "\t" << words[0] << "\t" << words[1] << endl;

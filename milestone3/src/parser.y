@@ -3463,7 +3463,7 @@ ReturnStatement : k_return s_semicolon
     }
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\trax = " + $2->field);
+        $$->threeACCode.push_back("\t%rax = " + $2->field);
         $$->threeACCode.push_back("\t%rsp = %rbp");
         $$->threeACCode.push_back("\tpopq\t%rbp");
         $$->threeACCode.push_back("\tret");
@@ -3769,11 +3769,11 @@ ArgumentList : Expression
     {
         vt.push_back($3->type);
         vfs.push_back($3->sz);
-        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
-        $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         $$->threeACCode.push_back("\tpush " + $3->field);
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
         $$->sz = $1->sz + offsetVal[$3->type];
     }
 };
@@ -4047,7 +4047,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         // else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t" + $$->field + " = rax");
+            $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
 }
@@ -4089,7 +4089,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($3->sz));
         if($$->type != VOID){
-            $$->threeACCode.push_back("\t" + $$->field + " = rax");
+            $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
         $3->threeACCode.clear();
     }
@@ -4125,7 +4125,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         // else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t" + $$->field + " = rax");
+            $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
 }
@@ -4174,7 +4174,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
         $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($5->sz));
         if ($$->type != VOID){
-            $$->threeACCode.push_back("\t" + $$->field + " = rax");
+            $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
 }
