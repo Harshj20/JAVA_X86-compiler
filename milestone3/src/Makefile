@@ -29,5 +29,6 @@ clean:
 run:
 	gcc -c code.s -o code.o
 	gcc code.o -o code
+	./code
 
 	

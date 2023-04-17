@@ -22,16 +22,22 @@ class test_5
 	// 	System.out.println("a = " + a + " b = " + b);
 	// }
 
+	static int foo(int a, int b){
+		int c =  b - a;
+		return c;
+	}
+
 	public static void main(String[] args)
 	{
 		// test_5(2, 3);
 		int d= 2+3*4 ;
 		int e= d*2 + d*3;
+		int z = foo(2,e);
 		// if(e > 20){
 		// 	e = 5;
 		// }
 		// else
 		// 	e = 10;
-		System.println(e);
+		System.println(z);
 	}
 }
