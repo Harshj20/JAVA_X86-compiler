@@ -1,4 +1,0 @@
-Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
-args,Identifier,string,0,1,24,16
-main,Identifier,void,0,1,24,0
-object,Identifier,object,0,0,26,-24
