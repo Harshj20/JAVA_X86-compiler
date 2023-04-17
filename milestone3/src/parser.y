@@ -1303,8 +1303,8 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
+        $$->threeACCode.push_back("\tpush\t%rbp");
+        $$->threeACCode.push_back("\t%rbp = %rsp");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
     }
@@ -1343,8 +1343,8 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         isArgument = -1;
         returnFunctionName = $1;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
+        $$->threeACCode.push_back("\tpush\t%rbp");
+        $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 }
 | MethodDeclarator s_open_square_bracket s_close_square_bracket
@@ -1376,8 +1376,8 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         }
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
+        $$->threeACCode.push_back("\tpush\t%rbp");
+        $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 }
 
@@ -1457,8 +1457,8 @@ MethodBody : Block
             exit(0);
         }
         if(!isreturn){
-            $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1470,8 +1470,8 @@ MethodBody : Block
     $$ = new Node(";", "Separator", yylineno);
     if(!isDot){
         if(!isreturn){
-            $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1597,8 +1597,8 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
+        $$->threeACCode.push_back("\tpush\t%rbp");
+        $$->threeACCode.push_back("\t%rbp = %rsp");
         $3->threeACCode.clear();
     }
 }
@@ -1637,8 +1637,8 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         isArgument = -1;
         returnFunctionName = $1->id;
         $$->threeACCode.push_back(className + ".ctor" + ":");
-        $$->threeACCode.push_back("\tpush rbp");
-        $$->threeACCode.push_back("\trbp = rsp");
+        $$->threeACCode.push_back("\tpush\t%rbp");
+        $$->threeACCode.push_back("\t%rbp = %rsp");
     }
 
 };
@@ -1650,8 +1650,8 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
     $$->children.push_back(new Node("}", "Separator", yylineno));
     if(!isDot){
         if(!isreturn){
-            $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1664,8 +1664,8 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         if(!isreturn){
-           $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+           $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1681,8 +1681,8 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         if(!isreturn){
-            $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -1700,8 +1700,8 @@ ConstructorBody : s_open_curly_bracket s_close_curly_bracket
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
         if(!isreturn){
-            $$->threeACCode.push_back("\trsp = rbp");
-            $$->threeACCode.push_back("\tpop rbp");
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpopq\t%rbp");
             $$->threeACCode.push_back("\tret");
         }
         isreturn = false;
@@ -3410,8 +3410,8 @@ ReturnStatement : k_return s_semicolon
         yyerror("Return size of function does not match return statement");
         exit(0);
     }   
-        $$->threeACCode.push_back("\trsp = rbp");
-        $$->threeACCode.push_back("\tpop rbp");
+        $$->threeACCode.push_back("\t%rsp = %rbp");
+        $$->threeACCode.push_back("\tpopq\t%rbp");
         $$->threeACCode.push_back("\tret");
         if(islocal){
             if(!symTables[symTables[currentSymTableId].parentID].name.empty())
@@ -3445,8 +3445,8 @@ ReturnStatement : k_return s_semicolon
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
         $$->threeACCode.push_back("\trax = " + $2->field);
-        $$->threeACCode.push_back("\trsp = rbp");
-        $$->threeACCode.push_back("\tpop rbp");
+        $$->threeACCode.push_back("\t%rsp = %rbp");
+        $$->threeACCode.push_back("\tpopq\t%rbp");
         $$->threeACCode.push_back("\tret");
         if(islocal){
             if(!symTables[symTables[currentSymTableId].parentID].name.empty())
