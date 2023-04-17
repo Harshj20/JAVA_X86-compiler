@@ -17,6 +17,12 @@ bool is_integer(const string &s) {
     return (*p == 0) ;
 }
 
+string extract(const string &s){
+    if(s[0] == '(')
+        return s.substr(1, s.size() - 2);
+    return s;
+}
+
 bool istemp(const string &s) {
     if(s[0] == 't' || (s[0] == '(' && s[1] == 't'))
         return true;
@@ -24,8 +30,8 @@ bool istemp(const string &s) {
 }
 
 string updatetemp(const string &s) {
-    if(s[0]=='(' && s[1]=='t')
-        return  "(" + reg_map[s] + ")";
+    if(s[0]=='(' && s[1]== 't')
+        return  "(" + reg_map[extract(s)] + ")";
     else 
         return reg_map[s];
 }
@@ -47,89 +53,84 @@ void generate_quadraple(vector<string> &threeAC){
                 words.push_back(word);
         }
         if(words.size()==3){
-            if(istemp(words[0]) && istemp(words[2]) && reg_map.find(words[0]) == reg_map.end()){
-                reg_map[words[0]] = reg_map[words[2]];
+            if(istemp(words[0]) && istemp(words[2]) && reg_map.find(extract(words[0])) == reg_map.end()){
+                reg_map[extract(words[0])] = reg_map[extract(words[2])];
                 words[2] = updatetemp(words[2]);
-                reg_map.erase(words[2]);
+                reg_map.erase(extract(words[2]));
             }
             else if(istemp(words[0])){
-                reg_map[words[0]] = *reg_set.begin();
+                reg_map[extract(words[0])] = *reg_set.begin();
                 reg_set.erase(reg_set.begin());
             }
             else if(istemp(words[2])){
-                reg_set.insert(reg_map[words[2]]);
+                reg_set.insert(reg_map[extract(words[2])]);
                 words[2] = updatetemp(words[2]);
-                reg_map.erase(words[2]);
+                reg_map.erase(extract(words[2]));
             }
         }
         else if(words.size()==5){
             if(istemp(words[2]) && istemp(words[4])){
-                if(reg_map.find(words[0]) != reg_map.end()){
+                if(reg_map.find(extract(words[0])) != reg_map.end()){
                     if(words[0] != words[2]){
-                        reg_set.insert(reg_map[words[2]]);
+                        reg_set.insert(reg_map[extract(words[2])]);
                         words[2] = updatetemp(words[2]);
-                        reg_map.erase(words[2]);
+                        reg_map.erase(extract(words[2]));
                     }
                     if(words[0] != words[4]){
-                        reg_set.insert(reg_map[words[4]]);
+                        reg_set.insert(reg_map[extract(words[4])]);
                         words[4] = updatetemp(words[4]);
-                        reg_map.erase(words[4]);
+                        reg_map.erase(extract(words[4]));
                     }
                 }
                 else{
-                    reg_map[words[0]] = reg_map[words[2]];
+                    reg_map[extract(words[0])] = reg_map[extract(words[2])];
                     words[2] = updatetemp(words[2]);
-                    reg_map.erase(words[2]);
-                    reg_set.insert(reg_map[words[4]]);
+                    reg_map.erase(extract(words[2]));
+                    reg_set.insert(reg_map[extract(words[4])]);
                     words[4] = updatetemp(words[4]);
-                    reg_map.erase(words[4]);
+                    reg_map.erase(extract(words[4]));
                 }
             }
             else if(istemp(words[2])){
                 if(words[0] != words[2]){
-                    reg_map[words[0]] = reg_map[words[2]];
+                    reg_map[extract(words[0])] = reg_map[extract(words[2])];
                     words[2] = updatetemp(words[2]);
-                    reg_map.erase(words[2]);
+                    reg_map.erase(extract(words[2]));
                     words[4] = "$" + words[4];
                 }
             }
             else if(istemp(words[4])){
                 if(words[0] != words[4]){
-                    reg_map[words[0]] = reg_map[words[4]];
+                    reg_map[extract(words[0])] = reg_map[extract(words[4])];
                     words[4] = updatetemp(words[4]);
-                    reg_map.erase(words[4]);
+                    reg_map.erase(extract(words[4]));
                     words[2] = "$" + words[2];
                     swap(words[2],words[4]);
                 }
             }
             else{
                 fout << "\tmovq\t" << "$" + words[2] << ", " << *reg_set.begin() << endl;
-                reg_map[words[0]] = *reg_set.begin();
+                reg_map[extract(words[0])] = *reg_set.begin();
                 words[4] = "$" + words[4];
-                words[2] = reg_map[words[0]];
+                words[2] = reg_map[extract(words[0])];
                 reg_set.erase(reg_set.begin());
             }
         }
 
         for(int i = 0; i < words.size(); i++){
-            if(reg_map.find(words[i]) != reg_map.end())
+            if(reg_map.find(extract(words[i])) != reg_map.end())
                 words[i] = updatetemp(words[i]);
-            else if(words[i][0] == '('){
-                string s = words[i].substr(1, words[i].size() - 2);
-                if(reg_map.find(s) != reg_map.end())
-                    words[i] = updatetemp(s);
-            }
         }
 
         if(words[0] == "if"){
-            fout << "\ttest " << words[1] <<", " << words[1]<<endl;
-            fout << "\tjz " << words[3] << endl;
+            fout << "\ttest\t" << words[1] <<", " << words[1]<<endl;
+            fout << "\tjz\t" << words[3] << endl;
         }
         else if(words[0] == "goto"){
-            fout << "\tjmp " << words[1] << endl; 
+            fout << "\tjmp\t" << words[1] << endl; 
         }
         else if(words.size() == 3){
-            fout << "\tmov\t" << words[2] << ", " << words[0] << endl;
+            fout << "\tmovq\t" << words[2] << ", " << words[0] << endl;
         }
         else if(words.size() == 5){
             if(words[3][0] == '+'){
@@ -149,13 +150,13 @@ void generate_quadraple(vector<string> &threeAC){
             }
             else if(words[3][0] == '/') {
                 fout << "\tmovq\t" << words[2] << ", %rax" << endl;
-                fout << "\tcqto" << endl;
+                fout << "\tcqto\t" << endl;
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rax" << ", " << words[0] << endl;
             }
             else if(words[3][0] == '%') {
                 fout << "\tmovq\t" << words[2] << ", %rax" << endl;
-                fout << "\tcqto" << endl;
+                fout << "\tcqto\t" << endl;
                 fout << "\tidivq\t" << words[4] << endl;
                 fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
             }
