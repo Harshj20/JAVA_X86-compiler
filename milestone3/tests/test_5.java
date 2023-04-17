@@ -30,10 +30,16 @@ class test_5
 	public static void main(String[] args)
 	{
 		// test_5(2, 3);
-		//int d= 2+3*4 ;
-		//int e= d*2 + d*3;
+		int d= 2+3*4 ;
+		int e= d*2 + d*3;
 		//int z = foo(2,e);
-		boolean z = 4 > 3;
+		//boolean z = 4 > 3;
+		if(e==70){
+			System.println(1);
+		}
+		else{
+			System.println(2);
+		}
 		// if(e > 20){
 		// 	e = 5;
 		// }
