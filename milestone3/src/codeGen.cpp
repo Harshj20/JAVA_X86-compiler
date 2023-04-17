@@ -6,7 +6,7 @@ map <string, string> reg_map;
 set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
 
 string ebp_offset_to_string(const string &s) {
-    int offset = std::stoi(s.substr(4, s.size() - 5)); // extract the integer value from the string
+    int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
     return to_string(offset) + "(%rbp)";
 }
 
@@ -22,18 +22,27 @@ string extract(const string &s){
         return s.substr(1, s.size() - 2);
     return s;
 }
-
+bool isReg(const string &s){
+    if(s[0] == '%' || s[0] == '[' && s[1] == '%')
+        return true;
+    return false;
+}
 bool istemp(const string &s) {
     if(s[0] == 't' || (s[0] == '(' && s[1] == 't'))
         return true;
     return false;
 }
 
-string updatetemp(const string &s) {
+string updatetemp(bool del, const string &s) {
+    string ret = "";
     if(s[0]=='(' && s[1]== 't')
-        return  "(" + reg_map[extract(s)] + ")";
+        ret = "(" + reg_map[extract(s)] + ")";
     else 
-        return reg_map[s];
+        ret = reg_map[s];
+    if(del){
+        reg_map.erase(extract(s));
+    }
+    return ret;
 }
 
 void generate_quadraple(vector<string> &threeAC){
@@ -41,20 +50,24 @@ void generate_quadraple(vector<string> &threeAC){
     fout.open("code.s");
     fout << ".LC0:" << endl;
 	fout << "\t.string  \"%d\\n\"" << endl;
-    fout << "PrintStream.println:" << endl;
-    fout << "\tpushq	%rbp" << endl;
-    fout << "\tmovq	%rsp, %rbp" << endl;
-    fout << "\tmovq	-8(%rbp), %rsi" << endl;
-	fout << "\tleaq	.LC0(%rip), %rdi" << endl;
-	fout << "\tmovq	$0, %rax" << endl;
-	fout << "\tcall	printf@PLT" << endl;
-	fout << "\tmovq	$0, %rax" << endl;
-    fout << "\tmovq	%rbp, %rsp" << endl;
-    fout << "\tpopq	%rbp" << endl;
-    fout << "\tret" << endl;
+    fout << "\t.text" << endl;
+    fout << "\t.globl main" << endl;
+    fout << "System.println:" << endl;
+    fout << "\tpushq\t%rbp" << endl;
+    fout << "\tmovq\t%rsp, %rbp" << endl;
+    fout << "\tmovq\t16(%rbp), %rsi" << endl;
+	fout << "\tleaq\t.LC0(%rip), %rdi" << endl;
+	fout << "\tmovq\t$0, %rax" << endl;
+	fout << "\tcall printf@PLT" << endl;
+	fout << "\tmovq\t$0, %rax" << endl;
+    fout << "\tmovq\t%rbp, %rsp" << endl;
+    fout << "\tpopq\t%rbp" << endl;
+    fout << "\tret\n" << endl;
     for(auto i : threeAC){
-        if(i.empty())
+        if(i.empty()){
+            fout<<endl;
             continue;
+        }
         stringstream ss(i);
         vector<string> words;
 
@@ -65,11 +78,23 @@ void generate_quadraple(vector<string> &threeAC){
             else
                 words.push_back(word);
         }
-        if(words.size()==3){
+        if(words.size() == 2){
+            if(words[0][0] == 'p'){
+                cout<<words[0] << " "<< words[1]<<endl;
+                if(istemp(words[1])){
+                    cout<<words[1]<<endl;
+                    words[1] = updatetemp(true, words[1]);
+                    cout<<words[1]<<endl;
+                }
+                else if(!isReg(words[1])){
+                    words[1] = "$" + words[1];
+                }
+            }
+        }
+        else if(words.size()==3){
             if(istemp(words[0]) && istemp(words[2]) && reg_map.find(extract(words[0])) == reg_map.end()){
                 reg_map[extract(words[0])] = reg_map[extract(words[2])];
-                words[2] = updatetemp(words[2]);
-                reg_map.erase(extract(words[2]));
+                words[2] = updatetemp(true, words[2]);
             }
             else if(istemp(words[0])){
                 reg_map[extract(words[0])] = *reg_set.begin();
@@ -77,8 +102,7 @@ void generate_quadraple(vector<string> &threeAC){
             }
             else if(istemp(words[2])){
                 reg_set.insert(reg_map[extract(words[2])]);
-                words[2] = updatetemp(words[2]);
-                reg_map.erase(extract(words[2]));
+                words[2] = updatetemp(true, words[2]);
             }
         }
         else if(words.size()==5){
@@ -86,37 +110,31 @@ void generate_quadraple(vector<string> &threeAC){
                 if(reg_map.find(extract(words[0])) != reg_map.end()){
                     if(words[0] != words[2]){
                         reg_set.insert(reg_map[extract(words[2])]);
-                        words[2] = updatetemp(words[2]);
-                        reg_map.erase(extract(words[2]));
+                        words[2] = updatetemp(true, words[2]);
                     }
                     if(words[0] != words[4]){
                         reg_set.insert(reg_map[extract(words[4])]);
-                        words[4] = updatetemp(words[4]);
-                        reg_map.erase(extract(words[4]));
+                        words[4] = updatetemp(true, words[4]);
                     }
                 }
                 else{
                     reg_map[extract(words[0])] = reg_map[extract(words[2])];
-                    words[2] = updatetemp(words[2]);
-                    reg_map.erase(extract(words[2]));
+                    words[2] = updatetemp(true, words[2]);
                     reg_set.insert(reg_map[extract(words[4])]);
-                    words[4] = updatetemp(words[4]);
-                    reg_map.erase(extract(words[4]));
+                    words[4] = updatetemp(true, words[4]);
                 }
             }
             else if(istemp(words[2])){
                 if(words[0] != words[2]){
                     reg_map[extract(words[0])] = reg_map[extract(words[2])];
-                    words[2] = updatetemp(words[2]);
-                    reg_map.erase(extract(words[2]));
+                    words[2] = updatetemp(true, words[2]);
                     words[4] = "$" + words[4];
                 }
             }
             else if(istemp(words[4])){
                 if(words[0] != words[4]){
                     reg_map[extract(words[0])] = reg_map[extract(words[4])];
-                    words[4] = updatetemp(words[4]);
-                    reg_map.erase(extract(words[4]));
+                    words[4] = updatetemp(true, words[4]);
                     words[2] = "$" + words[2];
                     swap(words[2],words[4]);
                 }
@@ -132,7 +150,7 @@ void generate_quadraple(vector<string> &threeAC){
 
         for(int i = 0; i < words.size(); i++){
             if(reg_map.find(extract(words[i])) != reg_map.end())
-                words[i] = updatetemp(words[i]);
+                words[i] = updatetemp(false, words[i]);
         }
 
         if(words[0] == "if"){
@@ -177,6 +195,11 @@ void generate_quadraple(vector<string> &threeAC){
         else{
             fout << i << endl;
         }
+
+        // for(int i = 0; i < words.size(); i++){
+        //     fout << words[i] << " ";
+        // }
+        // fout<<endl;
 
         words.clear();
     }
