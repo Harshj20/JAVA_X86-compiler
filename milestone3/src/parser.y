@@ -331,7 +331,7 @@ SimpleName : Identifier
             else
                 $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [rbp" + to_string(temp) + "]");
         }
-        $$->field = "(t" + to_string(tcounter++) + ")";
+        $$->field = "t" + to_string(tcounter++);
         $$->isfinal = symTables[t1].entries[lex][0].isfinal;
     }
     else
@@ -382,13 +382,13 @@ QualifiedName : Name s_dot Identifier
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         if(!symTables[$1->symid].entries[s][0].isfunction){
-            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+            // $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
             int temp = symTables[$1->symid].entries[s][0].offset;
             if(temp > 0)
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(temp));
+                $$->threeACCode.push_back("\t" + $$->field + " = (" + $1->field +") + "+ to_string(temp));
             else
-                $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" - "+ to_string(-temp));
-            $$->field = "(" + $$->field + ")";  
+                $$->threeACCode.push_back("\t" + $$->field + " = (" + $1->field +") - "+ to_string(-temp));
+            // $$->field = "(" + $$->field + ")";  
         }
         else
             $$->field = $1->field;

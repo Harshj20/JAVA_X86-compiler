@@ -1,0 +1,6 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+Test,Identifier,void,0,2,9,0
+a,Identifier,int,0,0,9,16
+b,Identifier,int,0,0,9,24
+d,Identifier,int,0,0,14,-8
+e,Identifier,int,0,0,15,-16
