@@ -1050,6 +1050,7 @@ VariableDeclaratorId : Identifier
             symTables[currentSymTableId].entries[s][0].isfinal = isfinal;
             symTables[currentSymTableId].entries[s][0].offset = offset;
             offset += offsetVal[t];
+            symTables[1].entries[symTables[currentSymTableId].name][0].offset = offset;
         }
         else{
             $$->threeACCode.push_back("\tpush $0");
@@ -1067,7 +1068,8 @@ VariableDeclaratorId : Identifier
             if(!islocal)
                 offset += symTables[1].entries[reftype][0].offset;
             else{
-
+                localoffset += symTables[1].entries[reftype][0].offset*isArgument;
+                symTables[currentSymTableId].entries[s][0].offset = localoffset;
             }
         }
         int temp = symTables[currentSymTableId].entries[s][0].offset;
