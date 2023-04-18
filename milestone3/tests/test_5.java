@@ -30,16 +30,13 @@ class test_5
 	public static void main(String[] args)
 	{
 		// test_5(2, 3);
-		int d= 2^(2|4) ;
-		int e= d*2 + d*3;
+		// int d= 2^(2|4) ;
+		// int e= d*2 + d*3;
 		//int z = foo(2,e);
-		//boolean z = 4 > 3;
+		boolean z = 4 < 3;
 		int x = 1;
-		e = (2 <= 20)? 5 : 10;
-		while(x < 5){
-			x = x+1;
-		}
-		if(e==70){
+		int e = 5;
+		if(e==70 && z){
 			System.println(x);
 		}
 		else{

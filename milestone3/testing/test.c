@@ -1,11 +1,11 @@
 #include<stdio.h>
-int foo(int x){
-    int c = x + 1;
-    return c;
-}
+#include<stdlib.h>
+
 int main(){
-    int c = foo(10);
-    int d = c + 20;
-    printf("%d\n", d);
+    int *a = malloc(10*sizeof(int));
+    a[0] = 1;
+    a[7] = 7;
+    a[8] = a[7] + a[0];
+    printf("%d\n", a[8]);
     return 0;
 }

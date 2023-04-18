@@ -107,34 +107,44 @@ void generate_quadraple(vector<string> &threeAC){
                 words = words2;
             }
         }
+
         if(words.size() == 2){
             if(words[0][0] == 'p'){
                 if(istemp(words[1])){
                     words[1] = updatetemp(true, words[1]);
                 }
             }
+            if(istemp(words[0])){
+                reg_map[extract(words[0])] = *reg_set.begin();
+                reg_set.erase(reg_set.begin());
+            }
         }
+
         else if(words.size()==3){
             if(istemp(words[0]) && istemp(words[2]) && reg_map.find(extract(words[0])) == reg_map.end()){
                 reg_map[extract(words[0])] = reg_map[extract(words[2])];
                 words[2] = updatetemp(true, words[2]);
             }
             else if(istemp(words[0])){
-                reg_map[extract(words[0])] = *reg_set.begin();
-                reg_set.erase(reg_set.begin());
+                if(reg_map.find(extract(words[0])) == reg_map.end()){
+                    reg_map[extract(words[0])] = *reg_set.begin();
+                    reg_set.erase(reg_set.begin());
+                }
             }
             else if(istemp(words[2])){
                 reg_set.insert(reg_map[extract(words[2])]);
                 words[2] = updatetemp(true, words[2]);
             }
         }
-        else if(words.size() == 2){
+        
+        else if(words.size() == 4){
             if(istemp(words[0])){
-                reg_map[extract(words[0])] = *reg_set.begin();
-                reg_set.erase(reg_set.begin());
+                reg_map[extract(words[0])] = reg_map[extract(words[3])];
+                words[3] = updatetemp(true, words[3]);
             }
         }
-        else if(words.size()==5){
+
+        else if(words.size() == 5){
             if(istemp(words[2]) && istemp(words[4])){
                 if(reg_map.find(extract(words[0])) != reg_map.end()){
                     if(words[0] != words[2]){
@@ -178,10 +188,16 @@ void generate_quadraple(vector<string> &threeAC){
             if(reg_map.find(extract(words[i])) != reg_map.end())
                 words[i] = updatetemp(false, words[i]);
         }
-
-        if(words[0] == "if"){
-            fout << "\ttest\t" << words[1] <<", " << words[1]<<endl;
-            fout << "\tjnz\t" << words[3] << endl;
+        if(words.size() == 4){
+            if(words[0] == "if"){
+                fout << "\ttest\t" << words[1] <<", " << words[1]<<endl;
+                fout << "\tjnz\t" << words[3] << endl;
+            }
+            else if(words[2] == "allocate"){
+                fout << "\tmovq\t" << words[3] << ", %rdi" << endl;
+                fout << "\tcall\tmalloc@PLT" << endl;
+                fout << "\tmovq\t%rax, " << words[0] << endl;
+            }
         }
         else if(words[0] == "goto"){
             fout << "\tjmp\t" << words[1] << endl; 
@@ -323,7 +339,8 @@ void generate_quadraple(vector<string> &threeAC){
                     words[4] = "%rdx";
                 }
                 fout << "\tandq\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
+                if(words[4] != words[0])
+                fout << "\tmovq\t" << words[4] << ", " << words[0] << endl;
             }
             else if(words[3][0] == '|'){
                 if(!isReg(words[2])){
@@ -335,7 +352,8 @@ void generate_quadraple(vector<string> &threeAC){
                     words[4] = "%rdx";
                 }
                 fout << "\torq\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
+                if(words[4] != words[0])
+                fout << "\tmovq\t" << words[4] << ", " << words[0] << endl;
             }
             else if(words[3][0] == '^'){
                 if(!isReg(words[2])){
@@ -347,7 +365,8 @@ void generate_quadraple(vector<string> &threeAC){
                     words[4] = "%rdx";
                 }
                 fout << "\txorq\t" << words[2] << ", " << words[4] << endl;
-                fout << "\tmovq\t" << "%rdx" << ", " << words[0] << endl;
+                if(words[4] != words[0])
+                fout << "\tmovq\t" << words[4] << ", " << words[0] << endl;
             }
         }
         else if(words.size() == 2){
