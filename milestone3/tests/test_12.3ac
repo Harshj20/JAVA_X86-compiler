@@ -1,0 +1,15 @@
+main:
+	push	%rbp
+	%rbp = %rsp
+	push 0
+	[%rbp-8] = 0
+	t0 = [%rbp-8]
+	t0 = 1
+	t2 = [%rbp-8]
+	push t2
+	call System.println
+	%rsp = %rsp + 8
+	%rsp = %rbp
+	popq	%rbp
+	ret
+

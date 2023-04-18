@@ -992,17 +992,16 @@ VariableDeclarator : VariableDeclaratorId
             $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             if(t > $3->type){
-                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->id);
+                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = cast_to_" + enum_types[t] + " " + $3->field);
                 $$->threeACCode.push_back("\t"+ $1->field + " = t" + to_string(tcounter++));
             }
             else
                 $$->threeACCode.push_back("\t"+ $1->field + " = " + $3->field);
             if(isarr && arrinit.size()>0){
-                $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->id);
-                $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[0]);
-                for(int i=1;i<arrinit.size();i++){
-                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(offsetVal[t]));
-                     $$->threeACCode.push_back("\t*t" + to_string(tcounter++) + " = " + arrinit[i]);
+                for(int i=0;i<arrinit.size();i++){
+                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->field);
+                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter) + " + " + to_string(i*offsetVal[t]));
+                    $$->threeACCode.push_back("\t(t" + to_string(tcounter++) + ") = " + arrinit[i]);
                 }
                 arrinit.clear();
             }
@@ -1099,6 +1098,8 @@ VariableDeclaratorId : Identifier
         $$->field = $1->field;
         ++sz;
         isarr = true;
+        $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
+        $1->threeACCode.clear();
     }
     else
         $$ = new Node("VariableDeclaratorId");
