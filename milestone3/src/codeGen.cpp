@@ -3,7 +3,8 @@
 using namespace std;
 map <string, string> reg_map;
 
-set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+set<string> reg_set = {"%r8", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+bool isr9 = false;
 
 string ebp_offset_to_string(const string &s) {
     int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
@@ -107,13 +108,15 @@ void generate_quadraple(vector<string> &threeAC){
                 words.push_back(word);
         }
 
-
         // -----------------------------  Reg Alloc for size = 2 -----------------------------
 
         if(words.size() == 2){
             if(words[0][0] == 'p'){
                 if(istemp(words[1])){
-                    reg_set.insert(reg_map[extract(words[1])]);
+                    if(reg_map[extract(words[1])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[1])]);
                     words[1] = updatetemp(true, words[1]);
                 }
             }
@@ -149,7 +152,10 @@ void generate_quadraple(vector<string> &threeAC){
                         //     reg_map[extract(words[2])] = *(reg_set.begin());
                         // }
                         string s1 = words[2];
-                        reg_set.insert(reg_map[extract(words[2])]);
+                        if(reg_map[extract(words[2])] == "%r9")
+                            isr9 = false;
+                        else
+                            reg_set.insert(reg_map[extract(words[2])]);
                         words[2] = updatetemp(false, words[2]);
                         fout << "\tmovq\t" << words[2] << ", " << reg_map[extract(s1)] << endl;
                         words[2] = extract(updatetemp(true, s1));
@@ -159,10 +165,16 @@ void generate_quadraple(vector<string> &threeAC){
                         //     fout << "\tmovq\t" << reg_map[extract(words[2])] << ", " << *(reg_set.begin()) << endl;
                         //     reg_map[extract(words[2])] = *(reg_set.begin());
                         // }
-                        reg_set.insert(reg_map[extract(words[2])]);
+                        if(reg_map[extract(words[2])] == "%r9")
+                            isr9 = false;
+                        else
+                            reg_set.insert(reg_map[extract(words[2])]);
                         words[2] = updatetemp(true, words[2]);
                     }
-                    reg_set.insert(reg_map[extract(words[0])]);
+                    if(reg_map[extract(words[0])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[0])]);
                     words[0] = updatetemp(true, words[0]);
                 }
             }
@@ -170,9 +182,15 @@ void generate_quadraple(vector<string> &threeAC){
             else if(istemp(words[0])){ 
                 if(!isMemRem(words[0])){
                     //if(isMemRem(words[2])) // t1 = (%rbp){
-                        if(reg_map.find(extract(words[0])) == reg_map.end()){
-                            reg_map[extract(words[0])] = *(reg_set.begin());
-                            reg_set.erase(reg_set.begin());
+                        if(reg_map.find(extract(words[0])) == reg_map.end()){  
+                            if(words[2] == "%rax" && !isr9){
+                                reg_map[extract(words[0])] = "%r9";
+                                isr9 = true;
+                            }
+                            else{
+                                reg_map[extract(words[0])] = *(reg_set.begin());
+                                reg_set.erase(reg_set.begin());
+                            }
                         }
                     //}
                     // else{  // t1 = $1
@@ -185,27 +203,33 @@ void generate_quadraple(vector<string> &threeAC){
                         fout << "\tmovq\t" << words[2] << ", " << *(reg_set.begin()) << endl;
                         words[2] = *(reg_set.begin());
                         // reg_set.erase(reg_set.begin());
-                        reg_set.insert(reg_map[extract(words[0])]);
+                        if(reg_map[extract(words[0])] == "%r9")
+                            isr9 = false;
+                        else
+                            reg_set.insert(reg_map[extract(words[0])]);
                         words[0] = updatetemp(true, words[0]);
                     }
                 }
             }
             
             else if(istemp(words[2])){
-                cout<<1<<endl;
                 if(isMemRem(words[2])){ // ebp = (t)
-                cout<<2<<endl;
                     string s1 = words[2];
-                    reg_set.insert(reg_map[extract(words[2])]);
+                    if(reg_map[extract(words[1])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[2])]);
                     words[2] = updatetemp(false, words[2]);
                     fout << "\tmovq\t" << words[2] << ", " << reg_map[extract(s1)] << endl;
                     words[2] = extract(updatetemp(true, s1));
                 }
                 else{ // ebp = t
-                    reg_set.insert(reg_map[extract(words[2])]);
+                    if(reg_map[extract(words[2])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[2])]);
                     words[2] = updatetemp(true, words[2]);
                 }
-                cout<<"complete"<<endl;
             }
 
             else{
@@ -222,7 +246,7 @@ void generate_quadraple(vector<string> &threeAC){
                 words[3] = updatetemp(true, words[3]);
             }
         }
-
+        
 
         //---------------------------- size = 5 ----------------------
 
@@ -230,7 +254,10 @@ void generate_quadraple(vector<string> &threeAC){
             if(isMemRem(words[2])){ // () + somthing
                 if(istemp(words[2])){
                     string s1 = words[2];
-                    reg_set.insert(reg_map[extract(words[2])]);
+                    if(reg_map[extract(words[2])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[2])]);
                     words[2] = updatetemp(false, words[2]);
                     fout << "\tmovq\t" << words[2] << ", " << reg_map[extract(s1)] << endl;
                     words[2] = extract(updatetemp(true, s1));
@@ -242,8 +269,14 @@ void generate_quadraple(vector<string> &threeAC){
             }
             else{
                 if(istemp(words[2])){
-                    reg_set.insert(reg_map[extract(words[2])]);
+                    if(reg_map[extract(words[2])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[2])]);
                     words[2] = updatetemp(true, words[2]);
+                }
+                else if (words[2] == "%rsp"){
+                    // rsp = rsp - constant
                 }
                 else{
                     fout << "\tmovq\t" << words[2] << ", " << *(reg_set.begin()) << endl;
@@ -253,13 +286,19 @@ void generate_quadraple(vector<string> &threeAC){
             //------------by now words 2 is just a normal register like %r10 and its mapping is lost
 
             if(istemp(words[4])){ // c + (t) or t
-                reg_set.insert(reg_map[extract(words[4])]);
+                if(reg_map[extract(words[4])] == "%r9")
+                        isr9 = false;
+                else
+                    reg_set.insert(reg_map[extract(words[4])]);
                 words[4] = updatetemp(true, words[4]);
             }
             //----------by now mapping of words[4] is lost and words 4 is just a normal register or a (register) or a some constant
             if(istemp(words[0])){ // 
                 if(isMemRem(words[0])){ // (t) = 
-                    reg_set.insert(reg_map[extract(words[0])]);
+                    if(reg_map[extract(words[0])] == "%r9")
+                        isr9 = false;
+                    else
+                        reg_set.insert(reg_map[extract(words[0])]);
                     words[0] = updatetemp(true, words[0]);
                 }
                 else if(reg_map.find(extract(words[0])) == reg_map.end()){
@@ -268,7 +307,6 @@ void generate_quadraple(vector<string> &threeAC){
                 }
             }
         }
-        cout << reg_set.size() << " " << i+1 << endl;
         for(int i = 0; i < words.size(); i++){
             if(reg_map.find(extract(words[i])) != reg_map.end())
                 words[i] = updatetemp(false, words[i]);
