@@ -4376,7 +4376,7 @@ PostDecrementExpression : PostFixExpression o_decrement
         $1->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-        $$->threeACCode.push_back("\t" + $1->field + " = " + $$->field + " - 1");
+        $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " - 1");
     }
     $$->children.push_back($1);
 };
