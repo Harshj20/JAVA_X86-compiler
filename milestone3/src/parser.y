@@ -331,14 +331,13 @@ SimpleName : Identifier
             else{
                 int temp = symTables[t1].entries[lex][0].offset;
                 if(temp > 0)
-                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+" + to_string(temp) + "]");
-                    // $$->field = "[%rbp+" + to_string(temp) + "]";
+                    //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+" + to_string(temp) + "]");
+                     $$->field = "[%rbp+" + to_string(temp) + "]";
                 else
-                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp" + to_string(temp) + "]");
-                    // $$->field = "[%rbp" + to_string(temp) + "]";
+                    //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp" + to_string(temp) + "]");
+                     $$->field = "[%rbp" + to_string(temp) + "]";
             }
         }
-        $$->field = "t" + to_string(tcounter++);
         $$->isfinal = symTables[t1].entries[lex][0].isfinal;
     }
     else
@@ -389,13 +388,13 @@ QualifiedName : Name s_dot Identifier
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         if(!symTables[$1->symid].entries[s][0].isfunction){
-            // $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
             int temp = symTables[$1->symid].entries[s][0].offset;
             if(temp > 0)
-                $$->threeACCode.push_back("\t" + $$->field + " = (" + $1->field +") + "+ to_string(temp));
+                $$->threeACCode.push_back("\t" + $$->field + " = (" + $$->field +") + "+ to_string(temp));
             else
-                $$->threeACCode.push_back("\t" + $$->field + " = (" + $1->field +") - "+ to_string(-temp));
-            // $$->field = "(" + $$->field + ")";  
+                $$->threeACCode.push_back("\t" + $$->field + " = (" + $$->field +") - "+ to_string(-temp));
+            $$->field = "(" + $$->field + ")";  
         }
         else
             $$->field = $1->field;
@@ -999,9 +998,9 @@ VariableDeclarator : VariableDeclaratorId
                 $$->threeACCode.push_back("\t"+ $1->field + " = " + $3->field);
             if(isarr && arrinit.size()>0){
                 for(int i=0;i<arrinit.size();i++){
-                    $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + $1->field);
-                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter-1) + " + " + to_string(i*offsetVal[t]));
-                    $$->threeACCode.push_back("\t(t" + to_string(tcounter) + ") = " + arrinit[i]);
+                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = " + $1->field);
+                    $$->threeACCode.push_back("\tt"+ to_string(tcounter) + " = t" + to_string(tcounter) + " + " + to_string(i*offsetVal[t]));
+                    $$->threeACCode.push_back("\t(t" + to_string(tcounter++) + ") = " + arrinit[i]);
                 }
                 arrinit.clear();
             }
@@ -1293,15 +1292,15 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             yyerror("Function already declared");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1][0].isStatic = isstatic;
+        symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
-            // symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
+            symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
         }
         vt.clear();
@@ -1338,15 +1337,15 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             yyerror("Function already declared");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1][0].isStatic = isstatic;
+        symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
-            // symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
+            symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
         }
         vt.clear();
@@ -1381,15 +1380,15 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             yyerror("Function already declared");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
+        symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
-            // symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
+            symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
         returnFunctionName = $1->id;
@@ -1475,9 +1474,7 @@ MethodBody : Block
 {
     $$ = $1;
     if(!isDot){
-        int t1 = symTables[currentSymTableId].grand_lookup(returnFunctionName);
-        cout<<t1<<endl;
-        if(symTables[t1].entries[returnFunctionName][0].type != VOID && !isreturn){
+        if(symTables[currentSymTableId].entries[returnFunctionName][0].type != VOID && !isreturn){
             yyerror("Function must return a value");
             exit(0);
         }
@@ -1603,9 +1600,9 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
             yyerror("Constructor name does not match class name");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
+        symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
@@ -1644,9 +1641,9 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
             yyerror("Constructor name does not match class name");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
+        symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
+        symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
+        symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
@@ -3419,7 +3416,7 @@ ReturnStatement : k_return s_semicolon
     $$->children.push_back(new Node("return", "Keyword", yylineno));
     $$->children.push_back(new Node(";", "Separator", yylineno));
     if(!isDot){
-    int t1 = symTables[currentSymTableId].grand_lookup(returnFunctionName);
+    int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
         if (!t1)
     {
         yyerror("Function associated with this return statement not found");
@@ -3451,7 +3448,7 @@ ReturnStatement : k_return s_semicolon
     $$->children.push_back($2);
     $$->children.push_back(new Node(";", "Separator", yylineno));
     if(!isDot){
-        int t1 = symTables[currentSymTableId].grand_lookup(returnFunctionName);
+        int t1 = symTables[currentSymTableId].lookup(returnFunctionName);
     if (!t1)
     {
         yyerror("Function associated with this return statement not found");
@@ -4092,8 +4089,6 @@ MethodInvocation : Name s_open_paren s_close_paren
         // if(symTables[$1->symid].grand_lookup(returnFunctionName))
         //     $$->threeACCode.push_back("\tpush this");
         // else $$->threeACCode.push_back("\tpush " + $1->field);
-        if(symTables[$1->symid].name.empty())
-            cout<<$1->symid<<endl;
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
         $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($3->sz));
         if($$->type != VOID){
@@ -4248,8 +4243,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == 2){
-            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = (" + $$->field + ")");
-            $$->field = "t" + to_string(tcounter-1);
+            $$->field = "(" + $$->field + ")";
         }
     }
     $$->children.push_back($1);
@@ -4301,8 +4295,7 @@ ArrayAccess : Name s_open_square_bracket Expression s_close_square_bracket
         $$->threeACCode.push_back("\t" + s1 + " = " + s1 + " * " + to_string(offsetVal[$1->type]));
         $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field + " + " + s1);
         if((*a).size() == $$->arrdims.size() + 1){
-            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = (" + $$->field + ")");
-            $$->field = "t" + to_string(tcounter-1);
+            $$->field = "(" + $$->field + ")";
         }
     }
     $$->children.push_back($1);
@@ -4352,7 +4345,7 @@ PostIncrementExpression : PostFixExpression o_increment
         $1->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
-        $$->threeACCode.push_back("\t" + $1->field + " = " + $$->field + " + 1");
+        $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " + 1");
     }
 
     $$->children.push_back($1);
@@ -5612,7 +5605,6 @@ void check_semantics(string filename)
         cout << "Error: No main function found" << endl;
         exit(0);
     }
-    generate_quadraple(threeAC);
 }
 
 int main(int argc, char **argv)
@@ -5627,6 +5619,7 @@ int main(int argc, char **argv)
     int output_index = 0;
     bool flag_help = false;
     int t1 = 1;
+    bool only3ac = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -5660,6 +5653,13 @@ int main(int argc, char **argv)
         else if (arg.find("--dot") == 0)
         {
             isDot = true;
+            t1++;
+            continue;
+        }
+        else if (arg.find("--3ac") == 0)
+        {
+            isDot = true;
+            only3ac = true;
             t1++;
             continue;
         }
@@ -5734,6 +5734,8 @@ int main(int argc, char **argv)
             else{
                 check_semantics("../tests/" + entryClass + ".3ac");
             }
+            if(!only3ac)
+                generate_quadraple(threeAC);
         }
     }
     else
