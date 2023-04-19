@@ -1,0 +1,68 @@
+test_9.fibonacci:
+	push	%rbp
+	%rbp = %rsp
+	t0 = [%rbp+16]
+	t1 = t0 == 0
+	if t1 goto L-1
+	goto L-2
+L-1:
+	%rax = 0
+	%rsp = %rbp
+	popq	%rbp
+	ret
+	%rsp = %rsp + 0
+L-2:
+	t2 = [%rbp+16]
+	t3 = t2 == 1
+	if t3 goto L-3
+	goto L-4
+L-3:
+	%rax = 1
+	%rsp = %rbp
+	popq	%rbp
+	ret
+	%rsp = %rsp + 0
+L-4:
+	t4 = [%rbp+16]
+	t5 = t4 == 2
+	if t5 goto L-5
+	goto L-6
+L-5:
+	%rax = 2
+	%rsp = %rbp
+	popq	%rbp
+	ret
+	%rsp = %rsp + 0
+L-6:
+	t7 = [%rbp+16]
+	t8 = t7 -int 1
+	push t8
+	call test_9.fibonacci
+	%rsp = %rsp + 8
+	t9 = %rax
+	t11 = [%rbp+16]
+	t12 = t11 -int 2
+	push t12
+	call test_9.fibonacci
+	%rsp = %rsp + 8
+	t13 = %rax
+	t14 = t9 +int t13
+	%rax = t14
+	%rsp = %rbp
+	popq	%rbp
+	ret
+
+main:
+	push	%rbp
+	%rbp = %rsp
+	push 6
+	call test_9.fibonacci
+	%rsp = %rsp + 8
+	t18 = %rax
+	push t18
+	call System.println
+	%rsp = %rsp + 8
+	%rsp = %rbp
+	popq	%rbp
+	ret
+
