@@ -1,36 +1,51 @@
+.section    .rodata
 .LC0:
-	.string	"%d\n"
+	.string    "%d\n"
 	.text
-	.globl	main
-	.type	main, @function
-main:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$16, %rsp
-	movl	$40, %edi
-	call	malloc@PLT
-	movq	%rax, -8(%rbp)
-	movq	-8(%rbp), %rax
-	movl	$1, (%rax)
-	movq	-8(%rbp), %rax
-	addq	$28, %rax
-	movl	$7, (%rax)
-	movq	-8(%rbp), %rax
-	addq	$28, %rax
-	movl	(%rax), %ecx
-	movq	-8(%rbp), %rax
-	movl	(%rax), %edx
-	movq	-8(%rbp), %rax
-	addq	$32, %rax
-	addl	%ecx, %edx
-	movl	%edx, (%rax)
-	movq	-8(%rbp), %rax
-	addq	$32, %rax
-	movl	(%rax), %eax
-	movl	%eax, %esi
-	leaq	.LC0(%rip), %rdi
-	movl	$0, %eax
-	call	printf@PLT
-	movl	$0, %eax
-	leave
+	.globl    main
+GFG : 
+sum : 
+	pushq %rbp
+	movq %rsp, %rbp
+	movq 16(%rbp), %rdx
+	movq %rdx, -8(%rbp)
+	movq 24(%rbp), %rdx
+	movq %rdx, -16(%rbp)
+	subq $64, %rsp
+	movq -8(%rbp), %rax
+	movq -16(%rbp), %rdx
+	addq %rax, %rdx
+	movq %rdx, -32(%rbp)
+	movq -32(%rbp), %rax
+	movq %rax, -24(%rbp)
+	movq -24(%rbp), %rax
+	leave 
+	ret 
+main : 
+	pushq %rbp
+	movq %rsp, %rbp
+	subq $64, %rsp
+	movq $1, -8(%rbp)
+	movq -8(%rbp), %rax
+	movq %rax, -32(%rbp)
+	movq -32(%rbp), %rax
+	movq $1, %rdx
+	addq %rax, %rdx
+	movq %rdx, -8(%rbp)
+	movq -32(%rbp), %rax
+	movq %rax, -16(%rbp)
+	movq -16(%rbp), %rax
+	movq %rax, %rsi
+	leaq .LC0(%rip), %rax
+	movq %rax, %rdi
+	movq $0, %rax
+	call printf@PLT
+	movq -8(%rbp), %rax
+	movq %rax, %rsi
+	leaq .LC0(%rip), %rax
+	movq %rax, %rdi
+	movq $0, %rax
+	call printf@PLT
+	movq $0, %rax
+	leave 
 	ret
