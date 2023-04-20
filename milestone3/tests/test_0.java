@@ -14,9 +14,6 @@ class Addition {
     //     x = this.a[2][6];
     //     // this.a[2][3] = x;
     // }
-    static public Addition(){
-
-    }
     int addTwoInt(int a, int b)
     {
  
@@ -40,16 +37,17 @@ class test_0 {
  
         // Creating object of class 1 inside main() method
         Addition add = new Addition();
-        add.z = add.addTwoInt(1,5);
+        add.a[0][0] = 1;
+        //add.z = add.addTwoInt(1,5);
         // Calling method of above class
         // to add two integer
         // // using instance created
-        //int s = add.a[0][0];
+        int s = add.a[0][0];
         //add.z = s;
         //s = add.a[0][0];
         //String a = "Hello world";
         //int x, z[];
         // Printing the sum of two numbers
-        System.out.println(add.z);
+        System.println(s);
     }
 } 
