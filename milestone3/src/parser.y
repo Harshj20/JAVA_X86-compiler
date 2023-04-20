@@ -77,7 +77,6 @@ TYPE widen(TYPE a, TYPE b);
 
 %token k_abstract k_assert k_boolean k_break k_byte k_case k_catch k_char k_class k_const k_continue k_default k_do k_double k_else k_enum k_extends k_final k_finally k_float k_for k_goto k_if k_implements k_import k_instanceof k_int k_interface k_long k_native k_new k_package k_private k_protected k_public k_return k_short k_static k_strictfp k_super k_switch k_synchronized k_this k_throw k_throws k_transient k_try k_void k_volatile k_while k_underscore
 %token k_exports k_module k_non_sealed k_open k_opens k_permits k_provide k_record k_requires k_sealed k_to k_transitive k_uses k_var k_with k_yield k_String
-
 %token o_assign o_add_assign o_subtract_assign o_multiply_assign o_divide_assign o_modulo_assign o_bitwise_and_assign o_bitwise_or_assign o_bitwise_xor_assign o_left_shift_assign o_right_shift_assign o_unsigned_right_shift_assign o_bitwise_and o_bitwise_or o_bitwise_xor o_left_shift o_right_shift o_unsigned_right_shift o_add o_subtract o_multiply o_divide o_modulo o_less_than o_less_than_or_equal o_greater_than o_greater_than_or_equal o_equals o_not_equals o_logical_and o_logical_not o_logical_or o_increment o_decrement o_bitwise_complement o_question_mark o_colon o_arrow 
 
 %token<str> Identifier int_Literal bin_Literal deci_float_Literal oct_Literal hex_flo_Literal string_Literal hex_Literal Text_Block_Literal char_Literal true_Literal false_Literal null_Literal long_Literal deci_double_Literal
@@ -88,8 +87,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super if_invoke_paren invoke_else AssignOperator
-
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super if_invoke_paren invoke_else AssignOperator DoStatement
 %%
     // ------------------ Start -----------------------
 
@@ -2296,6 +2294,10 @@ Statement : StatementWithoutTrailingSubstatement
 {
     $$ = $1;
 }
+| DoStatement
+{
+    $$ = $1;
+}
 | ForStatement
 {
     $$ = $1;
@@ -2580,6 +2582,56 @@ invoke_paren : s_open_paren
         lcounter--;
     }
 }
+
+K_do : k_do {
+    if (!isDot)
+    {
+        initializeSymTable(currentSymTableId);
+        loopscope.push_back(currentSymTableId);
+        loopscope.push_back(lcounter);
+        lcounter--;
+    }
+};
+
+DoStatement:K_do Statement k_while s_open_paren Expression s_close_paren s_semicolon {
+    $$ = new Node("DoWhileStatement");
+    $$->children.push_back(new Node("Do", "Keyword", yylineno));
+    $$->children.push_back($2);
+    $$->children.push_back(new Node("while", "Separator", yylineno));
+    $$->children.push_back(new Node("(", "Separator", yylineno));
+    $$->children.push_back($5);
+    $$->children.push_back(new Node(")", "Separator", yylineno));
+    $$->children.push_back(new Node(";", "Separator", yylineno));
+    if (!isDot)
+    {
+        if ($5->type != BOOL)
+        {
+            yyerror("Do While statement expression must have the type boolean");
+            exit(0);
+        }
+        $$->threeACCode.push_back("L" + to_string(currentSymTableId) + ":");
+        $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
+        $2->threeACCode.clear();
+        $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+        $5->threeACCode.clear();
+        $$->threeACCode.push_back("\tif " + $5->field + " goto " + "L" + to_string(lcounter));
+        $$->threeACCode.push_back("\tgoto L" + to_string(loopscope.back()));
+        $$->threeACCode.push_back("L" + to_string(lcounter) + ":");
+        int tempoffset = 0;
+        for(auto i = symTables[currentSymTableId].entries.begin(); i != symTables[currentSymTableId].entries.end(); i++){
+            tempoffset += offsetVal[i->second[0].type];
+        }
+        $$->threeACCode.push_back("\tgoto L" + to_string(currentSymTableId));
+        $$->threeACCode.push_back("L" + to_string(loopscope.back()) + ":");
+        if(tempoffset)
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(tempoffset));
+        lcounter -= 1;
+        currentSymTableId = symTables[currentSymTableId].parentID;
+        localoffset -= isArgument * tempoffset;
+        loopscope.pop_back();
+        loopscope.pop_back();
+    }
+};
 
 WhileStatement : k_while invoke_paren Expression s_close_paren Statement
 {
