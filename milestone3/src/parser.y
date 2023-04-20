@@ -608,7 +608,6 @@ ClassDeclaration : NormalClassDeclaration
             int t = class_to_symboltable[className];
             auto a = symTables[t].entries.find(className);
             if(a == symTables[t].entries.end() || a->second.size() > 1){
-                symTables[t].insertSymEntry(className, VOID, $1->lineno, 0, true);
                 $$->threeACCode.push_back(className + ".ctor:");
                 $$->threeACCode.push_back("push	%rbp");
                 $$->threeACCode.push_back("%rbp = %rsp");
@@ -1590,7 +1589,22 @@ ConstructorDeclaration :
     $$->children.push_back($2);
 };
 
-ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_paren
+S_open_paren_c : s_open_paren
+{
+    if (!isDot)
+    {
+        vt.push_back(t);
+        initializeSymTable(currentSymTableId);
+        symTables[currentSymTableId].isfunction = true;
+        islocal = true;
+        sz = 0;
+        isarr = 0;
+        localoffset = 16;
+        isArgument = 1;
+    }
+}
+
+ConstructorDeclarator : SimpleName S_open_paren_c FormalParameterList s_close_paren
 {
     if (isDot)
         $$ = new Node("ConstructorDeclarator");
@@ -1632,7 +1646,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         $3->threeACCode.clear();
     }
 }
-| SimpleName S_open_paren s_close_paren
+| SimpleName S_open_paren_c s_close_paren
 {
     if (isDot)
         $$ = new Node("ConstructorDeclarator");
@@ -3734,6 +3748,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             // $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tcall " + reftype + ".ctor");
+            $$->threeACCode.push_back("\t%rsp = %rsp - " + to_string(offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
@@ -3783,7 +3798,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tcall " + reftype + ".ctor." + to_string(temp));
-            $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($4->sz));
+            $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($4->sz + offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
