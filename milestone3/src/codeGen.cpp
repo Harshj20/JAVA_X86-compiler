@@ -67,7 +67,7 @@ void generate_quadraple(vector<string> &threeAC){
     fout << "System.println:" << endl;
     fout << "\tpushq\t%rbp" << endl;
     fout << "\tmovq\t%rsp, %rbp" << endl;
-    fout << "\tmovq\t16(%rbp), %rsi" << endl;
+    fout << "\tmovq\t24(%rbp), %rsi" << endl;
 	fout << "\tleaq\t.LC0(%rip), %rdi" << endl;
 	fout << "\tmovq\t$0, %rax" << endl;
 	fout << "\tcall printf@PLT" << endl;

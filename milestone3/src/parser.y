@@ -307,6 +307,7 @@ SimpleName : Identifier
         else if ($$->type == CLASS)
         {
             $$->symid = class_to_symboltable[lex];
+            $$->field = "0";
         }
         else
         {
@@ -319,16 +320,14 @@ SimpleName : Identifier
         $$->sz = symTables[t1].entries[lex].size() - 1;
         if(!symTables[t1].entries[lex][0].isfunction &&  !class_to_symboltable[lex]){
             if(!symTables[t1].name.empty()){
-                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = this + " + to_string(symTables[t1].entries[lex][0].offset));
+                    $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+16] + " + to_string(symTables[t1].entries[lex][0].offset));
                     // $$->field = "t" + to_string(tcounter++);
             }
             else{
                 int temp = symTables[t1].entries[lex][0].offset;
                 if(temp >= 0)
-                    //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+" + to_string(temp) + "]");
                      $$->field = "[%rbp+" + to_string(temp) + "]";
                 else
-                    //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp" + to_string(temp) + "]");
                      $$->field = "[%rbp" + to_string(temp) + "]";
             }
         }
@@ -609,12 +608,12 @@ ClassDeclaration : NormalClassDeclaration
             auto a = symTables[t].entries.find(className);
             if(a == symTables[t].entries.end() || a->second.size() > 1){
                 $$->threeACCode.push_back(className + ".ctor:");
-                $$->threeACCode.push_back("push	%rbp");
-                $$->threeACCode.push_back("%rbp = %rsp");
-                $$->threeACCode.push_back("%rax = [%rbp+16]");
-                $$->threeACCode.push_back("%rsp = %rbp");
-                $$->threeACCode.push_back("popq	%rbp");
-                $$->threeACCode.push_back("ret");
+                $$->threeACCode.push_back("\tpush	%rbp");
+                $$->threeACCode.push_back("\t%rbp = %rsp");
+                $$->threeACCode.push_back("\t%rax = [%rbp+16]");
+                $$->threeACCode.push_back("\t%rsp = %rbp");
+                $$->threeACCode.push_back("\tpopq	%rbp");
+                $$->threeACCode.push_back("\tret");
             }
         }
         className.clear();
@@ -1276,7 +1275,7 @@ S_open_paren : s_open_paren
         islocal = true;
         sz = 0;
         isarr = 0;
-        localoffset = 8;
+        localoffset = 16;
         isArgument = 1;
     }
 }
@@ -1316,6 +1315,17 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         returnFunctionName = $1;
         if(symTables[symTables[currentSymTableId].parentID].name == entryClass && returnFunctionName == "main"){
             $$->threeACCode.push_back("main:");
+            $$->threeACCode.push_back("\tpush %rbp");
+            $$->threeACCode.push_back("\t%rbp = %rsp");
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(symTables[1].entries[entryClass][0].offset));
+            $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = allocate t" + to_string(tcounter-1));
+            $$->threeACCode.push_back("\tpush t" + to_string(tcounter-1));
+            $$->threeACCode.push_back("\tcall main.2");
+            $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
+            $$->threeACCode.push_back("\t%rsp = %rbp");
+            $$->threeACCode.push_back("\tpop %rbp");
+            $$->threeACCode.push_back("\tret\n");
+            $$->threeACCode.push_back("main.2:");
             isMain = true;
         }
         else
@@ -1589,22 +1599,22 @@ ConstructorDeclaration :
     $$->children.push_back($2);
 };
 
-S_open_paren_c : s_open_paren
-{
-    if (!isDot)
-    {
-        vt.push_back(t);
-        initializeSymTable(currentSymTableId);
-        symTables[currentSymTableId].isfunction = true;
-        islocal = true;
-        sz = 0;
-        isarr = 0;
-        localoffset = 16;
-        isArgument = 1;
-    }
-}
+// S_open_paren_c : s_open_paren
+// {
+//     if (!isDot)
+//     {
+//         vt.push_back(t);
+//         initializeSymTable(currentSymTableId);
+//         symTables[currentSymTableId].isfunction = true;
+//         islocal = true;
+//         sz = 0;
+//         isarr = 0;
+//         localoffset = 16;
+//         isArgument = 1;
+//     }
+// }
 
-ConstructorDeclarator : SimpleName S_open_paren_c FormalParameterList s_close_paren
+ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_paren
 {
     if (isDot)
         $$ = new Node("ConstructorDeclarator");
@@ -1646,7 +1656,7 @@ ConstructorDeclarator : SimpleName S_open_paren_c FormalParameterList s_close_pa
         $3->threeACCode.clear();
     }
 }
-| SimpleName S_open_paren_c s_close_paren
+| SimpleName S_open_paren s_close_paren
 {
     if (isDot)
         $$ = new Node("ConstructorDeclarator");
@@ -3748,7 +3758,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             // $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tcall " + reftype + ".ctor");
-            $$->threeACCode.push_back("\t%rsp = %rsp - " + to_string(offsetVal[OBJECT]));
+            $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
     }
@@ -4098,10 +4108,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
-        // if(symTables[$1->symid].grand_lookup(returnFunctionName))
-        //     $$->threeACCode.push_back("\tpush this");
-        // else $$->threeACCode.push_back("\tpush " + $1->field);
+        if(symTables[$1->symid].grand_lookup(returnFunctionName))
+            $$->threeACCode.push_back("\tpush [%rbp+16]");
+        else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
+        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
@@ -4139,11 +4150,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
-        // if(symTables[$1->symid].grand_lookup(returnFunctionName))
-        //     $$->threeACCode.push_back("\tpush this");
-        // else $$->threeACCode.push_back("\tpush " + $1->field);
+        if(symTables[$1->symid].grand_lookup(returnFunctionName))
+            $$->threeACCode.push_back("\tpush [%rbp+16]");
+        else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
-        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($3->sz));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($3->sz + offsetVal[OBJECT]));
         if($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
@@ -4176,10 +4187,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         $$->sz = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
         string s($3);
-        // if(symTables[$1->symid].grand_lookup(returnFunctionName))
-        //     $$->threeACCode.push_back("\tpush this");
-        // else $$->threeACCode.push_back("\tpush " + $1->field);
+        if(symTables[$1->symid].grand_lookup(returnFunctionName))
+            $$->threeACCode.push_back("\tpush [%rbp+16]");
+        else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
+        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
@@ -4224,11 +4236,11 @@ MethodInvocation : Name s_open_paren s_close_paren
         $5->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
         string s($3);
-        // if(symTables[$1->symid].grand_lookup(returnFunctionName))
-        //     $$->threeACCode.push_back("\tpush this");
-        // else $$->threeACCode.push_back("\tpush " + $1->field);
+        if(symTables[$1->symid].grand_lookup(returnFunctionName))
+            $$->threeACCode.push_back("\tpush [%rbp+16]");
+        else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
-        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($5->sz));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($5->sz + offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }

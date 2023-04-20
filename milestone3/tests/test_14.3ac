@@ -1,8 +1,9 @@
-Add.add:
+Add.set:
 	push	%rbp
 	%rbp = %rsp
-	t1 = [%rbp+16] +int [%rbp+24]
-	%rax = t1
+	t1 = [%rbp+16]
+	t1 = t1 + 0
+	(t1) = [%rbp+24]
 	%rsp = %rbp
 	popq	%rbp
 	ret
@@ -10,51 +11,63 @@ Add.add:
 Add.ctor.2:
 	push	%rbp
 	%rbp = %rsp
-	t3 = [%rbp+24] +int [%rbp+32]
-	t2 = [%rbp+16]
-	t2 = t2 + 0
-	(t2) = t3
+	t1 = [%rbp+24] +int [%rbp+32]
+	t0 = [%rbp+16]
+	t0 = t0 + 0
+	(t0) = t1
 	%rax = [%rbp+16]
 	%rsp = %rbp
 	popq	%rbp
 	ret
 
+Add.sum:
+	push	%rbp
+	%rbp = %rsp
+	t0 = [%rbp+24] +int [%rbp+32]
+	%rax = t0
+	%rsp = %rbp
+	popq	%rbp
+	ret
+
 Add.ctor:
-push	%rbp
-%rbp = %rsp
-%rax = [%rbp+16]
-%rsp = %rbp
-popq	%rbp
-ret
+	push	%rbp
+	%rbp = %rsp
+	%rax = [%rbp+16]
+	%rsp = %rbp
+	popq	%rbp
+	ret
 main:
+	push %rbp
+	%rbp = %rsp
+	t1 = 0
+	t2 = allocate t1
+	push t2
+	call main.2
+	%rsp = %rsp + 8
+	leave
+	ret
+
+main.2:
 	push	%rbp
 	%rbp = %rsp
 	push 0
-	t0 = 16
-	t1 = allocate t0
-	push 20
-	push 10
-	push t1
-	call Add.ctor.2
-	%rsp = %rsp + 24
-	t1 = %rax
-	[%rbp-8] = t1
+	[%rbp-8] = 1
 	push 0
-	t0 = [%rbp-8]
-	t0 = t0 + 0
-	t1 = (t0) +int 1
-	[%rbp-16] = t1
-	push [%rbp-16]
+	[%rbp-16] = 2
+	t0 = [%rbp-8] +int [%rbp-16]
+	[%rbp-8] = t0
+	push [%rbp-8]
+	push 0
 	call System.println
-	%rsp = %rsp + 8
+	%rsp = %rsp + 16
 	%rsp = %rbp
 	popq	%rbp
 	ret
 
 test_14.ctor:
-push	%rbp
-%rbp = %rsp
-%rax = [%rbp+16]
-%rsp = %rbp
-popq	%rbp
-ret
+	push	%rbp
+	%rbp = %rsp
+	%rax = [%rbp+16]
+	%rsp = %rbp
+	popq	%rbp
+	ret
