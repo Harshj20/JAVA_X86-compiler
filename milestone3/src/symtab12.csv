@@ -1,3 +1,0 @@
-Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
-i,Identifier,int,0,0,41,-24
-j,Identifier,int,0,0,42,-32

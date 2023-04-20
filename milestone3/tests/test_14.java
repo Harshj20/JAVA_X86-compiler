@@ -20,11 +20,31 @@ class test_14{
         // // a.x = 1;
         // int y = a.x + 1 + Add.sum(10, 20);
         // System.println(y);
-       w
+        // int a = 1;
+        // int b = 2;
+        // a = a + b;
+        // System.println(a);
         // int a = (2 > 3)?0:((5>6)? 9 : 10);
         // System.println(a);
-        // for(int i = 0; i < 10; i++){
-        //     System.println(i);
-        // }
+        int q[][] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+        // int q[][] = new int[3][3];
+        // q[0][0] = 1;
+        // q[0][1] = 2;
+        // q[0][2] = 3;
+        // q[1][0] = 4;
+        // q[1][1] = 5;
+        // q[1][2] = 6;
+        // q[2][0] = 7;
+        // q[2][1] = 8;
+        // q[2][2] = 9;
+        int sum = 0;
+        for(int i = 0; i < 3; i++){
+            int j = 0;
+            while(j < 3){
+                sum += q[i][j];
+                j++;
+            }
+        }
+        System.println(sum);
     }
 }

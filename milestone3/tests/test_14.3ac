@@ -44,19 +44,81 @@ main:
 	push t2
 	call main.2
 	%rsp = %rsp + 8
-	leave
+	%rsp = %rbp
+	pop %rbp
 	ret
 
 main.2:
 	push	%rbp
 	%rbp = %rsp
 	push 0
-	[%rbp-8] = 1
+	t3 = 9 * 8
+	t4 = allocate t3
+	[%rbp-8] = t4
+	t4 = [%rbp-8]
+	t4 = t4 + 0
+	(t4) = 1
+	t5 = [%rbp-8]
+	t5 = t5 + 8
+	(t5) = 2
+	t6 = [%rbp-8]
+	t6 = t6 + 16
+	(t6) = 3
+	t7 = [%rbp-8]
+	t7 = t7 + 24
+	(t7) = 4
+	t8 = [%rbp-8]
+	t8 = t8 + 32
+	(t8) = 5
+	t9 = [%rbp-8]
+	t9 = t9 + 40
+	(t9) = 6
+	t10 = [%rbp-8]
+	t10 = t10 + 48
+	(t10) = 7
+	t11 = [%rbp-8]
+	t11 = t11 + 56
+	(t11) = 8
+	t12 = [%rbp-8]
+	t12 = t12 + 64
+	(t12) = 9
 	push 0
-	[%rbp-16] = 2
-	t0 = [%rbp-8] +int [%rbp-16]
-	[%rbp-8] = t0
-	push [%rbp-8]
+	[%rbp-16] = 0
+	push 0
+	[%rbp-24] = 0
+L12:
+	t0 = [%rbp-24] < 3
+	if t0 goto L-4
+	goto L-1
+L-4:
+	push 0
+	[%rbp-32] = 0
+L13:
+	t0 = [%rbp-32] < 3
+	if t0 goto L-3
+	goto L-2
+L-3:
+	t1 = [%rbp-8]
+	t2 = [%rbp-24]
+	t2 = t2 * 3
+	t2 = t2 * 8
+	t1 = t1 + t2
+	t3 = t1
+	t4 = [%rbp-32]
+	t4 = t4 * 8
+	t3 = t3 + t4
+	t5 = [%rbp-16] + (t3)
+	[%rbp-16] = t5
+	t0 = [%rbp-32]
+	[%rbp-32] = [%rbp-32] + 1
+	goto L13
+L-2:
+	t1 = [%rbp-24]
+	[%rbp-24] = [%rbp-24] + 1
+	goto L12
+L-1:
+	%rsp = %rsp + 16
+	push [%rbp-16]
 	push 0
 	call System.println
 	%rsp = %rsp + 16
