@@ -1,36 +1,19 @@
-//Java code for using 'this' keyword to
-//refer current class instance variables
-class test_3
-{
-	int a;
-	int b;
+public class test_3 {
+    
+    static int f = 0;
+    public static void main(String[] args) {
+        
+        int n1 = 31, n2 = 62;
+        int n3 = n1 + n2;
+        int n4 = n2 / n1; 
+		int max = (n1 > n2) ? n1 : n2;
+        
+        System.println(n3);
+        System.println(n4);
+        System.println(max);
 
-	static int foo(int a, int b){
-		int c =  b - a;
-		return c;
-	}
-
-	public static void main(String[] args)
-	{
-		// test_5(2, 3);
-		int d= 2^(2|4) ;
-		int e= d*2 + d*3;
-		int y = foo(2,e);
-		System.println(y);
-		boolean z = 4 < 3;
-		int x = 1;
-		if(e==70 && z){
-			System.println(x);
-		}
-		else{
-			System.println(x+e);
-		}
-		if(e >= 20){
-			e = 5;
-		}
-		else{
-			e = 10;
-		}
-		System.println(e);
-	}
+        n2 -= n1;
+        System.println(n2);
+        
+    }
 }

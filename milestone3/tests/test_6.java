@@ -1,24 +1,17 @@
-
-// Base or Super Class
-class Employee {
-	int salary = 60000;
-}
-
-// Inherited or Sub Class
-class Engineer extends Employee {
-	int benefits = 10000;
-}
-
-// Driver Class
-class test_6 {
-	public static void main(String args[])
+//import java.io.*;
+class Geek {
+	// data members of the class.
+	int id;
+	Geek(int id)
 	{
-		Engineer E1 = new Engineer();
-        int x = E1.salary;
-		System.println(x);
+		this.id = id;
 	}
 }
-// Java program to illustrate the
-// concept of inheritance
-
-
+class test_6 {
+	public static void main(String[] args)
+	{
+		// This would invoke the parameterized constructor.
+		Geek geek1 = new Geek(2);
+		System.println(geek1.id);
+	}
+}

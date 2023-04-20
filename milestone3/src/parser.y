@@ -612,7 +612,7 @@ ClassDeclaration : NormalClassDeclaration
                 $$->threeACCode.push_back("\t%rbp = %rsp");
                 for(auto i = symTables[t1].entries.begin(); i != symTables[t1].entries.end(); i++){
                     if(i->second.size() > 1 && !i->second[0].isfunction){
-                        int temp = 1;
+                        int temp = 8;
                         for(int j = 1; j < i->second.size(); j++){
                             temp *= stoi(i->second[j].dimsize);
                         }
@@ -1087,12 +1087,6 @@ VariableDeclaratorId : Identifier
         {
             vector<struct symEntry> *sentry = symTables[currentSymTableId].getSymEntry(s);
             (*sentry)[0].symid = class_to_symboltable[reftype];
-            // if(!islocal)
-            //     offset += symTables[1].entries[reftype][0].offset;
-            // else{
-                // localoffset += symTables[1].entries[reftype][0].offset*isArgument;
-                // symTables[currentSymTableId].entries[s][0].offset = localoffset;
-            // }
         }
         int temp = symTables[currentSymTableId].entries[s][0].offset;
         if(temp >= 0)
@@ -1188,7 +1182,6 @@ MethodHeader : Modifiers Type MethodDeclarator Throws
     if(!isDot){
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $3->threeACCode.clear();
-        //t = $2->type;
     }
 }
 | Type MethodDeclarator Throws
@@ -1309,15 +1302,11 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             yyerror("Function already declared");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
-            //symTables[currentSymTableId].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1, vt[i], yylineno, vfs[i - 1]);
         }
         vt.clear();
@@ -1388,6 +1377,8 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
         if(symTables[symTables[currentSymTableId].parentID].name == entryClass && returnFunctionName == "main"){
             $$->threeACCode.push_back("main:");
             isMain = true;
+            yyerror("main method must be defined with argument String[] args");
+            exit(0);
         }
         else
             $$->threeACCode.push_back(className + "." + returnFunctionName + ":");
@@ -1411,15 +1402,11 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             yyerror("Function already declared");
             exit(0);
         }
-        // symTables[currentSymTableId].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
-        // symTables[currentSymTableId].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
-        // symTables[currentSymTableId].entries[$1->id][0].isStatic = isstatic;
         symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[0], yylineno, fsize, true);
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isPrivate = (isPrivate == "private") ? true : false;
         symTables[symTables[currentSymTableId].parentID].entries[$1->id][0].isStatic = isstatic;
         for (int i = 1; i < vt.size(); i++)
         {
-            //symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
         returnFunctionName = $1->id;
@@ -1615,21 +1602,6 @@ ConstructorDeclaration :
     $$->children.push_back($2);
 };
 
-// S_open_paren_c : s_open_paren
-// {
-//     if (!isDot)
-//     {
-//         vt.push_back(t);
-//         initializeSymTable(currentSymTableId);
-//         symTables[currentSymTableId].isfunction = true;
-//         islocal = true;
-//         sz = 0;
-//         isarr = 0;
-//         localoffset = 16;
-//         isArgument = 1;
-//     }
-// }
-
 ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_paren
 {
     if (isDot)
@@ -1709,7 +1681,7 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
         int t1 = symTables[currentSymTableId].parentID;
         for(auto i = symTables[t1].entries.begin(); i != symTables[t1].entries.end(); i++){
                 if(i->second.size() > 1 && !i->second[0].isfunction){
-                    int temp = 1;
+                    int temp = 8;
                     for(int j = 1; j < i->second.size(); j++){
                         temp *= stoi(i->second[j].dimsize);
                     }
@@ -5607,7 +5579,6 @@ Assignment : LeftHandSide AssignmentOperator Expression
             if ($2->field.size() > 1)
             {
                 $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " " + $2->field.substr(0, $2->field.size() - 1) + " t" + to_string(tcounter));
-                //$$->threeACCode.push_back("\t" + $1->field + " = " + "t" + to_string(tcounter));
             }
             else
             {
@@ -5622,7 +5593,6 @@ Assignment : LeftHandSide AssignmentOperator Expression
             if ($2->field.size() > 1)
             {
                 $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " " + $2->field.substr(0, $2->field.size() - 1) + " " + $3->field);
-                //$$->threeACCode.push_back("\t" + $1->field + " = " + "t" + to_string(tcounter));
             }
             else
             {

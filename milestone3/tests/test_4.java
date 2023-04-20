@@ -1,44 +1,36 @@
-// Java Program to Illustrate Methods
+//Java code for using 'this' keyword to
+//refer current class instance variables
+class test_4
+{
+	int a;
+	int b;
 
-// Class 1
-// Helper class
-class Addition {
-
-	// Initially taking sum as 0
-	// as we have not started computation
-	int sum = 0;
-
-	// Method
-	// To add two numbers
-	public int addTwoInt(int a, int b)
-	{
-		int z = 1, y;
-		// Adding two integer value
-		y = a + b;
-
-		// Returning summation of two values
-		return y;
+	static int foo(int a, int b){
+		int c =  b - a;
+		return c;
 	}
-}
 
-// Class 2
-// Helper class
-class test_4 {
-
-	// Main driver method
 	public static void main(String[] args)
 	{
-
-		// Creating object of class 1 inside main() method
-		Addition add = new Addition();
-
-		// Calling method of above class
-		// to add two integer
-		// using instance created
-
-		int s = add.addTwoInt(41, 42);
-
-		// Printing the sum of two numbers
-		System.println(s);
+		// test_5(2, 3);
+		int d= 2^(2|4) ;
+		int e= d*2 + d*3;
+		int y = foo(2,e);
+		System.println(y);
+		boolean z = 4 < 3;
+		int x = 1;
+		if(e==70 && z){
+			System.println(x);
+		}
+		else{
+			System.println(x+e);
+		}
+		if(e >= 20){
+			e = 5;
+		}
+		else{
+			e = 10;
+		}
+		System.println(e);
 	}
 }
