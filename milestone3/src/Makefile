@@ -12,7 +12,7 @@ PARSER = parser.y
 SYMBOL_TABLE = SymTable.cpp
 CODE_GEN = codeGen.cpp
 # Object file
-OBJECT = milestone3
+OBJECT = milestone4
 
 # Build rule for the object file
 $(OBJECT): $(LEXER) $(PARSER)
@@ -31,5 +31,8 @@ run:
 	gcc code.o -o code
 del:
 	rm -f ../symTables/*.csv
+
+remove:
+	rm -f ../tests/*.3ac
 
 	

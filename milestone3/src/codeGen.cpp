@@ -269,14 +269,17 @@ void generate_quadraple(vector<string> &threeAC){
         else if(words.size() == 5){
             if(isMemRem(words[2])){ // () + somthing
                 if(istemp(words[2])){
-                    string s1 = words[2];
-                    // if(reg_map[extract(words[2])] == "%r9")
-                        // isr9 = false;
-                    // else
+                    if(words[0] == words[2]){
+                        words[0] = updatetemp(false, words[2]);
+                        words[2] = updatetemp(true, words[2]);
+                    }
+                    else{
+                        string s1 = words[2];
                         reg_set.insert(reg_map[extract(words[2])]);
-                    words[2] = updatetemp(false, words[2]);
-                    fout << "\tmovq\t" << words[2] << ", " << reg_map[extract(s1)] << endl;
-                    words[2] = extract(updatetemp(true, s1));
+                        words[2] = updatetemp(false, words[2]);
+                        fout << "\tmovq\t" << words[2] << ", " << reg_map[extract(s1)] << endl;
+                        words[2] = extract(updatetemp(true, s1));
+                    }
                 }
                 else{
                     fout << "\tmovq\t" << words[2] << ", " << *(reg_set.begin()) << endl;
