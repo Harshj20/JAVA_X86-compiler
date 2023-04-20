@@ -5679,7 +5679,7 @@ void print_dot(const char *filename)
 void symTab_csv(symtab *a)
 {
     ofstream fout;
-    string s = "symtab" + to_string(a->ID) + ".csv";
+    string s = "../symTables/symtab" + to_string(a->ID) + ".csv";
     fout.open(s);
     fout << "Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset" << endl;
     for (auto i = a->entries.begin(); i != a->entries.end(); i++)
@@ -5700,11 +5700,13 @@ void generate_3AC(string filename)
     }
 }
 
-void check_semantics(string filename)
+void check_semantics(string filename, bool make)
 {
-    for (auto i = symTables.begin(); i != symTables.end(); i++)
-    {
-        symTab_csv(&i->second);
+    if(make){
+        for (auto i = symTables.begin(); i != symTables.end(); i++)
+        {
+            symTab_csv(&i->second);
+        }
     }
     generate_3AC(filename);
     if(!isMain){
@@ -5726,6 +5728,7 @@ int main(int argc, char **argv)
     bool flag_help = false;
     int t1 = 1;
     bool only3ac = false;
+    bool issymtables = false;
 
     for (int i = 1; i < argc; i++)
     {
@@ -5765,6 +5768,12 @@ int main(int argc, char **argv)
         else if (arg.find("--3ac") == 0)
         {
             only3ac = true;
+            t1++;
+            continue;
+        }
+        else if (arg.find("--symtab") == 0)
+        {
+            issymtables = true;
             t1++;
             continue;
         }
@@ -5835,10 +5844,10 @@ int main(int argc, char **argv)
         else
         {   
             if(output_index){
-                check_semantics(argv[output_index]);
+                check_semantics(argv[output_index], issymtables);
             }
             else{
-                check_semantics("../tests/" + entryClass + ".3ac");
+                check_semantics("../tests/" + entryClass + ".3ac", issymtables);
             }
             if(!only3ac)
                 generate_quadraple(threeAC);
