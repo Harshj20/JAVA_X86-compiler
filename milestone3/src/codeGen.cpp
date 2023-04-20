@@ -5,6 +5,7 @@ map <string, string> reg_map;
 
 set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
 set<string> used_reg = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+stack<stack<string>> regs;
 
 bool isfunction = false;
 
@@ -288,11 +289,13 @@ void generate_quadraple(vector<string> &threeAC){
                     // rsp = rsp - constant
                     if(isfunction){
                         fout << "\taddq\t" << words[4] << ", " << words[2] << endl;
-                        cout<<used_reg.size()<<endl;
-                        for(auto i = used_reg.rbegin(); i != used_reg.rend(); i++){
-                            fout<<"\tpopq "<<*i<<endl;
+                        // cout<<used_reg.size()<<endl;
+                        stack<string>temp = regs.top();
+                        regs.pop();
+                        while(!temp.empty()){
+                            fout<<"\tpopq "<<temp.top()<<endl;
+                            temp.pop();
                         }
-                        used_reg = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
                         isfunction = false;
                         continue;
                     }
@@ -544,12 +547,16 @@ void generate_quadraple(vector<string> &threeAC){
             if(words[0] == "ret")
                 fout<< "\t" << words[0]<<endl;
             else if(words[0] == "#MakingFunctionCall"){
-                cout<<"detected"<<endl;
+                // cout<<"detected"<<endl;
                 for(auto i : reg_set)
                     used_reg.erase(i);
-                for(auto i : used_reg)
+                stack<string>temp;
+                for(auto i : used_reg){
                     fout << "\tpushq\t" << i << endl;
-                cout<<used_reg.size()<<endl;
+                    temp.push(i);
+                }
+                regs.push(temp);
+                used_reg = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
             }
             else 
                 fout << words[0] << endl;
