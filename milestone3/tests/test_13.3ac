@@ -1,0 +1,45 @@
+test_13.fib:
+	push	%rbp
+	%rbp = %rsp
+	t0 = [%rbp+16] <= 1
+	if t0 goto L-1
+	goto L-2
+L-1:
+	%rax = [%rbp+16]
+	%rsp = %rbp
+	popq	%rbp
+	ret
+	%rsp = %rsp + 0
+L-2:
+	t1 = [%rbp+16] -int 1
+	push t1
+	call test_13.fib
+	%rsp = %rsp + 8
+	t2 = %rax
+	t3 = [%rbp+16] -int 2
+	push t3
+	call test_13.fib
+	%rsp = %rsp + 8
+	t4 = %rax
+	t5 = t2 +int t4
+	%rax = t5
+	%rsp = %rbp
+	popq	%rbp
+	ret
+
+main:
+	push	%rbp
+	%rbp = %rsp
+	push 0
+	[%rbp-8] = 9
+	push [%rbp-8]
+	call test_13.fib
+	%rsp = %rsp + 8
+	t1 = %rax
+	push t1
+	call System.println
+	%rsp = %rsp + 8
+	%rsp = %rbp
+	popq	%rbp
+	ret
+

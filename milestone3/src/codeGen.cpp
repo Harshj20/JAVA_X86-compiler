@@ -521,7 +521,10 @@ void generate_quadraple(vector<string> &threeAC){
             fout << "\t" << words[0] << "\t" << words[1] << endl;
         }
         else if (words.size() == 1){
-            fout << words[0] << endl;
+            if(words[0] == "ret")
+                fout<< "\t" << words[0]<<endl;
+            else
+                fout << words[0] << endl;
         }
         else{
             fout << threeAC[i] << endl;

@@ -324,7 +324,7 @@ SimpleName : Identifier
             }
             else{
                 int temp = symTables[t1].entries[lex][0].offset;
-                if(temp > 0)
+                if(temp >= 0)
                     //$$->threeACCode.push_back("\tt" + to_string(tcounter) + " = [%rbp+" + to_string(temp) + "]");
                      $$->field = "[%rbp+" + to_string(temp) + "]";
                 else
@@ -384,10 +384,10 @@ QualifiedName : Name s_dot Identifier
         if(!symTables[$1->symid].entries[s][0].isfunction){
             $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
             int temp = symTables[$1->symid].entries[s][0].offset;
-            if(temp > 0)
-                $$->threeACCode.push_back("\t" + $$->field + " = (" + $$->field +") + "+ to_string(temp));
+            if(temp >= 0)
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" + "+ to_string(temp));
             else
-                $$->threeACCode.push_back("\t" + $$->field + " = (" + $$->field +") - "+ to_string(-temp));
+                $$->threeACCode.push_back("\t" + $$->field + " = " + $$->field +" - "+ to_string(-temp));
             $$->field = "(" + $$->field + ")";  
         }
         else
@@ -604,6 +604,20 @@ ClassDeclaration : NormalClassDeclaration
     if(!isDot){
         symTables[currentSymTableId].entries[$1->id][0].offset = offset;
         offset = 0;
+        if(className != "System" && className != "PrintStream"){
+            int t = class_to_symboltable[className];
+            auto a = symTables[t].entries.find(className);
+            if(a == symTables[t].entries.end() || a->second.size() > 1){
+                symTables[t].insertSymEntry(className, VOID, $1->lineno, 0, true);
+                $$->threeACCode.push_back(className + ".ctor:");
+                $$->threeACCode.push_back("push	%rbp");
+                $$->threeACCode.push_back("%rbp = %rsp");
+                $$->threeACCode.push_back("%rax = [%rbp+16]");
+                $$->threeACCode.push_back("%rsp = %rbp");
+                $$->threeACCode.push_back("popq	%rbp");
+                $$->threeACCode.push_back("ret");
+            }
+        }
         className.clear();
     }
 }
@@ -882,8 +896,6 @@ ClassBodyDeclaration : ClassMemberDeclaration
     if (!isDot)
     {
         currentSymTableId = symTables[currentSymTableId].parentID;
-        if(symTables[currentSymTableId].entries[$1->id.c_str()].empty())
-            symTables[currentSymTableId].insertSymEntry($1->id.c_str(), vt[0], $1->lineno, fsize, true);
         vt.clear();
         vfs.clear();
         fsize = 0;
@@ -1064,15 +1076,15 @@ VariableDeclaratorId : Identifier
         {
             vector<struct symEntry> *sentry = symTables[currentSymTableId].getSymEntry(s);
             (*sentry)[0].symid = class_to_symboltable[reftype];
-            if(!islocal)
-                offset += symTables[1].entries[reftype][0].offset;
-            else{
-                localoffset += symTables[1].entries[reftype][0].offset*isArgument;
-                symTables[currentSymTableId].entries[s][0].offset = localoffset;
-            }
+            // if(!islocal)
+            //     offset += symTables[1].entries[reftype][0].offset;
+            // else{
+                // localoffset += symTables[1].entries[reftype][0].offset*isArgument;
+                // symTables[currentSymTableId].entries[s][0].offset = localoffset;
+            // }
         }
         int temp = symTables[currentSymTableId].entries[s][0].offset;
-        if(temp > 0)
+        if(temp >= 0)
             $$->field = "[%rbp+" + to_string(temp) + "]";
         else
             $$->field = "[%rbp" + to_string(temp) + "]";
@@ -1606,13 +1618,14 @@ ConstructorDeclarator : SimpleName S_open_paren FormalParameterList s_close_pare
             //symTables[currentSymTableId].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
             symTables[symTables[currentSymTableId].parentID].insertSymEntry($1->id, vt[i], yylineno, vfs[i - 1]);
         }
+        int temp = vfs.size();
         vt.clear();
         vfs.clear();
         fsize = 0;
         localoffset = 0;
         isArgument = -1;
         returnFunctionName = $1->id;
-        $$->threeACCode.push_back(className + ".ctor" + ":");
+        $$->threeACCode.push_back(className + ".ctor." + to_string(temp) + ":");
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
         $$->threeACCode.push_back("\tpush\t%rbp");
         $$->threeACCode.push_back("\t%rbp = %rsp");
@@ -3756,6 +3769,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
                 exit(0);
             }
         }
+        int temp = vfs.size();
         vt.clear();
         vfs.clear();
         $$->field = "t" + to_string(tcounter++);
@@ -3768,7 +3782,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $4->threeACCode.clear();
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             $$->field = "t" + to_string(tcounter++);
-            $$->threeACCode.push_back("\tcall " + reftype + ".ctor");
+            $$->threeACCode.push_back("\tcall " + reftype + ".ctor." + to_string(temp));
             $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($4->sz));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
