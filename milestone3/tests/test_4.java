@@ -1,18 +1,44 @@
-public class SyntaxCheck {
-    static void demo(long val) {
-        int x =1;
-    }
-    public static void main(String[] args) {
-        int a;
-        a = 5;
-        a++;
-        demo(a);
+// Java Program to Illustrate Methods
 
-        // float b = 3.14f; // Default to a float type
-        // demo(b);
+// Class 1
+// Helper class
+class Addition {
 
-        long val = 100L;
-        demo(val);
-    }
+	// Initially taking sum as 0
+	// as we have not started computation
+	int sum = 0;
 
+	// Method
+	// To add two numbers
+	public int addTwoInt(int a, int b)
+	{
+		int z = 1, y;
+		// Adding two integer value
+		y = a + b;
+
+		// Returning summation of two values
+		return y;
+	}
+}
+
+// Class 2
+// Helper class
+class test_4 {
+
+	// Main driver method
+	public static void main(String[] args)
+	{
+
+		// Creating object of class 1 inside main() method
+		Addition add = new Addition();
+
+		// Calling method of above class
+		// to add two integer
+		// using instance created
+
+		int s = add.addTwoInt(41, 42);
+
+		// Printing the sum of two numbers
+		System.println(s);
+	}
 }

@@ -10,7 +10,6 @@ class test_13 {
 	public static void main(String args[])
 	{
 		int n = 9;
-		n = fib(n);
-		System.println(n);
+		System.println(fib(n));
 	}
 }

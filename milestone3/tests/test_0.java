@@ -8,12 +8,13 @@ class Addition {
     static int a[][] = new int[10][9];
     char y;
     int z;
-    // // Method
-    // // To add two numbers
-    // static public Addition(int x, int y){
-    //     x = this.a[2][6];
-    //     // this.a[2][3] = x;
-    // }
+    // Method
+    // To add two numbers
+    static public Addition(int x, int y){
+        //x = this.a[2][6];
+        this.a[2][3] = x;
+    }
+
     int addTwoInt(int a, int b)
     {
  
@@ -36,18 +37,18 @@ class test_0 {
     {
  
         // Creating object of class 1 inside main() method
-        Addition add = new Addition();
+        Addition add = new Addition(5,6);
         add.a[0][0] = 1;
         //add.z = add.addTwoInt(1,5);
         // Calling method of above class
         // to add two integer
         // // using instance created
-        int s = add.a[0][0];
+        int s = add.a[2][3];
         //add.z = s;
         //s = add.a[0][0];
         //String a = "Hello world";
         //int x, z[];
         // Printing the sum of two numbers
-        System.println(s);
+        System.println(s);   // output = 5;
     }
 } 

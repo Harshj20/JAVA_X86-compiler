@@ -1,0 +1,94 @@
+main:
+	push %rbp
+	%rbp = %rsp
+#MakingFunctionCall
+	t0 = 0
+	t1 = allocate t0
+#MakingFunctionCall
+	push t1
+	call test_10.ctor
+	%rsp = %rsp + 8
+[%rbp+16] = %rax
+#MakingFunctionCall
+	push [%rbp+16]
+	call main.2
+	%rsp = %rsp + 8
+	%rsp = %rbp
+	pop %rbp
+	ret
+
+main.2:
+	push	%rbp
+	%rbp = %rsp
+	push 0
+	[%rbp-8] = 15
+L8:
+	t0 = 1
+	if t0 goto L-4
+	goto L-1
+L-4:
+	t1 = 10 < 12
+	if t1 goto L-2
+	[%rbp-8] = 7
+	push 0
+	[%rbp-16] = 10
+	%rsp = %rsp + 8
+	goto L8
+	%rsp = %rsp + 8
+	goto L-3
+L-2:
+	[%rbp-8] = 67
+	push 0
+	[%rbp-16] = 10
+	%rsp = %rsp + 8
+	goto L-1
+	%rsp = %rsp + 8
+L-3:
+	goto L8
+L-1:
+#MakingFunctionCall
+	push [%rbp-8]
+	push 0
+	call System.println
+	%rsp = %rsp + 16
+L11:
+	t0 = 1
+	if t0 goto L-8
+	goto L-5
+L-8:
+	t1 = 10 > 12
+	if t1 goto L-6
+	[%rbp-8] = 7
+	push 0
+	[%rbp-16] = 10
+	%rsp = %rsp + 8
+	goto L-5
+	%rsp = %rsp + 8
+	goto L-7
+L-6:
+	[%rbp-8] = 67
+	push 0
+	[%rbp-16] = 10
+	%rsp = %rsp + 8
+	goto L11
+	%rsp = %rsp + 8
+L-7:
+	goto L11
+L-5:
+#MakingFunctionCall
+	push [%rbp-8]
+	push 0
+	call System.println
+	%rsp = %rsp + 16
+	%rax = 1
+	%rsp = %rbp
+	popq	%rbp
+	ret
+
+test_10.ctor:
+	push	%rbp
+	%rbp = %rsp
+	%rax = [%rbp+16]
+	%rsp = %rbp
+	popq	%rbp
+	ret

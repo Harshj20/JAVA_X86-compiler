@@ -1,19 +1,14 @@
-//import java.io.*;
-class Geek {
-	// data members of the class.
-	String name;
-	int id;
-	Geek(String name, int id)
-	{
-		this.name = name;
-		this.id = id;
-	}
-}
-class GFG {
-	public static void main(String[] args)
-	{
-		// This would invoke the parameterized constructor.
-		Geek geek1 = new Geek("Akhil",2);
-		System.out.println("GeekName :" + geek1.name + " and GeekId :" + geek1.id);
-	}
+public class test_7 {
+    
+    static int f = 0;
+    public static void main(String[] args) {
+        
+        int a = (2 > 3) ? 0 : ( (5 > 6) ? 9 : 10 );
+        System.println(a);
+        
+        a = 5;
+        int b = a++;
+        System.println(a);
+        System.println(b);
+    }
 }

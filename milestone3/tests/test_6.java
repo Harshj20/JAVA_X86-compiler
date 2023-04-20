@@ -1,46 +1,24 @@
-// Java Program to Illustrate Methods
 
-// Importing required classes
-//import java.io.*;
-
-// Class 1
-// Helper class
-class Addition {
-
-	// Initially taking sum as 0
-	// as we have not started computation
-	int sum = 0;
-
-	// Method
-	// To add two numbers
-	public int addTwoInt(int a, int b)
-	{
-		int z = 1,y;
-		// Adding two integer value
-		y = a + b;
-
-		// Returning summation of two values
-		return y;
-	}
+// Base or Super Class
+class Employee {
+	int salary = 60000;
 }
 
-// Class 2
-// Helper class
-class GFG {
+// Inherited or Sub Class
+class Engineer extends Employee {
+	int benefits = 10000;
+}
 
-	// Main driver method
-	public static void main(String[] args)
+// Driver Class
+class test_6 {
+	public static void main(String args[])
 	{
-
-		// Creating object of class 1 inside main() method
-		Addition add = new Addition();
-		// Calling method of above class
-		// to add two integer
-		// using instance created
-		int s = add.addTwoInt(1, 2);
-
-		// Printing the sum of two numbers
-		System.out.println("Sum of two integer values :" 
-		+ s);
+		Engineer E1 = new Engineer();
+        int x = E1.salary;
+		System.println(x);
 	}
 }
+// Java program to illustrate the
+// concept of inheritance
+
+
