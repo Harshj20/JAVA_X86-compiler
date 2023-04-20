@@ -1321,6 +1321,7 @@ MethodDeclarator : Identifier S_open_paren FormalParameterList s_close_paren
             $$->threeACCode.push_back("\t%rbp = %rsp");
             $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = " + to_string(symTables[1].entries[entryClass][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter++) + " = allocate t" + to_string(tcounter-1));
+            $$->threeACCode.push_back("#MakingFunctionCall");
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter-1));
             $$->threeACCode.push_back("\tcall main.2");
             $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
@@ -3757,6 +3758,7 @@ ClassInstanceCreationExpression : k_new ClassType S_open_paren_c s_close_paren
         if(islocal){
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->threeACCode.push_back("#MakingFunctionCall");
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
             // $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tcall " + reftype + ".ctor");
@@ -3806,6 +3808,7 @@ ClassInstanceCreationExpression : k_new ClassType S_open_paren_c s_close_paren
             // $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
+            $$->threeACCode.push_back("#MakingFunctionCall");
             $$->threeACCode.insert($$->threeACCode.end(), $4->threeACCode.begin(), $4->threeACCode.end());
             $4->threeACCode.clear();
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
@@ -4116,6 +4119,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
         $$->type = (*a)[0].type;
         $$->sz = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
+        $$->threeACCode.push_back("#MakingFunctionCall");
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
@@ -4158,6 +4162,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
         }
         vt.clear();
         vfs.clear();
+        $$->threeACCode.push_back("#MakingFunctionCall");
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
@@ -4199,6 +4204,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
         $$->sz = (*a)[0].size;
         $$->field = "t" + to_string(tcounter++);
         string s($3);
+        $$->threeACCode.push_back("#MakingFunctionCall");
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
             $$->threeACCode.push_back("\tpush [%rbp+16]");
         else $$->threeACCode.push_back("\tpush " + $1->field);
@@ -4246,8 +4252,9 @@ MethodInvocation : Name S_open_paren_c s_close_paren
         }
         vt.clear();
         vfs.clear();
-        $5->threeACCode.clear();
+        $$->threeACCode.push_back("#MakingFunctionCall");
         $$->threeACCode.insert($$->threeACCode.end(), $5->threeACCode.begin(), $5->threeACCode.end());
+        $5->threeACCode.clear();
         string s($3);
         if(symTables[$1->symid].grand_lookup(returnFunctionName))
             $$->threeACCode.push_back("\tpush [%rbp+16]");

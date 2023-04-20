@@ -3,8 +3,10 @@
 using namespace std;
 map <string, string> reg_map;
 
-set<string> reg_set = {"%r8", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
-bool isr9 = false;
+set<string> reg_set = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+set<string> used_reg = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+
+bool isfunction = false;
 
 string ebp_offset_to_string(const string &s) {
     int offset = std::stoi(s.substr(5, s.size() - 6)); // extract the integer value from the string
@@ -97,7 +99,7 @@ void generate_quadraple(vector<string> &threeAC){
                 words.push_back("$" + word);
             else if(word[0] == 'L' && word[1] == '-'){
                 word[1] = '.';
-                words.push_back(word);
+            words.push_back(word);
             }
             // else if(word[0] == '(' && reg_map[word].find("%rbp") != string::npos){
             //     fout << "\tmovq\t" << reg_map[word] << ", " << *(reg_set.begin()) << endl;
@@ -107,6 +109,10 @@ void generate_quadraple(vector<string> &threeAC){
             else
                 words.push_back(word);
         }
+
+        // -----------------------------  Reg Alloc for size = 1 -----------------------------
+
+        
 
         // -----------------------------  Reg Alloc for size = 2 -----------------------------
 
@@ -119,6 +125,9 @@ void generate_quadraple(vector<string> &threeAC){
                         reg_set.insert(reg_map[extract(words[1])]);
                     words[1] = updatetemp(true, words[1]);
                 }
+            }
+            else if(words[0] == "call"){
+                isfunction = true;
             }
         }
         
@@ -183,14 +192,14 @@ void generate_quadraple(vector<string> &threeAC){
                 if(!isMemRem(words[0])){
                     //if(isMemRem(words[2])) // t1 = (%rbp){
                         if(reg_map.find(extract(words[0])) == reg_map.end()){  
-                            if(words[2] == "%rax" && !isr9){
-                                reg_map[extract(words[0])] = "%r9";
-                                isr9 = true;
-                            }
-                            else{
+                            // if(words[2] == "%rax" && !isr9){
+                            //     reg_map[extract(words[0])] = "%r9";
+                            //     isr9 = true;
+                            // }
+                            // else{
                                 reg_map[extract(words[0])] = *(reg_set.begin());
                                 reg_set.erase(reg_set.begin());
-                            }
+                            // }
                         }
                     //}
                     // else{  // t1 = $1
@@ -277,6 +286,17 @@ void generate_quadraple(vector<string> &threeAC){
                 }
                 else if (words[2] == "%rsp"){
                     // rsp = rsp - constant
+                    if(isfunction){
+                        fout << "\taddq\t" << words[4] << ", " << words[2] << endl;
+                        cout<<used_reg.size()<<endl;
+                        for(auto i = used_reg.rbegin(); i != used_reg.rend(); i++){
+                            fout<<"\tpopq "<<*i<<endl;
+                        }
+                        used_reg = {"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"};
+                        isfunction = false;
+                        continue;
+                    }
+
                 }
                 else{
                     fout << "\tmovq\t" << words[2] << ", " << *(reg_set.begin()) << endl;
@@ -523,7 +543,15 @@ void generate_quadraple(vector<string> &threeAC){
         else if (words.size() == 1){
             if(words[0] == "ret")
                 fout<< "\t" << words[0]<<endl;
-            else
+            else if(words[0] == "#MakingFunctionCall"){
+                cout<<"detected"<<endl;
+                for(auto i : reg_set)
+                    used_reg.erase(i);
+                for(auto i : used_reg)
+                    fout << "\tpushq\t" << i << endl;
+                cout<<used_reg.size()<<endl;
+            }
+            else 
                 fout << words[0] << endl;
         }
         else{

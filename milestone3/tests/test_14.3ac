@@ -116,6 +116,7 @@ L-2:
 	goto L12
 L-1:
 	%rsp = %rsp + 16
+#MakingFunctionCall
 	push [%rbp-16]
 	push 0
 	call System.println
