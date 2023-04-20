@@ -252,8 +252,14 @@ void generate_quadraple(vector<string> &threeAC){
         
         else if(words.size() == 4){
             if(istemp(words[0])){
-                reg_map[extract(words[0])] = reg_map[extract(words[3])];
-                words[3] = updatetemp(true, words[3]);
+                if(istemp(words[3])){
+                    reg_map[extract(words[0])] = reg_map[extract(words[3])];
+                    words[3] = updatetemp(true, words[3]);
+                }
+                else{
+                    reg_map[extract(words[0])] = *(reg_set.begin());
+                    reg_set.erase(reg_set.begin());
+                }
             }
         }
         
@@ -346,6 +352,15 @@ void generate_quadraple(vector<string> &threeAC){
                 fout << "\tmovq\t" << words[3] << ", %rdi" << endl;
                 fout << "\tcall\tmalloc@PLT" << endl;
                 fout << "\tmovq\t%rax, " << words[0] << endl;
+            }
+            else if(words[3][0] == '~'){
+                if(!isReg(words[3])){
+                    fout << "\tmovq\t" << words[3] << ", %rcx" << endl;
+                    words[3] = "%rcx";
+                }
+                fout << "\tnotq\t" << words[3] << endl;
+                if(words[3] != words[0])
+                fout << "\tmovq\t" << words[3] << ", " << words[0] << endl;
             }
         }
 
@@ -538,7 +553,52 @@ void generate_quadraple(vector<string> &threeAC){
                 if(words[4] != words[0])
                 fout << "\tmovq\t" << words[4] << ", " << words[0] << endl;
             }
+           
+            else if(words[3] == ">>"){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tmovq\t" << words[4] << ", %rcx" << endl;
+                fout << "\tsarq\t" << "%cl, " << words[2] << endl;
+                if(words[2] != words[0])
+                fout << "\tmovq\t" << words[2] << ", " << words[0] << endl;
+            }
 
+            else if(words[3] == "<<"){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tmovq\t" << words[4] << ", %rcx" << endl;
+                fout << "\tsalq\t" << "%cl, " << words[2] << endl;
+                if(words[2] != words[0])
+                fout << "\tmovq\t" << words[2] << ", " << words[0] << endl;
+            }
+
+            else if(words[3] == ">>>"){
+                if(!isReg(words[2])){
+                    fout << "\tmovq\t" << words[2] << ", %rcx" << endl;
+                    words[2] = "%rcx";
+                }
+                if(!isReg(words[4])){
+                    fout << "\tmovq\t" << words[4] << ", %rdx" << endl;
+                    words[4] = "%rdx";
+                }
+                fout << "\tmovq\t" << words[4] << ", %rcx" << endl;
+                fout << "\tshrq\t" << "%cl, " << words[2] << endl;
+                if(words[2] != words[0])
+                fout << "\tmovq\t" << words[2] << ", " << words[0] << endl;
+            }
+            
         }
         else if(words.size() == 2){
             fout << "\t" << words[0] << "\t" << words[1] << endl;

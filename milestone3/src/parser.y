@@ -4615,7 +4615,7 @@ UnaryExpressionNotPlusMinus : PostFixExpression
         $$->field = "t" + to_string(tcounter++);
         $$->threeACCode.insert($$->threeACCode.end(), $2->threeACCode.begin(), $2->threeACCode.end());
         $2->threeACCode.clear();
-        $$->threeACCode.push_back("\t" + $$->field + " = " + "~ " + $2->field);
+        $$->threeACCode.push_back("\t" + $$->field + " = ~ " + $2->field);
     }
     $$->children.push_back(new Node("~", "Separator", yylineno));
     $$->children.push_back($2);
