@@ -41,6 +41,7 @@ string old_field = "";
 string entryClass = "";
 bool isMain = false;
 bool flag_verbose = false;
+bool isAssign = false;
 void yyerror(const char *s)
 {
     if (flag_verbose)
@@ -87,7 +88,7 @@ TYPE widen(TYPE a, TYPE b);
 
 %type<node> Program CompilationUnit ImportDeclarations ImportDeclaration TypeDeclarations TypeDeclaration ClassDeclaration NormalClassDeclaration ClassBody PackageDeclaration Type PrimitiveType ReferenceType NumericType IntegralType FloatingPointType ClassOrInterfaceType ClassType InterfaceType ArrayType Name SimpleName QualifiedName ClassBodyDeclaration ClassMemberDeclaration FieldDeclaration MethodDeclaration MethodHeader MethodDeclarator FormalParameterList FormalParameter VariableDeclarator VariableDeclaratorId VariableInitializer ArrayInitializer Block BlockStatements BlockStatement LocalVariableDeclarationStatement LocalVariableDeclaration Statement StatementWithoutTrailingSubstatement StatementExpression IfThenStatement IfThenElseStatement WhileStatement ForStatement ReturnStatement Expression Assignment ConditionalExpression ConditionalOrExpression ConditionalAndExpression InclusiveOrExpression ExclusiveOrExpression AndExpression EqualityExpression RelationalExpression ShiftExpression AdditiveExpression MultiplicativeExpression UnaryExpression UnaryExpressionNotPlusMinus PostIncrementExpression PostDecrementExpression Primary PrimaryNoNewArray ArrayAccess FieldAccess MethodInvocation SingleTypeImportDeclaration TypeImportOnDemandDeclaration Modifiers Modifier Super Interfaces InterfaceTypeList ClassTypeList ClassBodyDeclarations VariableDeclaratorList VariableInitializerList Throws MethodBody StaticInitializer ConstructorDeclaration ConstructorDeclarator ConstructorBody ExplicitConstructorInvocation EnumDeclaration ClassImplements EnumBody EnumConstantList EnumBodyDeclarations
 InterfaceDeclaration  InterfaceBody InterfaceMemberDeclaration ConstantDeclaration ExtendsInterfaces InterfaceMemberDeclarations 
-AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super if_invoke_paren invoke_else
+AbstractMethodDeclaration StatementNoShortIf EmptyStatement ExpressionStatement BreakStatement ContinueStatement  ForStatementNoShortIf IfThenElseStatementNoShortIf LabeledStatement  ThrowStatement SynchronizedStatement TryStatement  WhileStatementNoShortIf LocalVariableType LabeledStatementNoShortIf ForInit ForUpdate StatementExpressionList Catches CatchClause Finally ClassInstanceCreationExpression ArrayCreationExpression ArgumentList DimExprs DimExpr Dims PostFixExpression PreIncrementExpression PreDecrementExpression CastExpression AssignmentOperator AssignmentExpression LeftHandSide BasicForStatement EnhancedForStatement BasicForStatementNoShortIf EnhancedForStatementNoShortIf EnumConstant key_class key_class_super if_invoke_paren invoke_else AssignOperator
 
 %%
     // ------------------ Start -----------------------
@@ -976,7 +977,7 @@ VariableDeclarator : VariableDeclaratorId
 {
     $$ = $1;
 }
-| VariableDeclaratorId o_assign VariableInitializer
+| VariableDeclaratorId AssignOperator VariableInitializer
 {   
     if (!isDot)
     {
@@ -1029,6 +1030,7 @@ VariableDeclarator : VariableDeclaratorId
         
         $3->arrdims.clear();
         vs.clear();
+        isAssign = false;
     }
     else
     {
@@ -3736,7 +3738,7 @@ PrimaryNoNewArray : int_Literal
 }
 | ArrayAccess { $$ = $1;};
 
-ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
+ClassInstanceCreationExpression : k_new ClassType S_open_paren_c s_close_paren
 {
     $$ = new Node("ClassInstanceCreationExpression");
     $$->children.push_back(new Node("new", "Keyword", yylineno));
@@ -3761,9 +3763,10 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
+        isAssign = false;
     }
 }
-| k_new ClassType s_open_paren ArgumentList s_close_paren
+| k_new ClassType S_open_paren_c ArgumentList s_close_paren
 {
     $$ = new Node("ClassInstanceCreationExpression");
     $$->type = $2->type;
@@ -3811,6 +3814,7 @@ ClassInstanceCreationExpression : k_new ClassType s_open_paren s_close_paren
             $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string($4->sz + offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
+        isAssign = false;
     }
 };
 
@@ -4088,7 +4092,13 @@ FieldAccess : Primary s_dot Identifier
     $$->children.push_back(new Node($3, "Identifier", yylineno));
 };
 
-MethodInvocation : Name s_open_paren s_close_paren
+S_open_paren_c : s_open_paren{
+    if(!isDot){
+        isAssign = true;
+    }
+}
+
+MethodInvocation : Name S_open_paren_c s_close_paren
 {
     $$ = new Node("MethodInvocation");
     $$->children.push_back($1);
@@ -4116,9 +4126,10 @@ MethodInvocation : Name s_open_paren s_close_paren
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
+        isAssign = false;
     }
 }
-| Name s_open_paren ArgumentList s_close_paren
+| Name S_open_paren_c ArgumentList s_close_paren
 {
     $$ = new Node("MethodInvocation");
     $$->children.push_back($1);
@@ -4159,9 +4170,10 @@ MethodInvocation : Name s_open_paren s_close_paren
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
         $3->threeACCode.clear();
+        isAssign = false;
     }
 }
-| Primary s_dot Identifier s_open_paren s_close_paren
+| Primary s_dot Identifier S_open_paren_c s_close_paren
 {
     $$ = new Node("MethodInvocation");
     $$->children.push_back($1);
@@ -4195,9 +4207,10 @@ MethodInvocation : Name s_open_paren s_close_paren
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
+        isAssign = false;
     }
 }
-| Primary s_dot Identifier s_open_paren ArgumentList s_close_paren
+| Primary s_dot Identifier S_open_paren_c ArgumentList s_close_paren
 {
     $$ = new Node("MethodInvocation");
     $$->children.push_back($1);
@@ -4244,6 +4257,7 @@ MethodInvocation : Name s_open_paren s_close_paren
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
+        isAssign = false;
     }
 }
 | k_super s_dot Identifier s_open_paren s_close_paren
@@ -4409,6 +4423,7 @@ PostIncrementExpression : PostFixExpression o_increment
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
+        if(isAssign)
         $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
         $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " + 1");
     }
@@ -4440,7 +4455,8 @@ PostDecrementExpression : PostFixExpression o_decrement
         $$->threeACCode.insert($$->threeACCode.end(), $1->threeACCode.begin(), $1->threeACCode.end());
         $1->threeACCode.clear();
         $$->field = "t" + to_string(tcounter++);
-        $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
+        if(isAssign)
+            $$->threeACCode.push_back("\t" + $$->field + " = " + $1->field);
         $$->threeACCode.push_back("\t" + $1->field + " = " + $1->field + " - 1");
     }
     $$->children.push_back($1);
@@ -5521,6 +5537,7 @@ Assignment : LeftHandSide AssignmentOperator Expression
         $$->sz = $1->sz;
         $3->arrdims.clear();
         $1->arrdims.clear();
+        isAssign = false;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -5540,65 +5557,82 @@ LeftHandSide : Name
     $$ = $1;
 };
 
-AssignmentOperator : o_assign
+AssignOperator : o_assign
 {
     $$ = new Node("=", "Separator", yylineno);
     $$->field = "=";
+    isAssign = true;
+}
+
+AssignmentOperator : AssignOperator
+{
+    $$ = $1;
 }
 | o_add_assign
 {
     $$ = new Node("+=", "Separator", yylineno);
     $$->field = "+=";
+    isAssign = true;
 }
 | o_subtract_assign
 {
     $$ = new Node("-=", "Separator", yylineno);
     $$->field = "-=";
+    isAssign = true;
 }
 | o_multiply_assign
 {
     $$ = new Node("*=", "Separator", yylineno);
     $$->field = "*=";
+    isAssign = true;
 }
 | o_divide_assign
 {
     $$ = new Node("/=", "Separator", yylineno);
     $$->field = "/=";
+    isAssign = true;
 }
 | o_modulo_assign
 {
     $$ = new Node("%=", "Separator", yylineno);
     $$->field = "%=";
+    isAssign = true;
 }
 | o_left_shift_assign
 {
     $$ = new Node("<<=", "Separator", yylineno);
     $$->field = "<<=";
+    isAssign = true;
 }
 | o_right_shift_assign
 {
     $$ = new Node(">>=", "Separator", yylineno);
     $$->field = ">>=";
+    isAssign = true;
 }
 | o_unsigned_right_shift_assign
 {
     $$ = new Node(">>>=", "Separator", yylineno);
     $$->field = ">>>=";
+    isAssign = true;
 }
 | o_bitwise_and_assign
 {
     $$ = new Node("&=", "Separator", yylineno);
     $$->field = "&=";
+    isAssign = true;
 }
 | o_bitwise_or_assign
 {
     $$ = new Node("|=", "Separator", yylineno);
     $$->field = "|=";
+    isAssign = true;
 }
 | o_bitwise_xor_assign
 {
     $$ = new Node("^=", "Separator", yylineno);
     $$->field = "^=";
+    isAssign = true;
 };
 
 Expression : AssignmentExpression
