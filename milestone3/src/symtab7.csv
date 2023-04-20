@@ -1,0 +1,2 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+a,Identifier,int,0,0,4,24

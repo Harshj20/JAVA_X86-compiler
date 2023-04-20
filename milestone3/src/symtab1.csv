@@ -1,0 +1,5 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+Add,Identifier,class,0,0,1,16
+PrintStream,Identifier,class,0,0,1,0
+System,Identifier,class,0,0,7,8
+test_14,Identifier,class,0,0,15,0

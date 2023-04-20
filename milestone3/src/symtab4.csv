@@ -1,0 +1,3 @@
+Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset
+out,Identifier,object,0,0,8,0
+println,Identifier,void,0,1,9,0

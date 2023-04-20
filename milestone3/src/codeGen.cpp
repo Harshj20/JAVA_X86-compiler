@@ -307,6 +307,7 @@ void generate_quadraple(vector<string> &threeAC){
                 }
             }
         }
+        cout<<reg_set.size() << " "
         for(int i = 0; i < words.size(); i++){
             if(reg_map.find(extract(words[i])) != reg_map.end())
                 words[i] = updatetemp(false, words[i]);
