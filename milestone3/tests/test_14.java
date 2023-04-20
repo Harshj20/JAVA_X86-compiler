@@ -5,15 +5,13 @@ public class Add {
         return a+b;
     }
     Add(int a, int b){
-        a = 0;
-        b = 0;
+        this.x = a + b;
     }
 }
 
 class test_14{
     public static void main(String[] args){
-        Add a = new Add(1, 2);
-        a.x = a.add(1, 2);
+        Add a = new Add(10, 20);
         // a.x = 1;
         int x = a.x + 1;
         System.println(x);

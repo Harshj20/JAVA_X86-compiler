@@ -3672,7 +3672,7 @@ PrimaryNoNewArray : int_Literal
             x = symTables[x].parentID;
         }
         $$->symid = symTables[x].parentID;
-        $$->field = "this";
+        $$->field = "[%rbp+16]";
     }
 }
 | Text_Block_Literal 
