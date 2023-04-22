@@ -4188,7 +4188,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
             $$->threeACCode.push_back("\tpush [%rbp+16]");
         else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
-        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
@@ -4271,7 +4271,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
             $$->threeACCode.push_back("\tpush [%rbp+16]");
         else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
-        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
