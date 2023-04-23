@@ -1562,6 +1562,7 @@ ConstructorDeclaration :
         $3->threeACCode.clear();
         localoffset = 0;
         isstatic = 0;
+        t = VOID;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
