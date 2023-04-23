@@ -290,7 +290,7 @@ SimpleName : Identifier
             yyerror(s1.c_str());
             exit(0);
         }
-        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty())
+        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty() && symTables[t1].name = lex)
         {
             string s1 = "Non-static variable " + lex + " cannot be referenced from a static context";
             yyerror(s1.c_str());
@@ -1561,6 +1561,7 @@ ConstructorDeclaration :
         $3->threeACCode.clear();
         localoffset = 0;
         isstatic = 0;
+        t = VOID;
     }
     $$->children.push_back($1);
     $$->children.push_back($2);
@@ -4188,7 +4189,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
             $$->threeACCode.push_back("\tpush [%rbp+16]");
         else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + symTables[$1->symid].name + "." + $1->id);
-        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
@@ -4271,7 +4272,7 @@ MethodInvocation : Name S_open_paren_c s_close_paren
             $$->threeACCode.push_back("\tpush [%rbp+16]");
         else $$->threeACCode.push_back("\tpush " + $1->field);
         $$->threeACCode.push_back("\tcall " + $1->id + "." + s);
-        $$->threeACCode.push_back("\t%rsp = rsp + " + to_string(offsetVal[OBJECT]));
+        $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
         if ($$->type != VOID){
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
         }
