@@ -291,7 +291,7 @@ SimpleName : Identifier
             yyerror(s1.c_str());
             exit(0);
         }
-        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty())
+        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty() && symTables[t1].name != lex)
         {
             string s1 = "Non-static variable " + lex + " cannot be referenced from a static context";
             yyerror(s1.c_str());
