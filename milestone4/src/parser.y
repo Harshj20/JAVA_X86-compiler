@@ -911,6 +911,7 @@ ClassBodyDeclaration : ClassMemberDeclaration
         fsize = 0;
         isPrivate.clear();
         islocal = false;
+        t = VOID;
     }
 }
 
