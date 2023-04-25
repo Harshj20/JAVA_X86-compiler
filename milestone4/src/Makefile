@@ -25,7 +25,7 @@ $(OBJECT): $(LEXER) $(PARSER)
 
 # Clean rule
 clean:
-	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt *.3ac *.s *.o code ../symTables/*.csv ../tests/*.3ac
+	rm -f $(OBJECT) *.dot *.csv *.ps *.svg *.txt *.3ac *.s *.o code 
 run:
 	gcc -c code.s -o code.o
 	gcc code.o -o code

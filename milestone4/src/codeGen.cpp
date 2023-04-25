@@ -56,10 +56,10 @@ string updatetemp(bool del, const string &s) {
     return ret;
 }
 
-void generate_quadraple(vector<string> &threeAC){
+void generate_quadraple(vector<string> &threeAC, string filename){
 
     ofstream fout;
-    fout.open("code.s");
+    fout.open(filename);
 
     //--------------------------- Support println -----------------------------
 

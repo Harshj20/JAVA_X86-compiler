@@ -3,5 +3,5 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-void generate_quadraple(vector<string> &threeAC);
+void generate_quadraple(vector<string> &threeAC, string filename);
 #endif

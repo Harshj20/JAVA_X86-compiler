@@ -290,7 +290,7 @@ SimpleName : Identifier
             yyerror(s1.c_str());
             exit(0);
         }
-        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty() && symTables[t1].name = lex)
+        if (islocal && isstatic && !symTables[t1].entries[lex][0].isStatic && !symTables[t1].name.empty() && symTables[t1].name != lex)
         {
             string s1 = "Non-static variable " + lex + " cannot be referenced from a static context";
             yyerror(s1.c_str());
@@ -3823,7 +3823,6 @@ ClassInstanceCreationExpression : k_new ClassType S_open_paren_c s_close_paren
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
             $$->threeACCode.push_back("#MakingFunctionCall");
             $$->threeACCode.push_back("\tpush t" + to_string(tcounter));
-            // $$->field = "t" + to_string(tcounter++);
             $$->threeACCode.push_back("\tcall " + reftype + ".ctor");
             $$->threeACCode.push_back("\t%rsp = %rsp + " + to_string(offsetVal[OBJECT]));
             $$->threeACCode.push_back("\t" + $$->field + " = %rax");
@@ -3868,7 +3867,6 @@ ClassInstanceCreationExpression : k_new ClassType S_open_paren_c s_close_paren
         $$->field = "t" + to_string(tcounter++);
         $$->type = OBJECT;
         if(islocal){
-            // $$->threeACCode.push_back("ClassInstanceCreation :" );
             $$->threeACCode.push_back("\t" + $$->field + " = " + to_string(symTables[1].entries[reftype][0].offset));
             $$->threeACCode.push_back("\tt" + to_string(tcounter) + " = allocate " + $$->field);
             $$->threeACCode.push_back("#MakingFunctionCall");
@@ -3933,7 +3931,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         $3->arrdims.clear();
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
-            // $$->threeACCode.push_back("ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
             $$->threeACCode.push_back("\t" + $$->field + " = " + $3->field + " * " + to_string(offsetVal[t]));
@@ -4001,7 +3998,6 @@ ArrayCreationExpression : k_new PrimitiveType DimExprs
         $$->type = $2->type;
         $$->field = "t" + to_string(tcounter++);
         if(islocal){
-            // $$->threeACCode.push_back("ArrayDeclaration :" );
             $$->threeACCode.insert($$->threeACCode.end(), $3->threeACCode.begin(), $3->threeACCode.end());
             $3->threeACCode.clear();
             $$->threeACCode.push_back("\t" + $$->field + " = allocate " + $3->field);
@@ -5740,7 +5736,7 @@ void print_dot(const char *filename)
 void symTab_csv(symtab *a)
 {
     ofstream fout;
-    string s = "../symTables/symtab" + to_string(a->ID) + ".csv";
+    string s = "../output/" + entryClass + "/symtab" + to_string(a->ID) + ".csv";
     fout.open(s);
     fout << "Lexeme,Tokens,ReturnType,ReturnDimensions,NumberofArguments,LineNo,Offset" << endl;
     for (auto i = a->entries.begin(); i != a->entries.end(); i++)
@@ -5761,13 +5757,11 @@ void generate_3AC(string filename)
     }
 }
 
-void check_semantics(string filename, bool make)
+void check_semantics(string filename)
 {
-    if(make){
-        for (auto i = symTables.begin(); i != symTables.end(); i++)
-        {
-            symTab_csv(&i->second);
-        }
+    for (auto i = symTables.begin(); i != symTables.end(); i++)
+    {
+        symTab_csv(&i->second);
     }
     generate_3AC(filename);
     if(!isMain){
@@ -5789,7 +5783,7 @@ int main(int argc, char **argv)
     bool flag_help = false;
     int t1 = 1;
     bool only3ac = false;
-    bool issymtables = false;
+    bool issymtables = true;
 
     for (int i = 1; i < argc; i++)
     {
@@ -5829,12 +5823,6 @@ int main(int argc, char **argv)
         else if (arg.find("--3ac") == 0)
         {
             only3ac = true;
-            t1++;
-            continue;
-        }
-        else if (arg.find("--symtab") == 0)
-        {
-            issymtables = true;
             t1++;
             continue;
         }
@@ -5904,14 +5892,17 @@ int main(int argc, char **argv)
         }
         else
         {   
+            string lex;
             if(output_index){
-                check_semantics(argv[output_index], issymtables);
+                lex = argv[output_index];
+                check_semantics("../output/" + lex + "/" + lex + ".3ac");
             }
             else{
-                check_semantics("../tests/" + entryClass + ".3ac", issymtables);
+                lex = entryClass;
+                check_semantics("../output/" + entryClass + "/" + entryClass + ".3ac");
             }
             if(!only3ac)
-                generate_quadraple(threeAC);
+                generate_quadraple(threeAC, "../output/" + lex + "/" + lex + ".s");
         }
     }
     else
